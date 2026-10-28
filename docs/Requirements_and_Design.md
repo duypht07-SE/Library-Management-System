@@ -1,4 +1,6 @@
+
 # Software Requirements Specification and Design Document
+
 **Project Name:** Library Management System (LMS)
 
 ## 1. Functional Requirements
@@ -99,19 +101,25 @@ The Library Management System (LMS) supports the main operations of a library: m
 | BR-04 | Reservations for the same book are served in FIFO order. |
 
 ## 2. Non-Functional Requirements
+
 *(To be updated)*
 
 ## 3. Data Flow Diagram
+
 *(To be updated)*
 
 ## 4. Use Case Diagram
+
 *(To be updated)*
 
 ## 5. Class Diagram
+
 *(To be updated)*
 
 ## 6. Data Model
+
 *(To be updated)*
 
 ## 7. Interface Design Description
+
 *(To be updated)*
