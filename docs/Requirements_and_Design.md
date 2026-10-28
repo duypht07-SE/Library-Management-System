@@ -91,6 +91,8 @@ The following business rules are proposed for the project and have not yet been 
 
 The project team shall confirm these rules with the instructor before treating them as final requirements. If any rule is not approved, the corresponding requirement and its related diagrams, database design, and test cases shall be updated accordingly.
 
+Closes #1
+
 ## 2. Non-Functional Requirements
 *(To be updated)*
 
