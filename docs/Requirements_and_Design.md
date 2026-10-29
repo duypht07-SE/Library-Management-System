@@ -182,7 +182,7 @@ The Context Diagram defines the system boundary of the Library Management System
 
 #### Context Diagram
 
-![Context Diagram (Level 0 DFD)](diagrams/DFD-Level-0.png)
+![Context Diagram (Level 0 DFD)](Library-Mângement-System/diagrams/DFD-Level-0.png)
 
 <details>
 <summary>View Mermaid Source Code (Level 0 DFD)</summary>
