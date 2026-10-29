@@ -359,7 +359,201 @@ graph TD
 
 ## 5. Class Diagram
 
-*(To be updated)*
+### 5.1 System Class Diagram (UML)
+
+The following diagram provides a structural model showing the classes in the LMS and the associations between these classes[cite: 1].
+
+```mermaid
+classDiagram
+    %% Enumerations
+    class AccountStatus {
+        <<enumeration>>
+        ACTIVE
+        LOCKED
+        PENDING
+    }
+    class CopyStatus {
+        <<enumeration>>
+        AVAILABLE
+        BORROWED
+        RESERVED
+        CANCELED
+    }
+    class HoldStatus {
+        <<enumeration>>
+        WAITING
+        READY_FOR_PICKUP
+        EXPIRED
+        COMPLETED
+    }
+    class PaymentMethod {
+        <<enumeration>>
+        COUNTER_CASH
+        ONLINE_GATEWAY
+    }
+
+    %% Base User Class
+    class User {
+        <<abstract>>
+        #userID: String
+        #fullName: String
+        #email: String
+        #phone: String
+        -passwordHash: String
+        #status: AccountStatus
+        +login(email: String, pass: String): boolean
+        +updateProfile(data: Object): boolean
+        +resetPassword(): void
+    }
+
+    %% Derived User Roles
+    class Reader {
+        -avatar: String
+        +searchBook(query: String): List~Book~
+        +reserveBook(bookID: String): boolean
+        +requestRenewal(loanID: String): boolean
+        +payFineOnline(fineID: String): boolean
+        +readEbook(bookID: String): File
+    }
+
+    class Librarian {
+        -staffID: String
+        -assignedCounter: String
+        +addBook(bookData: Object): boolean
+        +retireBook(barcode: String): boolean
+        +issueLoan(cardCode: String, barcode: String): boolean
+        +processReturn(barcode: String, condition: String): boolean
+        +recordViolation(loanID: String, reason: String): boolean
+        +manageAccount(readerID: String): void
+    }
+
+    class Administrator {
+        -adminID: String
+        +manageStaff(staffID: String): void
+        +configSystem(params: Object): void
+        +backupDatabase(): File
+        +viewAuditLogs(): List~Log~
+        +generateReports(): File
+    }
+
+    %% Library Core Classes
+    class LibraryCard {
+        -cardCode: String
+        -issueDate: Date
+        -expiryDate: Date
+        -isActive: boolean
+        +isValid(): boolean
+        +lockCard(): void
+    }
+
+    class Book {
+        -ISBN: String
+        -DDC: String
+        -title: String
+        -author: String
+        -category: String
+        -isEbook: boolean
+        -eContentURL: String
+        +getDetails(): Object
+        +checkAvailability(): boolean
+    }
+
+    class BookCopy {
+        -barcode: String
+        -shelfLocation: String
+        -condition: String
+        -status: CopyStatus
+        +updateStatus(newStatus: CopyStatus): void
+        +updateCondition(newCond: String): void
+    }
+
+    %% Transactional Classes
+    class LoanRecord {
+        -loanID: String
+        -issueDate: Date
+        -dueDate: Date
+        -returnDate: Date
+        -renewalCount: int
+        -returnCondition: String
+        +calculateOverdueDays(): int
+        +extendLoan(): boolean
+        +closeLoan(): void
+    }
+
+    class Reservation {
+        -holdID: String
+        -requestDate: Date
+        -expiryDate: Date
+        -status: HoldStatus
+        +cancelHold(): void
+        +fulfillHold(): void
+    }
+
+    class Fine {
+        -fineID: String
+        -reason: String
+        -amount: double
+        -issueDate: Date
+        -isPaid: boolean
+        +calculateTotal(): double
+        +markAsPaid(): void
+    }
+
+    class Payment {
+        -paymentID: String
+        -amount: double
+        -paymentDate: Date
+        -method: PaymentMethod
+        +processPayment(): boolean
+        +generateReceipt(): File
+    }
+
+    %% Relationships
+    User <|-- Reader : Generalization
+    User <|-- Librarian : Generalization
+    User <|-- Administrator : Generalization
+    
+    Reader "1" -- "0..1" LibraryCard : Owns
+    Book "1" *-- "1..*" BookCopy : Composition
+    
+    Reader "1" -- "0..*" LoanRecord : Borrows
+    BookCopy "1" -- "0..*" LoanRecord : Issued as
+    Librarian "1" -- "0..*" LoanRecord : Processes
+    
+    Reader "1" -- "0..*" Reservation : Places
+    Book "1" -- "0..*" Reservation : Reserved for
+    
+    LoanRecord "1" -- "0..*" Fine : Generates
+    Reader "1" -- "0..*" Fine : Incurs
+    
+    Fine "1..*" -- "1" Payment : Settled by
+```
+
+### 5.2 Description of Classes and Structural Relationships
+
+The structural model displays the organization of the system in terms of its components and their relationships[cite: 1]. The multiplicity in these associations dictates how many objects of each class participate in the relationship[cite: 1].
+
+**1. Authentication & User Management Subsystem**
+*   **`User` (Abstract Class):** Acts as the parent class for all system actors. It contains common protected attributes (`#`) like `email`, `phone`, and `status`, and private attributes (`-`) like `passwordHash` to satisfy security requirement `NFR-SEC-01` (hashing passwords)[cite: 1].
+*   **Inheritance (Generalization):** `Reader`, `Librarian`, and `Administrator` inherit from `User`. Generalization represents an "is-a" relationship, meaning the child classes are enhancements of the parent class[cite: 1].
+*   **`LibraryCard`:** Represents the physical or digital card. It has a `1 to 0..1` association with `Reader`, meaning a Reader can have at most one active library card.
+
+**2. Catalog & Inventory Subsystem**
+*   **`Book` (Logical Metadata):** Stores the universal catalog details (DDC, ISBN, title). If `isEbook` is true, it provides an `eContentURL` for downloading/reading online (`FR-RDR-09`).
+*   **`BookCopy` (Physical Instance):** Represents a tangible book on the shelf with a unique `barcode`. 
+*   **Composition:** A `Book` has a composition relationship (`*--`) with `BookCopy` because a physical copy cannot logically exist in the system without its parent catalog metadata. The parts (copies) are destroyed/retired when the whole (catalog entry) is removed[cite: 1].
+
+**3. Circulation & Reservation Subsystem**
+*   **`LoanRecord`:** Created when a `Librarian` scans a `Reader`'s card and a `BookCopy`'s barcode (`FR-LIB-06`). It bridges `Reader` and `BookCopy` via associations. It tracks `dueDate` and `renewalCount` to enforce business rules (`FR-RDR-05`).
+*   **`Reservation`:** Allows a `Reader` to hold a `Book` (`FR-RDR-03`). The `status` attribute uses the `HoldStatus` Enum to track if a book is pending, ready for pickup, or if the system automatically canceled it due to expiration (`FR-SYS-03`).
+
+**4. Fine & Payment Subsystem**
+*   **`Fine`:** Generated either manually by a `Librarian` for torn books (`FR-LIB-09`) or automatically by the System for overdue `LoanRecords` (`FR-SYS-01`).
+*   **`Payment`:** A single payment can settle one or multiple fines (`1..*` Fines to `1` Payment). It interfaces with external Payment Gateways (`FR-RDR-08`) or represents counter cash handled by the Librarian (`FR-LIB-10`).
+
+### 5.3 Application of Design Principles
+*   **High Cohesion and Loose Coupling:** The classes are designed so that objects represent distinct real-world entities (e.g., separating the abstract `Book` title from the physical `BookCopy` barcode)[cite: 1]. 
+*   **Encapsulation:** All attributes are marked as private (`-`) or protected (`#`), and can only be accessed or manipulated via public (`+`) methods[cite: 1]. For example, `BookCopy.status` is hidden and can only be changed securely through `updateStatus()`.
 
 ## 6. Data Model
 
