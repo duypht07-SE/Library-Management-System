@@ -361,7 +361,7 @@ graph TD
 
 ### 5.1 System Class Diagram (UML)
 
-The following diagram provides a structural model showing the classes in the LMS and the associations between these classes.
+The following diagram provides a structural model showing the classes in the Library Management System (LMS) and the associations between these classes.
 
 ```mermaid
 classDiagram
@@ -531,29 +531,25 @@ classDiagram
 
 ### 5.2 Description of Classes and Structural Relationships
 
-The structural model displays the organization of the system in terms of its components and their relationships. The multiplicity in these associations dictates how many objects of each class participate in the relationship.
+The structural model displays the organization of the system in terms of its components and their relationships. The design applies standard Object-Oriented principles, defining attributes with appropriate visibility (`+` public, `-` private, `#` protected).
 
 **1. Authentication & User Management Subsystem**
-*   **`User` (Abstract Class):** Acts as the parent class for all system actors. It contains common protected attributes (`#`) like `email`, `phone`, and `status`, and private attributes (`-`) like `passwordHash` to satisfy security requirement `NFR-SEC-01` (hashing passwords).
-*   **Inheritance (Generalization):** `Reader`, `Librarian`, and `Administrator` inherit from `User`. Generalization represents an "is-a" relationship, meaning the child classes are enhancements of the parent class.
-*   **`LibraryCard`:** Represents the physical or digital card. It has a `1 to 0..1` association with `Reader`, meaning a Reader can have at most one active library card.
+*   **`User` (Abstract Class):** Acts as the parent class for all system actors. It encapsulates common attributes like `email` and `phone`, and secures the `passwordHash` to satisfy security requirement `NFR-SEC-01`.
+*   **Generalization (Inheritance):** `Reader`, `Librarian`, and `Administrator` inherit from `User`. This represents an "is-a" relationship, meaning the child classes inherit properties and define specific role-based operations.
+*   **`LibraryCard`:** Represents the physical or digital card. It has a `1 to 0..1` association with `Reader`, ensuring a Reader can hold a maximum of one active library card.
 
 **2. Catalog & Inventory Subsystem**
 *   **`Book` (Logical Metadata):** Stores the universal catalog details (DDC, ISBN, title). If `isEbook` is true, it provides an `eContentURL` for downloading/reading online (`FR-RDR-09`).
-*   **`BookCopy` (Physical Instance):** Represents a tangible book on the shelf with a unique `barcode`. 
-*   **Composition:** A `Book` has a composition relationship (`*--`) with `BookCopy` because a physical copy cannot logically exist in the system without its parent catalog metadata. The parts (copies) are destroyed/retired when the whole (catalog entry) is removed.
+*   **`BookCopy` (Physical Instance):** Represents a tangible book on the shelf identified by a unique `barcode`. 
+*   **Composition:** A `Book` has a strong composition relationship (`*--`) with `BookCopy`. A physical copy cannot logically exist in the system without its parent catalog metadata.
 
 **3. Circulation & Reservation Subsystem**
-*   **`LoanRecord`:** Created when a `Librarian` scans a `Reader`'s card and a `BookCopy`'s barcode (`FR-LIB-06`). It bridges `Reader` and `BookCopy` via associations. It tracks `dueDate` and `renewalCount` to enforce business rules (`FR-RDR-05`).
-*   **`Reservation`:** Allows a `Reader` to hold a `Book` (`FR-RDR-03`). The `status` attribute uses the `HoldStatus` Enum to track if a book is pending, ready for pickup, or if the system automatically canceled it due to expiration (`FR-SYS-03`).
+*   **`LoanRecord`:** Created when a `Librarian` processes a borrowing transaction (`FR-LIB-06`). It bridges `Reader` and `BookCopy` via associations and tracks `dueDate` and `renewalCount` to enforce business rules (`FR-RDR-05`).
+*   **`Reservation`:** Allows a `Reader` to hold a `Book` (`FR-RDR-03`). It utilizes the `HoldStatus` enumeration to track the lifecycle of a reservation (e.g., waiting, ready, or automatically expired).
 
 **4. Fine & Payment Subsystem**
-*   **`Fine`:** Generated either manually by a `Librarian` for torn books (`FR-LIB-09`) or automatically by the System for overdue `LoanRecords` (`FR-SYS-01`).
-*   **`Payment`:** A single payment can settle one or multiple fines (`1..*` Fines to `1` Payment). It interfaces with external Payment Gateways (`FR-RDR-08`) or represents counter cash handled by the Librarian (`FR-LIB-10`).
-
-### 5.3 Application of Design Principles
-*   **High Cohesion and Loose Coupling:** The classes are designed so that objects represent distinct real-world entities (e.g., separating the abstract `Book` title from the physical `BookCopy` barcode). 
-*   **Encapsulation:** All attributes are marked as private (`-`) or protected (`#`), and can only be accessed or manipulated via public (`+`) methods. For example, `BookCopy.status` is hidden and can only be changed securely through `updateStatus()`.
+*   **`Fine`:** Generated either manually by a `Librarian` for damaged items (`FR-LIB-09`) or automatically by the System for overdue `LoanRecords` (`FR-SYS-01`).
+*   **`Payment`:** A single payment transaction can settle one or multiple fines (`1..*` Fines to `1` Payment). It interfaces with external gateways (`FR-RDR-08`) or logs counter cash transactions (`FR-LIB-10`).
 
 ## 6. Data Model
 
