@@ -181,7 +181,7 @@ The Context Diagram defines the system boundary of the Library Management System
 - **Payment Gateway**: External third-party financial service handling online fine payments.
 
 <details>
-<summary>View Mermaid Source Code (Level 0 DFD)</summary>
+<summary>View Level 0 DFD</summary>
 
 ```mermaid
 graph TD
