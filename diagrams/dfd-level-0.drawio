@@ -1,0 +1,24 @@
+
+graph TD
+    Guest["Guest"]
+    Reader["Reader"]
+    Librarian["Librarian"]
+    Admin["Administrator"]
+    PaymentGateway["Payment Gateway"]
+
+    LMS(("0.0 Library Management System (LMS)"))
+
+    Guest -->|"1. Search Criteria, Registration Info, Credentials"| LMS
+    LMS -->|"2. Search Results, Library Info, Auth Session"| Guest
+
+    Reader -->|"3. Search, Reservation Request, Renewal Request, Fine Payment"| LMS
+    LMS -->|"4. Loan History, Notifications, Fine Status, E-book Content"| Reader
+
+    Librarian -->|"5. Book Catalog Data, Barcode Scan, Violation Record"| LMS
+    LMS -->|"6. Return Status, Inventory Discrepancy Report, Receipts"| Librarian
+
+    Admin -->|"7. Staff Account Data, System Parameters, Backup Command"| LMS
+    LMS -->|"8. Statistical Reports, Audit Logs, Backup Archive"| Admin
+
+    LMS -->|"9. Payment Invoice and Amount"| PaymentGateway
+    PaymentGateway -->|"10. Transaction Confirmation and Callback"| LMS
