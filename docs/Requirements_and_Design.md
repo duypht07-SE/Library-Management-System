@@ -356,204 +356,176 @@ graph TD
 ## 4. Use Case Diagram
 
 *(To be updated)*
-
 ## 5. Class Diagram
 
-### 5.1 System Class Diagram (UML)
+### 5.1 Overview
 
-The following diagram provides a structural model showing the classes in the Library Management System (LMS) and the associations between these classes.
+This section lists the main classes of the Library Management System (LMS) along with their attributes, methods, and relationships.
 
-```mermaid
-classDiagram
-    %% Enumerations
-    class AccountStatus {
-        <<enumeration>>
-        ACTIVE
-        LOCKED
-        PENDING
-    }
-    class CopyStatus {
-        <<enumeration>>
-        AVAILABLE
-        BORROWED
-        RESERVED
-        CANCELED
-    }
-    class HoldStatus {
-        <<enumeration>>
-        WAITING
-        READY_FOR_PICKUP
-        EXPIRED
-        COMPLETED
-    }
-    class PaymentMethod {
-        <<enumeration>>
-        COUNTER_CASH
-        ONLINE_GATEWAY
-    }
+### 5.2 Class Descriptions
 
-    %% Base User Class
-    class User {
-        <<abstract>>
-        #userID: String
-        #fullName: String
-        #email: String
-        #phone: String
-        -passwordHash: String
-        #status: AccountStatus
-        +login(email: String, pass: String): boolean
-        +updateProfile(data: Object): boolean
-        +resetPassword(): void
-    }
+| Class | Description | DFD Store | Related FR |
+|---|---|---|---|
+| `Role` | Defines user roles (`roleId`, `roleName`, `permissions`) to check access permissions. | D1 | FR-ADM-02 |
+| `User` | Base class for all accounts (`userId`, `fullName`, `email`, `phone`, `passwordHash`, `avatarUrl`, `status`, `failedLogins`, `lockedUntil`) with login and profile methods. | D1 | FR-GST-01, FR-GST-04, FR-RDR-02 |
+| `Reader` | Inherits from `User`. Adds `cardCode` and methods for reserving books, requesting renewals, and paying fines. | D1 | FR-RDR-01 to FR-RDR-09 |
+| `Librarian` | Inherits from `User`. Provides methods to manage books, physical copies, counter borrowing/returning, and fines. | D1 | FR-LIB-01 to FR-LIB-13 |
+| `Administrator` | Inherits from `User`. Provides methods to manage staff accounts, roles, system rules, backups, and logs. | D1 | FR-ADM-01 to FR-ADM-07 |
+| `Book` | Contains book information (`bookId`, `isbn`, `ddcCode`, `title`, `author`, `category`, `ebookUrl`, `availableCopies`). | D2 | FR-GST-02, FR-RDR-09, FR-LIB-01 to FR-LIB-03 |
+| `BookCopy` | A physical copy of a book on the shelf (`copyId`, `barcode`, `shelfLocation`, `status`, `condition`). | D2 | FR-LIB-04, FR-LIB-05, FR-LIB-13 |
+| `BorrowRecord` | Records a borrowing transaction (`borrowId`, `borrowDate`, `dueDate`, `returnDate`, `returnCondition`, `renewCount`, `status`). | D3 | FR-RDR-04 to FR-RDR-06, FR-LIB-06 to FR-LIB-08 |
+| `Reservation` | Keeps track of online book holds and waiting queues (`reservationId`, `reserveDate`, `expireDate`, `status`). | D3 | FR-RDR-03, FR-SYS-03 |
+| `Fine` | Records a reader violation and its payment status (`fineId`, `reason`, `amount`, `isPaid`, `paymentMethod`, `transactionRef`, `paidAt`). | D4 | FR-RDR-07, FR-RDR-08, FR-LIB-09, FR-LIB-10, FR-SYS-01 |
+| `SystemConfig` | Stores library settings (`configKey`, `configValue`, `updatedAt`) such as borrowing limits and daily fine rates. | D5 | FR-ADM-03 |
+| `Notification` | Stores reminder messages (`notificationId`, `channel`, `message`, `status`, `sentAt`) sent to Readers. | D5 | FR-SYS-02 |
+| `AuditLog` | Saves read-only logs of actions taken by Librarians and Administrators (`logId`, `action`, `targetId`, `createdAt`). | D5 | FR-ADM-07, FR-SYS-04 |
 
-    %% Derived User Roles
-    class Reader {
-        -avatar: String
-        +searchBook(query: String): List~Book~
-        +reserveBook(bookID: String): boolean
-        +requestRenewal(loanID: String): boolean
-        +payFineOnline(fineID: String): boolean
-        +readEbook(bookID: String): File
-    }
-
-    class Librarian {
-        -staffID: String
-        -assignedCounter: String
-        +addBook(bookData: Object): boolean
-        +retireBook(barcode: String): boolean
-        +issueLoan(cardCode: String, barcode: String): boolean
-        +processReturn(barcode: String, condition: String): boolean
-        +recordViolation(loanID: String, reason: String): boolean
-        +manageAccount(readerID: String): void
-    }
-
-    class Administrator {
-        -adminID: String
-        +manageStaff(staffID: String): void
-        +configSystem(params: Object): void
-        +backupDatabase(): File
-        +viewAuditLogs(): List~Log~
-        +generateReports(): File
-    }
-
-    %% Library Core Classes
-    class LibraryCard {
-        -cardCode: String
-        -issueDate: Date
-        -expiryDate: Date
-        -isActive: boolean
-        +isValid(): boolean
-        +lockCard(): void
-    }
-
-    class Book {
-        -ISBN: String
-        -DDC: String
-        -title: String
-        -author: String
-        -category: String
-        -isEbook: boolean
-        -eContentURL: String
-        +getDetails(): Object
-        +checkAvailability(): boolean
-    }
-
-    class BookCopy {
-        -barcode: String
-        -shelfLocation: String
-        -condition: String
-        -status: CopyStatus
-        +updateStatus(newStatus: CopyStatus): void
-        +updateCondition(newCond: String): void
-    }
-
-    %% Transactional Classes
-    class LoanRecord {
-        -loanID: String
-        -issueDate: Date
-        -dueDate: Date
-        -returnDate: Date
-        -renewalCount: int
-        -returnCondition: String
-        +calculateOverdueDays(): int
-        +extendLoan(): boolean
-        +closeLoan(): void
-    }
-
-    class Reservation {
-        -holdID: String
-        -requestDate: Date
-        -expiryDate: Date
-        -status: HoldStatus
-        +cancelHold(): void
-        +fulfillHold(): void
-    }
-
-    class Fine {
-        -fineID: String
-        -reason: String
-        -amount: double
-        -issueDate: Date
-        -isPaid: boolean
-        +calculateTotal(): double
-        +markAsPaid(): void
-    }
-
-    class Payment {
-        -paymentID: String
-        -amount: double
-        -paymentDate: Date
-        -method: PaymentMethod
-        +processPayment(): boolean
-        +generateReceipt(): File
-    }
-
-    %% Relationships
-    User <|-- Reader : Generalization
-    User <|-- Librarian : Generalization
-    User <|-- Administrator : Generalization
-    
-    Reader "1" -- "0..1" LibraryCard : Owns
-    Book "1" *-- "1..*" BookCopy : Composition
-    
-    Reader "1" -- "0..*" LoanRecord : Borrows
-    BookCopy "1" -- "0..*" LoanRecord : Issued as
-    Librarian "1" -- "0..*" LoanRecord : Processes
-    
-    Reader "1" -- "0..*" Reservation : Places
-    Book "1" -- "0..*" Reservation : Reserved for
-    
-    LoanRecord "1" -- "0..*" Fine : Generates
-    Reader "1" -- "0..*" Fine : Incurs
-    
-    Fine "1..*" -- "1" Payment : Settled by
-```
-
-### 5.2 Description of Classes and Structural Relationships
-
-The structural model displays the organization of the system in terms of its components and their relationships. The design applies standard Object-Oriented principles, defining attributes with appropriate visibility (`+` public, `-` private, `#` protected).
-
-**1. Authentication & User Management Subsystem**
-*   **`User` (Abstract Class):** Acts as the parent class for all system actors. It encapsulates common attributes like `email` and `phone`, and secures the `passwordHash` to satisfy security requirement `NFR-SEC-01`.
-*   **Generalization (Inheritance):** `Reader`, `Librarian`, and `Administrator` inherit from `User`. This represents an "is-a" relationship, meaning the child classes inherit properties and define specific role-based operations.
-*   **`LibraryCard`:** Represents the physical or digital card. It has a `1 to 0..1` association with `Reader`, ensuring a Reader can hold a maximum of one active library card.
-
-**2. Catalog & Inventory Subsystem**
-*   **`Book` (Logical Metadata):** Stores the universal catalog details (DDC, ISBN, title). If `isEbook` is true, it provides an `eContentURL` for downloading/reading online (`FR-RDR-09`).
-*   **`BookCopy` (Physical Instance):** Represents a tangible book on the shelf identified by a unique `barcode`. 
-*   **Composition:** A `Book` has a strong composition relationship (`*--`) with `BookCopy`. A physical copy cannot logically exist in the system without its parent catalog metadata.
-
-**3. Circulation & Reservation Subsystem**
-*   **`LoanRecord`:** Created when a `Librarian` processes a borrowing transaction (`FR-LIB-06`). It bridges `Reader` and `BookCopy` via associations and tracks `dueDate` and `renewalCount` to enforce business rules (`FR-RDR-05`).
-*   **`Reservation`:** Allows a `Reader` to hold a `Book` (`FR-RDR-03`). It utilizes the `HoldStatus` enumeration to track the lifecycle of a reservation (e.g., waiting, ready, or automatically expired).
-
-**4. Fine & Payment Subsystem**
-*   **`Fine`:** Generated either manually by a `Librarian` for damaged items (`FR-LIB-09`) or automatically by the System for overdue `LoanRecords` (`FR-SYS-01`).
-*   **`Payment`:** A single payment transaction can settle one or multiple fines (`1..*` Fines to `1` Payment). It interfaces with external gateways (`FR-RDR-08`) or logs counter cash transactions (`FR-LIB-10`).
 
 ## 6. Data Model
 
-*(To be updated)*
+### 6.1 Overview
+
+The database uses UTF-8 (`utf8mb4`) encoding and consists of 10 relational tables corresponding to the five data stores (`D1` to `D5`) in Section 3.2.
+
+### 6.2 Mapping to DFD Data Stores
+
+| DFD Store | Mapped Database Tables |
+|---|---|
+| **D1** (User Accounts & Cards) | `roles`, `users` |
+| **D2** (Book Catalog & Inventory) | `books`, `book_copies` |
+| **D3** (Borrowing & Reservations) | `borrow_records`, `reservations` |
+| **D4** (Fines & Violation Records) | `fines` |
+| **D5** (System Logs & Configurations) | `system_configs`, `notifications`, `audit_logs` |
+
+### 6.3 Table Specifications
+
+#### 1. `roles` (Store D1)
+Stores user roles and their permissions.
+
+| Column | Type | Key / Constraints | Description |
+|---|---|---|---|
+| `role_id` | INT | PK, AUTO_INCREMENT | Role ID |
+| `role_name` | VARCHAR(50) | UNIQUE, NOT NULL | `READER`, `LIBRARIAN`, `ADMIN` |
+| `permissions` | TEXT | NOT NULL | List of allowed permissions |
+
+#### 2. `users` (Store D1)
+Stores user account details and library card codes.
+
+| Column | Type | Key / Constraints | Description |
+|---|---|---|---|
+| `user_id` | INT | PK, AUTO_INCREMENT | User ID |
+| `role_id` | INT | FK (`roles.role_id`), NOT NULL | Assigned role |
+| `card_code` | VARCHAR(30) | UNIQUE, NULL | Library card barcode |
+| `full_name` | VARCHAR(100) | NOT NULL | Full name |
+| `email` | VARCHAR(100) | UNIQUE, NOT NULL | Email address |
+| `phone` | VARCHAR(15) | UNIQUE, NOT NULL | Phone number |
+| `password_hash` | VARCHAR(255) | NOT NULL | Bcrypt password hash |
+| `avatar_url` | VARCHAR(255) | NULL | Link to avatar image |
+| `status` | VARCHAR(20) | DEFAULT 'PENDING' | `PENDING`, `ACTIVE`, `LOCKED` |
+| `failed_logins` | INT | DEFAULT 0 | Number of failed login attempts |
+| `locked_until` | DATETIME | NULL | Time when temporary lock ends |
+
+#### 3. `books` (Store D2)
+Stores general book information and e-book links.
+
+| Column | Type | Key / Constraints | Description |
+|---|---|---|---|
+| `book_id` | INT | PK, AUTO_INCREMENT | Book ID |
+| `isbn` | VARCHAR(20) | UNIQUE, NOT NULL | ISBN code |
+| `ddc_code` | VARCHAR(20) | NOT NULL | DDC classification code |
+| `title` | VARCHAR(255) | NOT NULL | Book title |
+| `author` | VARCHAR(150) | NOT NULL | Author name |
+| `category` | VARCHAR(100) | NOT NULL | Book category |
+| `ebook_url` | VARCHAR(255) | NULL | Path to PDF/EPUB file |
+| `available_copies` | INT | DEFAULT 0 | Number of copies currently available |
+
+#### 4. `book_copies` (Store D2)
+Stores individual physical copies for barcode scanning.
+
+| Column | Type | Key / Constraints | Description |
+|---|---|---|---|
+| `copy_id` | INT | PK, AUTO_INCREMENT | Copy ID |
+| `book_id` | INT | FK (`books.book_id`), NOT NULL | Links to `books` |
+| `barcode` | VARCHAR(50) | UNIQUE, NOT NULL | Barcode printed on the book |
+| `shelf_location` | VARCHAR(50) | NOT NULL | Shelf location in storage |
+| `status` | VARCHAR(20) | DEFAULT 'AVAILABLE' | `AVAILABLE`, `BORROWED`, `RESERVED`, `CANCELED` |
+| `condition` | VARCHAR(20) | DEFAULT 'INTACT' | `INTACT`, `DAMAGED`, `LOST` |
+
+#### 5. `borrow_records` (Store D3)
+Stores borrowing, returning, and renewal history.
+
+| Column | Type | Key / Constraints | Description |
+|---|---|---|---|
+| `borrow_id` | INT | PK, AUTO_INCREMENT | Borrow record ID |
+| `user_id` | INT | FK (`users.user_id`), NOT NULL | Reader who borrowed the book |
+| `copy_id` | INT | FK (`book_copies.copy_id`), NOT NULL | Borrowed physical copy |
+| `librarian_id` | INT | FK (`users.user_id`), NOT NULL | Librarian who created the record |
+| `borrow_date` | DATETIME | NOT NULL | Borrow date and time |
+| `due_date` | DATETIME | NOT NULL | Expected return date |
+| `return_date` | DATETIME | NULL | Actual return date |
+| `return_condition` | VARCHAR(20) | NULL | Book condition when returned |
+| `renew_count` | INT | DEFAULT 0 | Times renewed |
+| `status` | VARCHAR(20) | DEFAULT 'BORROWED' | `BORROWED`, `RETURNED`, `OVERDUE` |
+
+#### 6. `reservations` (Store D3)
+Stores online book reservations and waiting lists.
+
+| Column | Type | Key / Constraints | Description |
+|---|---|---|---|
+| `reservation_id` | INT | PK, AUTO_INCREMENT | Reservation ID |
+| `user_id` | INT | FK (`users.user_id`), NOT NULL | Reader who reserved the book |
+| `book_id` | INT | FK (`books.book_id`), NOT NULL | Reserved book title |
+| `copy_id` | INT | FK (`book_copies.copy_id`), NULL | Assigned copy when returned |
+| `reserve_date` | DATETIME | NOT NULL | Time of reservation |
+| `expire_date` | DATETIME | NULL | Last day to pick up the book |
+| `status` | VARCHAR(20) | DEFAULT 'WAITING' | `WAITING`, `READY`, `COMPLETED`, `CANCELED` |
+
+#### 7. `fines` (Store D4)
+Stores violation records and fine payments.
+
+| Column | Type | Key / Constraints | Description |
+|---|---|---|---|
+| `fine_id` | INT | PK, AUTO_INCREMENT | Fine ID |
+| `borrow_id` | INT | FK (`borrow_records.borrow_id`), NOT NULL | Related borrow record |
+| `user_id` | INT | FK (`users.user_id`), NOT NULL | Reader who received the fine |
+| `reason` | VARCHAR(50) | NOT NULL | `LATE_RETURN`, `DAMAGED`, `LOST` |
+| `amount` | DECIMAL(10,2) | NOT NULL | Fine amount in VND |
+| `is_paid` | BOOLEAN | DEFAULT FALSE | Paid status (`TRUE` or `FALSE`) |
+| `payment_method` | VARCHAR(30) | NULL | `COUNTER` or `ONLINE` |
+| `transaction_ref` | VARCHAR(100) | NULL | Payment gateway reference code |
+| `paid_at` | DATETIME | NULL | Time of payment |
+
+#### 8. `system_configs` (Store D5)
+Stores library settings that the Administrator can change.
+
+| Column | Type | Key / Constraints | Description |
+|---|---|---|---|
+| `config_key` | VARCHAR(50) | PK | `MAX_BOOKS`, `MAX_DAYS`, `DAILY_FINE`, `HOLD_DAYS` |
+| `config_value` | VARCHAR(100) | NOT NULL | Setting value |
+| `updated_at` | DATETIME | NOT NULL | Last updated time |
+
+#### 9. `notifications` (Store D5)
+Stores automatic reminders sent to Readers.
+
+| Column | Type | Key / Constraints | Description |
+|---|---|---|---|
+| `notification_id` | INT | PK, AUTO_INCREMENT | Notification ID |
+| `user_id` | INT | FK (`users.user_id`), NOT NULL | Reader receiving the message |
+| `channel` | VARCHAR(20) | NOT NULL | `EMAIL`, `SMS`, `IN_APP` |
+| `message` | TEXT | NOT NULL | Message text |
+| `status` | VARCHAR(20) | DEFAULT 'PENDING' | `PENDING`, `SENT`, `FAILED` |
+| `sent_at` | DATETIME | NULL | Time sent |
+
+#### 10. `audit_logs` (Store D5)
+Stores read-only logs of Librarian and Administrator actions.
+
+| Column | Type | Key / Constraints | Description |
+|---|---|---|---|
+| `log_id` | INT | PK, AUTO_INCREMENT | Log ID |
+| `actor_id` | INT | FK (`users.user_id`), NOT NULL | Librarian or Admin who did the action |
+| `action` | VARCHAR(100) | NOT NULL | Action type (e.g., `EDIT_BOOK`, `LOCK_USER`) |
+| `target_id` | VARCHAR(50) | NOT NULL | ID of the affected record |
+| `created_at` | DATETIME | NOT NULL | Time of action |
 
 ## 7. Interface Design Description
 
