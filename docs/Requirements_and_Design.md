@@ -180,8 +180,6 @@ The Context Diagram defines the system boundary of the Library Management System
 - **Administrator**: System managers configuring system parameters, managing staff accounts and permissions, backing up data, and inspecting audit logs.
 - **Payment Gateway**: External third-party financial service handling online fine payments.
 
-#### Context Diagram
-
 <details>
 <summary>View Mermaid Source Code (Level 0 DFD)</summary>
 
