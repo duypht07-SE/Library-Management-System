@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net">
+  <diagram name="DFD Level 0" id="dfd-level-0">
+    <mxGraphModel dx="1241" dy="676" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1240" pageHeight="560" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="G" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;" value="Guest" vertex="1">
+          <mxGeometry height="60" width="140" x="100" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="R" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;" value="Reader" vertex="1">
+          <mxGeometry height="60" width="140" x="100" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="LB" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;" value="Librarian" vertex="1">
+          <mxGeometry height="60" width="140" x="1000" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="A" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;" value="Administrator" vertex="1">
+          <mxGeometry height="60" width="140" x="1000" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="S" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;" value="&lt;u&gt;0&lt;/u&gt;&lt;br&gt;Library Management System" vertex="1">
+          <mxGeometry height="200" width="200" x="520" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="e0" edge="1" parent="1" source="G" style="html=1;rounded=0;strokeColor=#000000;fontColor=#000000;endArrow=open;endSize=8;labelBackgroundColor=#ffffff;fontSize=11;fontFamily=Helvetica;" target="S" value="1. Registration Info, Login Info, Search Request">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="386" y="205" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="S" style="html=1;rounded=0;strokeColor=#000000;fontColor=#000000;endArrow=open;endSize=8;labelBackgroundColor=#ffffff;fontSize=11;fontFamily=Helvetica;" target="G" value="2. Search Results, Login Result">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="404" y="165" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="R" style="html=1;rounded=0;strokeColor=#000000;fontColor=#000000;endArrow=open;endSize=8;labelBackgroundColor=#ffffff;fontSize=11;fontFamily=Helvetica;" target="S" value="3. Profile Update, Reservation / Renewal Request">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="402" y="376" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="S" style="html=1;rounded=0;strokeColor=#000000;fontColor=#000000;endArrow=open;endSize=8;labelBackgroundColor=#ffffff;fontSize=11;fontFamily=Helvetica;" target="R" value="4. Loan History, Fine Status, Reminders">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="388" y="334" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="LB" style="html=1;rounded=0;strokeColor=#000000;fontColor=#000000;endArrow=open;endSize=8;labelBackgroundColor=#ffffff;fontSize=11;fontFamily=Helvetica;" target="S" value="5. Book Data, Borrow / Return, Fine Payment, Card Approval / Lock">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="836" y="165" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="S" style="html=1;rounded=0;strokeColor=#000000;fontColor=#000000;endArrow=open;endSize=8;labelBackgroundColor=#ffffff;fontSize=11;fontFamily=Helvetica;" target="LB" value="6. Loan Receipt">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="854" y="205" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="A" style="html=1;rounded=0;strokeColor=#000000;fontColor=#000000;endArrow=open;endSize=8;labelBackgroundColor=#ffffff;fontSize=11;fontFamily=Helvetica;" target="S" value="7. Librarian Account, Library Rules">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="852" y="334" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="S" style="html=1;rounded=0;strokeColor=#000000;fontColor=#000000;endArrow=open;endSize=8;labelBackgroundColor=#ffffff;fontSize=11;fontFamily=Helvetica;" target="A" value="8. Reports">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="838" y="376" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

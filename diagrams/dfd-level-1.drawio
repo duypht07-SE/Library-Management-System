@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net">
+  <diagram id="LHBeQyXXDUCjd24MoC8D" name="DFD Level 1">
+    <mxGraphModel dx="1776" dy="967" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="KofNKIDpgTzm3XNWNJA_-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;" value="Guest" vertex="1">
+          <mxGeometry height="60" width="140" x="170" y="255" as="geometry" />
+        </mxCell>
+        <mxCell id="KofNKIDpgTzm3XNWNJA_-2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;" value="Reader" vertex="1">
+          <mxGeometry height="60" width="140" x="170" y="575" as="geometry" />
+        </mxCell>
+        <mxCell id="KofNKIDpgTzm3XNWNJA_-3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;" value="Librarian" vertex="1">
+          <mxGeometry height="60" width="140" x="990" y="435" as="geometry" />
+        </mxCell>
+        <mxCell id="KofNKIDpgTzm3XNWNJA_-4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;" value="Administrator" vertex="1">
+          <mxGeometry height="60" width="110" x="575" y="1235" as="geometry" />
+        </mxCell>
+        <mxCell id="KofNKIDpgTzm3XNWNJA_-5" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;" value="&lt;u&gt;1.0&lt;/u&gt;&lt;br&gt;Manage Accounts" vertex="1">
+          <mxGeometry height="110" width="110" x="575" y="135" as="geometry" />
+        </mxCell>
+        <mxCell id="KofNKIDpgTzm3XNWNJA_-6" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;" value="&lt;u&gt;2.0&lt;/u&gt;&lt;br&gt;Manage Books" vertex="1">
+          <mxGeometry height="110" width="110" x="575" y="365" as="geometry" />
+        </mxCell>
+        <mxCell id="KofNKIDpgTzm3XNWNJA_-7" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;" value="&lt;u&gt;3.0&lt;/u&gt;&lt;br&gt;Borrow &amp; Return" vertex="1">
+          <mxGeometry height="110" width="110" x="575" y="595" as="geometry" />
+        </mxCell>
+        <mxCell id="KofNKIDpgTzm3XNWNJA_-8" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;" value="&lt;u&gt;4.0&lt;/u&gt;&lt;br&gt;Manage Fines" vertex="1">
+          <mxGeometry height="110" width="110" x="575" y="825" as="geometry" />
+        </mxCell>
+        <mxCell id="KofNKIDpgTzm3XNWNJA_-9" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;" value="&lt;u&gt;5.0&lt;/u&gt;&lt;br&gt;Manage Rules &amp; Reports" vertex="1">
+          <mxGeometry height="110" width="110" x="575" y="1055" as="geometry" />
+        </mxCell>
+        <mxCell id="KofNKIDpgTzm3XNWNJA_-10" parent="1" style="shape=partialRectangle;whiteSpace=wrap;html=1;left=0;right=0;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;" value="D1 | Accounts" vertex="1">
+          <mxGeometry height="36" width="170" x="545" y="285" as="geometry" />
+        </mxCell>
+        <mxCell id="KofNKIDpgTzm3XNWNJA_-11" parent="1" style="shape=partialRectangle;whiteSpace=wrap;html=1;left=0;right=0;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;" value="D2 | Books" vertex="1">
+          <mxGeometry height="36" width="170" x="545" y="515" as="geometry" />
+        </mxCell>
+        <mxCell id="KofNKIDpgTzm3XNWNJA_-12" parent="1" style="shape=partialRectangle;whiteSpace=wrap;html=1;left=0;right=0;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;" value="D3 | Loans &amp; Reservations" vertex="1">
+          <mxGeometry height="36" width="170" x="545" y="745" as="geometry" />
+        </mxCell>
+        <mxCell id="KofNKIDpgTzm3XNWNJA_-13" parent="1" style="shape=partialRectangle;whiteSpace=wrap;html=1;left=0;right=0;fontFamily=Helvetica;fontSize=12;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;" value="D4 | Fines" vertex="1">
+          <mxGeometry height="36" width="170" x="545" y="975" as="geometry" />
+        </mxCell>
+        <mxCell id="KofNKIDpgTzm3XNWNJA_-14" edge="1" parent="1" source="KofNKIDpgTzm3XNWNJA_-1" style="html=1;rounded=0;strokeColor=#000000;fontColor=#000000;endArrow=open;endSize=8;labelBackgroundColor=#ffffff;fontSize=11;fontFamily=Helvetica;" target="KofNKIDpgTzm3XNWNJA_-5" value="Registration Info, Login Info">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="440" y="259" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="KofNKIDpgTzm3XNWNJA_-15" edge="1" parent="1" source="KofNKIDpgTzm3XNWNJA_-5" style="html=1;rounded=0;strokeColor=#000000;fontColor=#000000;endArrow=open;endSize=8;labelBackgroundColor=#ffffff;fontSize=11;fontFamily=Helvetica;" target="KofNKIDpgTzm3XNWNJA_-1" value="Login Result">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="430" y="216" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="KofNKIDpgTzm3XNWNJA_-16" edge="1" parent="1" source="KofNKIDpgTzm3XNWNJA_-1" style="html=1;rounded=0;strokeColor=#000000;fontColor=#000000;endArrow=open;endSize=8;labelBackgroundColor=#ffffff;fontSize=11;fontFamily=Helvetica;" target="KofNKIDpgTzm3XNWNJA_-6" value="Search Request">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="428" y="373" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="KofNKIDpgTzm3XNWNJA_-17" edge="1" parent="1" source="KofNKIDpgTzm3XNWNJA_-6" style="html=1;rounded=0;strokeColor=#000000;fontColor=#000000;endArrow=open;endSize=8;labelBackgroundColor=#ffffff;fontSize=11;fontFamily=Helvetica;" target="KofNKIDpgTzm3XNWNJA_-1" value="Search Results">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="442" y="332" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="KofNKIDpgTzm3XNWNJA_-18" edge="1" parent="1" source="KofNKIDpgTzm3XNWNJA_-2" style="html=1;rounded=0;strokeColor=#000000;fontColor=#000000;endArrow=open;endSize=8;labelBackgroundColor=#ffffff;fontSize=11;fontFamily=Helvetica;" target="KofNKIDpgTzm3XNWNJA_-5" value="Profile Update">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="KofNKIDpgTzm3XNWNJA_-19" edge="1" parent="1" source="KofNKIDpgTzm3XNWNJA_-2" style="html=1;rounded=0;strokeColor=#000000;fontColor=#000000;endArrow=open;endSize=8;labelBackgroundColor=#ffffff;fontSize=11;fontFamily=Helvetica;" target="KofNKIDpgTzm3XNWNJA_-7" value="Reservation / Renewal Request">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="432" y="649" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="KofNKIDpgTzm3XNWNJA_-20" edge="1" parent="1" source="KofNKIDpgTzm3XNWNJA_-7" style="html=1;rounded=0;strokeColor=#000000;fontColor=#000000;endArrow=open;endSize=8;labelBackgroundColor=#ffffff;fontSize=11;fontFamily=Helvetica;" target="KofNKIDpgTzm3XNWNJA_-2" value="Loan History, Reminders">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="438" y="606" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="KofNKIDpgTzm3XNWNJA_-21" edge="1" parent="1" source="KofNKIDpgTzm3XNWNJA_-8" style="html=1;rounded=0;strokeColor=#000000;fontColor=#000000;endArrow=open;endSize=8;labelBackgroundColor=#ffffff;fontSize=11;fontFamily=Helvetica;" target="KofNKIDpgTzm3XNWNJA_-2" value="Fine Status">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="KofNKIDpgTzm3XNWNJA_-22" edge="1" parent="1" source="KofNKIDpgTzm3XNWNJA_-3" style="html=1;rounded=0;strokeColor=#000000;fontColor=#000000;endArrow=open;endSize=8;labelBackgroundColor=#ffffff;fontSize=11;fontFamily=Helvetica;" target="KofNKIDpgTzm3XNWNJA_-5" value="Card Approval / Lock">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="KofNKIDpgTzm3XNWNJA_-23" edge="1" parent="1" source="KofNKIDpgTzm3XNWNJA_-3" style="html=1;rounded=0;strokeColor=#000000;fontColor=#000000;endArrow=open;endSize=8;labelBackgroundColor=#ffffff;fontSize=11;fontFamily=Helvetica;" target="KofNKIDpgTzm3XNWNJA_-6" value="Book Data">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="KofNKIDpgTzm3XNWNJA_-24" edge="1" parent="1" source="KofNKIDpgTzm3XNWNJA_-3" style="html=1;rounded=0;strokeColor=#000000;fontColor=#000000;endArrow=open;endSize=8;labelBackgroundColor=#ffffff;fontSize=11;fontFamily=Helvetica;" target="KofNKIDpgTzm3XNWNJA_-7" value="Borrow / Return">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="836" y="537" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="KofNKIDpgTzm3XNWNJA_-25" edge="1" parent="1" source="KofNKIDpgTzm3XNWNJA_-7" style="html=1;rounded=0;strokeColor=#000000;fontColor=#000000;endArrow=open;endSize=8;labelBackgroundColor=#ffffff;fontSize=11;fontFamily=Helvetica;" target="KofNKIDpgTzm3XNWNJA_-3" value="Loan Receipt">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="854" y="578" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="KofNKIDpgTzm3XNWNJA_-26" edge="1" parent="1" source="KofNKIDpgTzm3XNWNJA_-3" style="html=1;rounded=0;strokeColor=#000000;fontColor=#000000;endArrow=open;endSize=8;labelBackgroundColor=#ffffff;fontSize=11;fontFamily=Helvetica;" target="KofNKIDpgTzm3XNWNJA_-8" value="Fine Payment">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="KofNKIDpgTzm3XNWNJA_-27" edge="1" parent="1" source="KofNKIDpgTzm3XNWNJA_-4" style="html=1;rounded=0;strokeColor=#000000;fontColor=#000000;endArrow=open;endSize=8;labelBackgroundColor=#ffffff;fontSize=11;fontFamily=Helvetica;edgeStyle=orthogonalEdgeStyle;rounded=0;" target="KofNKIDpgTzm3XNWNJA_-5" value="Librarian Account">
+          <mxGeometry relative="1" x="0.9" as="geometry">
+            <Array as="points">
+              <mxPoint x="90" y="1265" />
+              <mxPoint x="90" y="120" />
+              <mxPoint x="630" y="120" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="KofNKIDpgTzm3XNWNJA_-28" edge="1" parent="1" source="KofNKIDpgTzm3XNWNJA_-4" style="html=1;rounded=0;strokeColor=#000000;fontColor=#000000;endArrow=open;endSize=8;labelBackgroundColor=#ffffff;fontSize=11;fontFamily=Helvetica;exitX=0.7;exitY=0;entryX=0.7;entryY=1;" target="KofNKIDpgTzm3XNWNJA_-9" value="Library Rules">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="55" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="KofNKIDpgTzm3XNWNJA_-29" edge="1" parent="1" source="KofNKIDpgTzm3XNWNJA_-9" style="html=1;rounded=0;strokeColor=#000000;fontColor=#000000;endArrow=open;endSize=8;labelBackgroundColor=#ffffff;fontSize=11;fontFamily=Helvetica;exitX=0.3;exitY=1;entryX=0.3;entryY=0;" target="KofNKIDpgTzm3XNWNJA_-4" value="Reports">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="-40" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="KofNKIDpgTzm3XNWNJA_-30" edge="1" parent="1" source="KofNKIDpgTzm3XNWNJA_-5" style="html=1;rounded=0;strokeColor=#000000;fontColor=#000000;endArrow=open;endSize=8;labelBackgroundColor=#ffffff;fontSize=11;fontFamily=Helvetica;startArrow=open;startSize=8;" target="KofNKIDpgTzm3XNWNJA_-10" value="Account Data">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="KofNKIDpgTzm3XNWNJA_-31" edge="1" parent="1" source="KofNKIDpgTzm3XNWNJA_-6" style="html=1;rounded=0;strokeColor=#000000;fontColor=#000000;endArrow=open;endSize=8;labelBackgroundColor=#ffffff;fontSize=11;fontFamily=Helvetica;startArrow=open;startSize=8;" target="KofNKIDpgTzm3XNWNJA_-11" value="Book Data">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="KofNKIDpgTzm3XNWNJA_-32" edge="1" parent="1" source="KofNKIDpgTzm3XNWNJA_-7" style="html=1;rounded=0;strokeColor=#000000;fontColor=#000000;endArrow=open;endSize=8;labelBackgroundColor=#ffffff;fontSize=11;fontFamily=Helvetica;startArrow=open;startSize=8;" target="KofNKIDpgTzm3XNWNJA_-12" value="Loan Data">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="KofNKIDpgTzm3XNWNJA_-33" edge="1" parent="1" source="KofNKIDpgTzm3XNWNJA_-7" style="html=1;rounded=0;strokeColor=#000000;fontColor=#000000;endArrow=open;endSize=8;labelBackgroundColor=#ffffff;fontSize=11;fontFamily=Helvetica;" target="KofNKIDpgTzm3XNWNJA_-11" value="Copy Status">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="KofNKIDpgTzm3XNWNJA_-34" edge="1" parent="1" source="KofNKIDpgTzm3XNWNJA_-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;rounded=0;strokeColor=#000000;fontColor=#000000;endArrow=open;endSize=8;labelBackgroundColor=#ffffff;fontSize=11;fontFamily=Helvetica;" target="KofNKIDpgTzm3XNWNJA_-8" value="Overdue Info">
+          <mxGeometry relative="1" x="0.3" as="geometry">
+            <Array as="points">
+              <mxPoint x="750" y="650" />
+              <mxPoint x="750" y="880" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="KofNKIDpgTzm3XNWNJA_-35" edge="1" parent="1" source="KofNKIDpgTzm3XNWNJA_-8" style="html=1;rounded=0;strokeColor=#000000;fontColor=#000000;endArrow=open;endSize=8;labelBackgroundColor=#ffffff;fontSize=11;fontFamily=Helvetica;startArrow=open;startSize=8;" target="KofNKIDpgTzm3XNWNJA_-13" value="Fine Data">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="KofNKIDpgTzm3XNWNJA_-36" edge="1" parent="1" source="KofNKIDpgTzm3XNWNJA_-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;rounded=0;strokeColor=#000000;fontColor=#000000;endArrow=open;endSize=8;labelBackgroundColor=#ffffff;fontSize=11;fontFamily=Helvetica;" target="KofNKIDpgTzm3XNWNJA_-7" value="Loan Rules">
+          <mxGeometry relative="1" x="0.2" as="geometry">
+            <Array as="points">
+              <mxPoint x="810" y="1110" />
+              <mxPoint x="810" y="625" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="KofNKIDpgTzm3XNWNJA_-37" edge="1" parent="1" source="KofNKIDpgTzm3XNWNJA_-12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;rounded=0;strokeColor=#000000;fontColor=#000000;endArrow=open;endSize=8;labelBackgroundColor=#ffffff;fontSize=11;fontFamily=Helvetica;" target="KofNKIDpgTzm3XNWNJA_-9" value="Loan Data">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1190" y="763" />
+              <mxPoint x="1190" y="1090" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="KofNKIDpgTzm3XNWNJA_-38" edge="1" parent="1" source="KofNKIDpgTzm3XNWNJA_-13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;rounded=0;strokeColor=#000000;fontColor=#000000;endArrow=open;endSize=8;labelBackgroundColor=#ffffff;fontSize=11;fontFamily=Helvetica;" target="KofNKIDpgTzm3XNWNJA_-9" value="Fine Data">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1170" y="993" />
+              <mxPoint x="1170" y="1125" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
