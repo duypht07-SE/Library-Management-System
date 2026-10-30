@@ -168,194 +168,148 @@ This section describes the quality requirements of the Library Management System
 
 ## 3. Data Flow Diagram (DFD)
 
-### 3.1 Context Diagram (Level 0 DFD)
+### 3.1 Scope
 
-The Context Diagram defines the system boundary of the Library Management System (LMS), illustrating the central system (`0.0`) and its interactions with external entities.
+The DFDs cover account management, book management, borrowing and returning, fines, and library rules and reports. The following requirements from Section 1 are left out of the diagrams:
+
+| Requirement | Reason |
+|---|---|
+| FR-GST-03 (library information, news, events) | Static content with no data processing |
+| FR-RDR-08 (online fine payment), FR-RDR-09 (e-books) | Optional in Section 1 ("if the system integrates...") |
+| FR-LIB-13 (inventory audit) | Periodic task outside the daily workflow |
+| FR-ADM-02, FR-ADM-05 to FR-ADM-07 (permissions, backup, restore, audit logs) | System maintenance |
+| FR-SYS-04 (automatic action logging) | Internal behavior with no user-visible data flow |
+
+FR-SYS-01 to FR-SYS-03 (overdue fines, reminders, expired holds) are handled inside processes 3.0 and 4.0.
+
+### 3.2 Context Diagram (Level 0 DFD)
+
+The whole system is drawn as one process, `0.0 Library Management System`, connected to four external entities.
+
+![Context Diagram (Level 0 DFD)](../diagrams/dfd-level-0.png)
 
 #### External Entities
 
-- **Guest**: Unauthenticated visitors who browse public catalogs, view news/events, or register/log in.
-- **Reader**: Authenticated members who search/read e-books, reserve/renew books, view loan history/fines, and pay fines online.
-- **Librarian**: Library staff managing book cataloging, counter borrowing/returning, inventory auditing, and violation records.
-- **Administrator**: System managers configuring system parameters, managing staff accounts and permissions, backing up data, and inspecting audit logs.
-- **Payment Gateway**: External third-party financial service handling online fine payments.
+| Entity | Description |
+|---|---|
+| Guest | Visitor who has not logged in. Registers, logs in, and searches books. |
+| Reader | Library member. Reserves and renews books, views loans and fines. |
+| Librarian | Staff member. Manages books and reader cards, handles borrowing, returning, and fines at the counter. |
+| Administrator | Manages Librarian accounts, library rules, and reports. |
 
-<details>
-<summary>View Level 0 DFD</summary>
+#### Data Flows
 
-```mermaid
-graph TD
-    Guest["Guest"]
-    Reader["Reader"]
-    Librarian["Librarian"]
-    Admin["Administrator"]
-    PaymentGateway["Payment Gateway"]
+| No. | From | To | Data | Related FR |
+|---|---|---|---|---|
+| 1 | Guest | LMS | Registration Info, Login Info, Search Request | FR-GST-01, FR-GST-02, FR-GST-04 |
+| 2 | LMS | Guest | Search Results, Login Result | FR-GST-02, FR-GST-04 |
+| 3 | Reader | LMS | Profile Update, Reservation / Renewal Request | FR-RDR-02, FR-RDR-03, FR-RDR-04 |
+| 4 | LMS | Reader | Loan History, Fine Status, Reminders | FR-RDR-06, FR-RDR-07, FR-SYS-02 |
+| 5 | Librarian | LMS | Book Data, Borrow / Return, Fine Payment, Card Approval / Lock | FR-LIB-01 to FR-LIB-07, FR-LIB-09 to FR-LIB-12 |
+| 6 | LMS | Librarian | Loan Receipt | FR-LIB-06, FR-LIB-07 |
+| 7 | Administrator | LMS | Librarian Account, Library Rules | FR-ADM-01, FR-ADM-03 |
+| 8 | LMS | Administrator | Reports | FR-ADM-04 |
 
-    LMS(("0.0 Library Management System"))
+### 3.3 Data Stores
 
-    %% Guest Data Flows
-    Guest -->|"1. Search Criteria, Registration Info, Credentials"| LMS
-    LMS -->|"2. Search Results, Library Info, Auth Session"| Guest
+| Store | Name | Content |
+|---|---|---|
+| D1 | Accounts | User accounts, roles, library cards, card status |
+| D2 | Books | Book titles, physical copies, copy status |
+| D3 | Loans & Reservations | Borrowing records, due dates, renewals, reservation queues |
+| D4 | Fines | Violations, fine amounts, payment status |
 
-    %% Reader Data Flows
-    Reader -->|"3. Search, Reservation Request, Renewal Request, Fine Payment"| LMS
-    LMS -->|"4. Loan History, Notifications, Fine Status, E-book Content"| Reader
+### 3.4 Level 1 DFD
 
-    %% Librarian Data Flows
-    Librarian -->|"5. Book Catalog Data, Barcode Scan, Violation Record"| LMS
-    LMS -->|"6. Return Status, Inventory Discrepancy Report, Receipts"| Librarian
+Process 0.0 is split into five processes. Each process uses the data store drawn below it.
 
-    %% Administrator Data Flows
-    Admin -->|"7. Staff Account Data, System Parameters, Backup Command"| LMS
-    LMS -->|"8. Statistical Reports, Audit Logs, Backup Archive"| Admin
+![Level 1 DFD](../diagrams/dfd-level-1.png)
 
-    %% Payment Gateway Data Flows
-    LMS -->|"9. Payment Invoice and Amount"| PaymentGateway
-    PaymentGateway -->|"10. Transaction Confirmation and Callback"| LMS
-```
+#### Process Descriptions
 
-</details>
+| Process | Inputs | Outputs | Data Stores | Related FR |
+|---|---|---|---|---|
+| 1.0 Manage Accounts | Registration Info, Login Info (Guest); Profile Update (Reader); Card Approval / Lock (Librarian); Librarian Account (Administrator) | Login Result (Guest) | D1 read/write | FR-GST-01, FR-GST-04, FR-RDR-02, FR-LIB-11, FR-LIB-12, FR-ADM-01 |
+| 2.0 Manage Books | Search Request (Guest); Book Data (Librarian) | Search Results (Guest) | D2 read/write | FR-GST-02, FR-LIB-01 to FR-LIB-05 |
+| 3.0 Borrow & Return | Reservation / Renewal Request (Reader); Borrow / Return (Librarian); Loan Rules (from 5.0) | Loan History, Reminders (Reader); Loan Receipt (Librarian); Overdue Info (to 4.0) | D3 read/write; D2 write (Copy Status) | FR-RDR-03 to FR-RDR-06, FR-LIB-06, FR-LIB-07, FR-SYS-02, FR-SYS-03 |
+| 4.0 Manage Fines | Overdue Info (from 3.0); Fine Payment (Librarian) | Fine Status (Reader) | D4 read/write | FR-RDR-07, FR-LIB-09, FR-LIB-10, FR-SYS-01 |
+| 5.0 Manage Rules & Reports | Library Rules (Administrator); Loan Data (D3); Fine Data (D4) | Reports (Administrator); Loan Rules (to 3.0) | D3, D4 read | FR-ADM-03, FR-ADM-04 |
 
-### 3.2 List of Data Stores
+#### Balancing with Level 0
 
-The system relies on five persistent data stores to maintain data integrity and support system functions:
+The flows between external entities and the system in Level 1 have the same names as in Level 0. Level 1 adds no new external flows. Account Data, Book Data, Loan Data, Copy Status, Fine Data, Overdue Info, and Loan Rules are internal flows.
 
-| Store ID | Data Store Name | Description | Related FRs |
-|---|---|---|---|
-| D1 | User Accounts & Cards | Stores user credentials, profiles, assigned roles/permissions, account statuses, and library cards. | FR-GST-01, FR-GST-04, FR-RDR-02, FR-LIB-11, FR-LIB-12, FR-ADM-01, FR-ADM-02, FR-ADM-04 (read) |
-| D2 | Book Catalog & Inventory | Stores bibliographic metadata (ISBN, DDC, title, author), e-books (PDF/EPUB), physical copies, shelf locations, and status (Available, Borrowed, Reserved, Canceled). | FR-GST-02, FR-GST-03, FR-RDR-01, FR-RDR-09, FR-LIB-01 to FR-LIB-05, FR-LIB-13, FR-ADM-04 (read) |
-| D3 | Borrowing & Reservations | Stores active loan records, return due dates, returned book conditions, renewal counts, historical transactions, and online reservation queues. | FR-RDR-03 to FR-RDR-06, FR-LIB-06 to FR-LIB-08, FR-SYS-03, FR-ADM-04 (read) |
-| D4 | Fines & Violation Records | Stores violation tickets, calculated overdue fine amounts, counter/online payment receipts, and payment statuses. | FR-RDR-07, FR-RDR-08, FR-LIB-09, FR-LIB-10, FR-SYS-01, FR-ADM-04 (read) |
-| D5 | System Logs & Configurations | Stores global operational settings (loan limits, fine rates), backup metadata, and immutable system audit logs. | FR-ADM-03, FR-ADM-05 to FR-ADM-07, FR-SYS-02, FR-SYS-04 |
+#### Related Non-Functional Requirements
 
-### 3.3 Level 1 DFD (Subsystem Decomposition)
-
-The central process (`0.0`) is decomposed into 6 functional processes:
-
-```mermaid
-graph TD
-    %% External Entities
-    Guest["Guest"]
-    Reader["Reader"]
-    Librarian["Librarian"]
-    Admin["Administrator"]
-    PaymentGateway["Payment Gateway"]
-
-    %% Processes
-    P1(("1.0 User & Auth Management"))
-    P2(("2.0 Book Catalog & Inventory"))
-    P3(("3.0 Circulation & Reservation"))
-    P4(("4.0 Fine & Payment Management"))
-    P5(("5.0 System Admin & Reporting"))
-    P6(("6.0 Automated Background Services"))
-
-    %% Data Stores
-    D1[("D1 User Accounts & Cards")]
-    D2[("D2 Book Catalog & Inventory")]
-    D3[("D3 Borrowing & Reservations")]
-    D4[("D4 Fines & Violations")]
-    D5[("D5 Logs & Configurations")]
-
-    %% Connections for P1
-    Guest -->|"Reg / Login"| P1
-    Reader -->|"Profile Update"| P1
-    Librarian -->|"Approve Card / Lock Account"| P1
-    Admin -->|"Manage Staff & Roles"| P1
-    P1 <--> D1
-    P1 -->|"Log Auth & Role Action"| D5
-
-    %% Connections for P2
-    Guest -->|"Search Catalog / View Info"| P2
-    Reader <-->|"Search / Read E-book"| P2
-    Librarian -->|"Add / Edit / Retire Book / Scan Inventory"| P2
-    P2 <--> D2
-    P2 -->|"Log Catalog Action"| D5
-
-    %% Connections for P3
-    Reader -->|"Reserve / Renew"| P3
-    Librarian -->|"Scan Borrow / Return & Condition"| P3
-    P3 <--> D1
-    P3 <--> D2
-    P3 <--> D3
-
-    %% Connections for P4
-    Librarian -->|"Record Violation / Counter Payment"| P4
-    Reader -->|"Pay Fine Online"| P4
-    P4 <--> D3
-    P4 <--> D4
-    P4 <--> D1
-    P4 -->|"Invoice"| PaymentGateway
-    PaymentGateway -->|"Payment Status"| P4
-
-    %% Connections for P5
-    Admin -->|"Config Params / Backup / View Logs & Reports"| P5
-    P5 <--> D5
-    D1 -->|"Read Data"| P5
-    D2 -->|"Read Data"| P5
-    D3 -->|"Read Data"| P5
-    D4 -->|"Read Data"| P5
-
-    %% Connections for P6
-    D5 -->|"Schedule & Rules Config"| P6
-    D3 -->|"Overdue & Hold Status"| P6
-    D1 -->|"Reader Contact Info"| P6
-    P6 -->|"Auto Fine"| D4
-    P6 -->|"Auto Cancel Expired Hold"| D3
-    P6 -->|"Update Copy Status"| D2
-    P6 -->|"Send Notification"| Reader
-    P6 -->|"Write Action Log"| D5
-```
-
-> **Note:** Mermaid has no built-in symbol for the standard DFD data store (two parallel lines / open-ended rectangle), so the data stores appear as cylinders in this source code. The final diagram images exported from draw.io shall use the standard DFD data store symbol.
-
-#### Detailed Process Descriptions
-
-##### Process 1.0: User & Authentication Management
-
-- **Description:** Handles account registration, credential verification, profile updates, library card approvals, account locking/unlocking, and RBAC role/permission enforcement.
-- **Inputs:** Registration forms, login credentials, profile updates, card approval/lock commands, staff/role assignments.
-- **Outputs:** Authentication tokens/session, profile view, registration confirmation, account status updates.
-- **Data Stores:** Reads/Writes D1 (User Accounts & Cards), Writes D5 (Logs & Configurations).
-
-##### Process 2.0: Book Catalog & Inventory Management
-
-- **Description:** Manages cataloging of new books, DDC/ISBN classification, physical shelf location assignment, book retirement, physical inventory batch auditing, public searching, and e-book delivery.
-- **Inputs:** Search criteria, e-book access requests, bibliographic records, shelf locations, retirement status, batch inventory barcode scans.
-- **Outputs:** Catalog search results, e-book files (PDF/EPUB), book copy availability statuses, inventory discrepancy reports.
-- **Data Stores:** Reads/Writes D2 (Book Catalog & Inventory), Writes D5 (Logs & Configurations).
-
-##### Process 3.0: Circulation & Reservation Processing
-
-- **Description:** Processes counter borrowing/returning via barcode scanning, records returned book condition, validates online reservation requests, and evaluates loan renewal eligibility.
-- **Inputs:** Card barcodes, book copy barcodes, returned book condition, online reservation triggers, renewal requests.
-- **Outputs:** Loan confirmation, return receipt, updated book copy status (Available / Reserved), renewal approval/rejection.
-- **Data Stores:** Reads D1, Reads/Writes D2, Reads/Writes D3 (Borrowing & Reservations).
-
-##### Process 4.0: Fine Management & Payment Processing
-
-- **Description:** Records library violations, calculates fines, logs counter payments, and integrates with the Payment Gateway for online fine settlement.
-- **Inputs:** Violation records (lost/damaged/late), counter payment confirmations, online payment callbacks.
-- **Outputs:** Detailed fine statements, payment invoices, payment confirmation receipts, account status updates.
-- **Data Stores:** Reads D3, Reads/Writes D4 (Fines & Violation Records), Reads/Writes D1.
-
-##### Process 5.0: System Administration, Audit & Reporting
-
-- **Description:** Allows administrators to configure global library parameters, view/export statistical reports, perform database backups/restores, and review audit logs.
-- **Inputs:** Configuration parameters, report filter parameters, database backup/restore commands.
-- **Outputs:** Analytical charts/reports, system configuration confirmation, database archive files, system audit log views.
-- **Data Stores:** Reads D1, D2, D3, D4; Reads/Writes D5 (Logs & Configurations).
-
-##### Process 6.0: Automated Background Services
-
-- **Description:** Executes daily scheduled jobs (e.g., at 00:00) to calculate overdue fines, dispatch due/overdue/pickup reminders, cancel expired hold reservations, and log automated actions. The time trigger is defined by the schedule configuration read from D5, so it is not drawn as a separate data flow.
-- **Inputs:** Scheduled timer trigger and library parameters from D5, active loan/reservation records from D3, Reader contact information from D1.
-- **Outputs:** Automated fine entries, email/SMS/in-app notifications to Readers, reservation queue and book status updates, system log entries.
-- **Data Stores:** Reads D1, Reads/Writes D2, Reads/Writes D3, Reads/Writes D4, Reads/Writes D5.
-
+| Process | NFR | Constraint |
+|---|---|---|
+| 1.0 | NFR-SEC-01, NFR-SEC-05, NFR-SEC-06 | Passwords are hashed. Sessions end after 30 minutes of inactivity. An account is locked for 15 minutes after 5 failed logins. |
+| 1.0 | NFR-SEC-03, NFR-SEC-04 | Access is role-based. A Reader can see only their own data. |
+| 2.0 | NFR-PER-01 | Search results within 2 seconds. |
+| 3.0 | NFR-PER-02, NFR-REL-02, NFR-REL-03 | A borrow or return is saved within 2 seconds after the scan. A failed transaction is rolled back. One copy cannot be lent to two Readers at once. |
+| 3.0 | NFR-PER-04, NFR-REL-06 | The daily overdue scan finishes within 30 minutes. Reminders are sent asynchronously. |
+| All | NFR-SEC-07, NFR-USA-01, NFR-COM-03 | Input is validated. The interface is in Vietnamese (UTF-8), dates use DD/MM/YYYY, currency is VND. |
 
 ## 4. Use Case Diagram
 
-*(To be updated)*
+### 4.1 Overview
+
+The diagram covers the same functions as the DFDs in Section 3.
+
+![Use Case Diagram](../diagrams/use-case.png)
+
+### 4.2 Actors
+
+| Actor | Description |
+|---|---|
+| User | Parent actor for every account holder. Linked to Log In. |
+| Guest | Visitor who has not logged in. Registers, logs in, and searches books (FR-GST-01, FR-GST-02, FR-GST-04). |
+| Reader | Child of User. Library member (FR-RDR-01). |
+| Librarian | Child of User. Library staff. |
+| Administrator | Child of User. Manages staff accounts and library rules. |
+
+Reader, Librarian, and Administrator get Log In from User through actor generalization, so the diagram does not link them to Log In one by one. After a Guest logs in, the system gives the user the Reader, Librarian, or Administrator role of that account (FR-GST-04).
+
+### 4.3 Use Cases
+
+| Actor | Use Case | Related FR |
+|---|---|---|
+| Guest | Register Account | FR-GST-01 |
+| Guest, Reader | Search Books | FR-GST-02 |
+| Guest, User | Log In | FR-GST-04 |
+| Reader | Update Profile | FR-RDR-02 |
+| Reader | Reserve Book | FR-RDR-03 |
+| Reader | Renew Loan | FR-RDR-04, FR-RDR-05 |
+| Reader | View Borrowing History | FR-RDR-06 |
+| Reader | View Fines | FR-RDR-07 |
+| Librarian | Manage Books | FR-LIB-01 to FR-LIB-05 |
+| Librarian | Approve / Lock Reader Card | FR-LIB-11, FR-LIB-12 |
+| Librarian | Check Out Books | FR-LIB-06 |
+| Librarian | Check In Books | FR-LIB-07, FR-LIB-08 |
+| Librarian | Record Violation | FR-LIB-09 |
+| Librarian | Record Fine Payment | FR-LIB-10 |
+| Administrator | Manage Librarian Accounts | FR-ADM-01 |
+| Administrator | Configure Library Rules | FR-ADM-03 |
+| Administrator | View Reports | FR-ADM-04 |
+
+### 4.4 Relationships
+
+| From | To | Type | Meaning |
+|---|---|---|---|
+| Reader, Librarian, Administrator | User | Generalization | The three roles inherit Log In from User. |
+| Record Violation | Check In Books | `<<extend>>` | Runs only when the returned book is late, damaged, or lost (FR-LIB-09). |
+| Actor | Use Case | Association | The actor performs the use case. |
+
+### 4.5 Related Non-Functional Requirements
+
+| Use Case | NFR | Constraint |
+|---|---|---|
+| Log In | NFR-SEC-01, NFR-SEC-05, NFR-SEC-06 | Hashed passwords, 30-minute session timeout, 15-minute lock after 5 failed attempts |
+| Search Books | NFR-PER-01 | Results within 2 seconds |
+| View Borrowing History, View Fines | NFR-SEC-04 | A Reader sees only their own data |
+| Check Out Books, Check In Books | NFR-PER-02, NFR-REL-02, NFR-REL-03 | Saved within 2 seconds after the scan; rollback on failure; no double loan of one copy |
+| All | NFR-SEC-03 | Each role can use only its own use cases |
+
 ## 5. Class Diagram
 
 ### 5.1 Overview
