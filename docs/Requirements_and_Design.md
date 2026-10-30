@@ -316,7 +316,7 @@ Reader, Librarian, and Administrator get Log In from User through actor generali
 
 This section lists the main classes of the Library Management System (LMS) along with their attributes, methods, and relationships.
 
-![Class Diagram](diagrams/Class-Diagram.drawio.png)
+![Class Diagram](../diagrams/Class-Diagram.drawio.png)
 
 <mxfile host="app.diagrams.net">
   <diagram name="LMS Class Diagram" id="lms-class">
