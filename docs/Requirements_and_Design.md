@@ -787,166 +787,155 @@ This section lists the main classes of the Library Management System (LMS) along
 
 | Class | Description | DFD Store | Related FR |
 |---|---|---|---|
-| `Role` | Defines user roles (`roleId`, `roleName`, `permissions`) to check access permissions. | D1 | FR-ADM-02 |
-| `User` | Base class for all accounts (`userId`, `fullName`, `email`, `phone`, `passwordHash`, `avatarUrl`, `status`, `failedLogins`, `lockedUntil`) with login and profile methods. | D1 | FR-GST-01, FR-GST-04, FR-RDR-02 |
-| `Reader` | Inherits from `User`. Adds `cardCode` and methods for reserving books, requesting renewals, and paying fines. | D1 | FR-RDR-01 to FR-RDR-09 |
-| `Librarian` | Inherits from `User`. Provides methods to manage books, physical copies, counter borrowing/returning, and fines. | D1 | FR-LIB-01 to FR-LIB-13 |
-| `Administrator` | Inherits from `User`. Provides methods to manage staff accounts, roles, system rules, backups, and logs. | D1 | FR-ADM-01 to FR-ADM-07 |
-| `Book` | Contains book information (`bookId`, `isbn`, `ddcCode`, `title`, `author`, `category`, `ebookUrl`, `availableCopies`). | D2 | FR-GST-02, FR-RDR-09, FR-LIB-01 to FR-LIB-03 |
-| `BookCopy` | A physical copy of a book on the shelf (`copyId`, `barcode`, `shelfLocation`, `status`, `condition`). | D2 | FR-LIB-04, FR-LIB-05, FR-LIB-13 |
+| `User` | Base class for all accounts (`userId`, `fullName`, `email`, `phone`, `passwordHash`, `status`, `failedLogins`, `lockedUntil`) with login, logout, and profile update methods. | D1 | FR-GST-01, FR-GST-04, FR-RDR-02 |
+| `Reader` | Inherits from `User`. Adds `cardCode` and methods for reserving books, requesting renewals, and viewing borrowing history and fines. | D1 | FR-RDR-01 to FR-RDR-07 |
+| `Librarian` | Inherits from `User`. Provides methods to manage books, approve or lock reader cards, check out and check in books, and record fines and payments. | D1 | FR-LIB-01 to FR-LIB-12 |
+| `Administrator` | Inherits from `User`. Provides methods to manage librarian accounts, configure library rules, and view reports. | D1 | FR-ADM-01, FR-ADM-03, FR-ADM-04 |
+| `Book` | Contains book information (`bookId`, `isbn`, `ddcCode`, `title`, `author`, `category`, `availableCopies`) and search method. | D2 | FR-GST-02, FR-LIB-01 to FR-LIB-03 |
+| `BookCopy` | A physical copy of a book on the shelf (`copyId`, `barcode`, `shelfLocation`, `status`, `condition`). | D2 | FR-LIB-04, FR-LIB-05, FR-LIB-08 |
 | `BorrowRecord` | Records a borrowing transaction (`borrowId`, `borrowDate`, `dueDate`, `returnDate`, `returnCondition`, `renewCount`, `status`). | D3 | FR-RDR-04 to FR-RDR-06, FR-LIB-06 to FR-LIB-08 |
 | `Reservation` | Keeps track of online book holds and waiting queues (`reservationId`, `reserveDate`, `expireDate`, `status`). | D3 | FR-RDR-03, FR-SYS-03 |
-| `Fine` | Records a reader violation and its payment status (`fineId`, `reason`, `amount`, `isPaid`, `paymentMethod`, `transactionRef`, `paidAt`). | D4 | FR-RDR-07, FR-RDR-08, FR-LIB-09, FR-LIB-10, FR-SYS-01 |
-| `SystemConfig` | Stores library settings (`configKey`, `configValue`, `updatedAt`) such as borrowing limits and daily fine rates. | D5 | FR-ADM-03 |
-| `Notification` | Stores reminder messages (`notificationId`, `channel`, `message`, `status`, `sentAt`) sent to Readers. | D5 | FR-SYS-02 |
-| `AuditLog` | Saves read-only logs of actions taken by Librarians and Administrators (`logId`, `action`, `targetId`, `createdAt`). | D5 | FR-ADM-07, FR-SYS-04 |
+| `Notification` | Stores reminder messages (`notificationId`, `channel`, `message`, `status`, `sentAt`) sent to Readers. | D3 | FR-SYS-02 |
+| `Fine` | Records a reader violation and its payment status (`fineId`, `reason`, `amount`, `isPaid`, `paidAt`). | D4 | FR-RDR-07, FR-LIB-09, FR-LIB-10, FR-SYS-01 |
+| `SystemConfig` | Stores library settings (`configKey`, `configValue`, `updatedAt`) such as borrowing limits and daily fine rates. | Internal | FR-ADM-03 |
 
 
 ## 6. Data Model
 
 ### 6.1 Overview
 
-The database uses UTF-8 (`utf8mb4`) encoding and consists of 10 relational tables corresponding to the five data stores (`D1` to `D5`) in Section 3.2.
+The database uses UTF-8 (`utf8mb4`) encoding and consists of 8 relational tables in Third Normal Form (3NF). The tables correspond to the four data stores (`D1` to `D4`) in Section 3.3. The user roles (`Reader`, `Librarian`, `Administrator`) are stored in a single `users` table distinguished by a `role` column.
 
-### 6.2 Mapping to DFD Data Stores
+### 6.2 Entity-Relationship Diagram (ERD)
 
-| DFD Store | Mapped Database Tables |
-|---|---|
-| **D1** (User Accounts & Cards) | `roles`, `users` |
-| **D2** (Book Catalog & Inventory) | `books`, `book_copies` |
-| **D3** (Borrowing & Reservations) | `borrow_records`, `reservations` |
-| **D4** (Fines & Violation Records) | `fines` |
-| **D5** (System Logs & Configurations) | `system_configs`, `notifications`, `audit_logs` |
-
-### 6.3 Table Specifications
-
-#### 1. `roles` (Store D1)
-Stores user roles and their permissions.
-
-| Column | Type | Key / Constraints | Description |
+| Parent Table (PK) | Child Table (FK) | Cardinality | Relationship |
 |---|---|---|---|
-| `role_id` | INT | PK, AUTO_INCREMENT | Role ID |
-| `role_name` | VARCHAR(50) | UNIQUE, NOT NULL | `READER`, `LIBRARIAN`, `ADMIN` |
-| `permissions` | TEXT | NOT NULL | List of allowed permissions |
+| `users` (`user_id`) | `notifications` (`reader_id`) | 1 : N | One Reader receives many notifications. |
+| `users` (`user_id`) | `reservations` (`reader_id`) | 1 : N | One Reader makes many reservations. |
+| `users` (`user_id`) | `borrow_records` (`reader_id`) | 1 : N | One Reader has many borrowing records. |
+| `users` (`user_id`) | `borrow_records` (`librarian_id`) | 1 : N | One Librarian creates many borrowing records. |
+| `users` (`user_id`) | `system_configs` (`updated_by`) | 1 : N | One Administrator updates many system rules. |
+| `books` (`book_id`) | `book_copies` (`book_id`) | 1 : N | One book title has many physical copies. |
+| `books` (`book_id`) | `reservations` (`book_id`) | 1 : N | One book title has many reservations. |
+| `book_copies` (`copy_id`) | `borrow_records` (`copy_id`) | 1 : N | One physical copy is lent across many borrow records over time. |
+| `book_copies` (`copy_id`) | `reservations` (`copy_id`) | 1 : 1 | One physical copy is held for at most one active reservation. |
+| `borrow_records` (`borrow_id`) | `fines` (`borrow_id`) | 1 : N | One borrowing record has zero or many fine records. |
 
-#### 2. `users` (Store D1)
-Stores user account details and library card codes.
+### 6.3 Mapping to DFD Data Stores
 
-| Column | Type | Key / Constraints | Description |
+| DFD Store | Store Name | Mapped Database Tables |
+|---|---|---|
+| D1 | Accounts | `users` |
+| D2 | Books | `books`, `book_copies` |
+| D3 | Loans & Reservations | `borrow_records`, `reservations`, `notifications` |
+| D4 | Fines | `fines` |
+| Internal | Process 5.0 Rules | `system_configs` |
+
+### 6.4 Data Dictionary (Table Specifications)
+
+#### 1. `users` (Store D1)
+Stores accounts for Readers, Librarians, and Administrators (`FR-GST-01`, `FR-GST-04`, `FR-RDR-02`, `FR-LIB-11`, `FR-LIB-12`, `FR-ADM-01`).
+
+| Column Name | Data Type | Constraints & Keys | Description |
 |---|---|---|---|
-| `user_id` | INT | PK, AUTO_INCREMENT | User ID |
-| `role_id` | INT | FK (`roles.role_id`), NOT NULL | Assigned role |
-| `card_code` | VARCHAR(30) | UNIQUE, NULL | Library card barcode |
-| `full_name` | VARCHAR(100) | NOT NULL | Full name |
-| `email` | VARCHAR(100) | UNIQUE, NOT NULL | Email address |
-| `phone` | VARCHAR(15) | UNIQUE, NOT NULL | Phone number |
-| `password_hash` | VARCHAR(255) | NOT NULL | Bcrypt password hash |
-| `avatar_url` | VARCHAR(255) | NULL | Link to avatar image |
-| `status` | VARCHAR(20) | DEFAULT 'PENDING' | `PENDING`, `ACTIVE`, `LOCKED` |
-| `failed_logins` | INT | DEFAULT 0 | Number of failed login attempts |
-| `locked_until` | DATETIME | NULL | Time when temporary lock ends |
+| `user_id` | INT | PK, AUTO_INCREMENT | Unique user identifier |
+| `role` | VARCHAR(20) | NOT NULL | Account role: `READER`, `LIBRARIAN`, `ADMIN` |
+| `card_code` | VARCHAR(30) | UNIQUE, NULL | Library card barcode for Readers |
+| `full_name` | VARCHAR(100) | NOT NULL | Full name of the user |
+| `email` | VARCHAR(100) | UNIQUE, NOT NULL | Unique email address |
+| `phone` | VARCHAR(15) | UNIQUE, NOT NULL | Unique phone number |
+| `password_hash` | VARCHAR(255) | NOT NULL | Salted Bcrypt password hash (`NFR-SEC-01`) |
+| `status` | VARCHAR(20) | NOT NULL, DEFAULT 'PENDING' | Account status: `PENDING`, `ACTIVE`, `LOCKED` |
+| `failed_logins` | INT | NOT NULL, DEFAULT 0 | Consecutive failed login attempts (`NFR-SEC-06`) |
+| `locked_until` | DATETIME | NULL | End time of temporary login lock (`NFR-SEC-06`) |
 
-#### 3. `books` (Store D2)
-Stores general book information and e-book links.
+#### 2. `books` (Store D2)
+Stores book title metadata (`FR-GST-02`, `FR-LIB-01` to `FR-LIB-03`).
 
-| Column | Type | Key / Constraints | Description |
+| Column Name | Data Type | Constraints & Keys | Description |
 |---|---|---|---|
-| `book_id` | INT | PK, AUTO_INCREMENT | Book ID |
-| `isbn` | VARCHAR(20) | UNIQUE, NOT NULL | ISBN code |
-| `ddc_code` | VARCHAR(20) | NOT NULL | DDC classification code |
+| `book_id` | INT | PK, AUTO_INCREMENT | Unique book identifier |
+| `isbn` | VARCHAR(20) | UNIQUE, NOT NULL | Standard ISBN code |
+| `ddc_code` | VARCHAR(20) | NOT NULL | Dewey Decimal Classification code |
 | `title` | VARCHAR(255) | NOT NULL | Book title |
 | `author` | VARCHAR(150) | NOT NULL | Author name |
 | `category` | VARCHAR(100) | NOT NULL | Book category |
-| `ebook_url` | VARCHAR(255) | NULL | Path to PDF/EPUB file |
-| `available_copies` | INT | DEFAULT 0 | Number of copies currently available |
+| `available_copies` | INT | NOT NULL, DEFAULT 0 | Number of copies currently available on the shelf |
 
-#### 4. `book_copies` (Store D2)
-Stores individual physical copies for barcode scanning.
+#### 3. `book_copies` (Store D2)
+Stores physical book copies for barcode scanning (`FR-LIB-04`, `FR-LIB-05`, `FR-LIB-08`).
 
-| Column | Type | Key / Constraints | Description |
+| Column Name | Data Type | Constraints & Keys | Description |
 |---|---|---|---|
-| `copy_id` | INT | PK, AUTO_INCREMENT | Copy ID |
-| `book_id` | INT | FK (`books.book_id`), NOT NULL | Links to `books` |
-| `barcode` | VARCHAR(50) | UNIQUE, NOT NULL | Barcode printed on the book |
-| `shelf_location` | VARCHAR(50) | NOT NULL | Shelf location in storage |
-| `status` | VARCHAR(20) | DEFAULT 'AVAILABLE' | `AVAILABLE`, `BORROWED`, `RESERVED`, `CANCELED` |
-| `condition` | VARCHAR(20) | DEFAULT 'INTACT' | `INTACT`, `DAMAGED`, `LOST` |
+| `copy_id` | INT | PK, AUTO_INCREMENT | Unique physical copy identifier |
+| `book_id` | INT | FK (`books.book_id`), NOT NULL | Reference to the book title |
+| `barcode` | VARCHAR(50) | UNIQUE, NOT NULL | Barcode label on the physical copy |
+| `shelf_location` | VARCHAR(50) | NOT NULL | Shelf location in the storage |
+| `status` | VARCHAR(20) | NOT NULL, DEFAULT 'AVAILABLE' | `AVAILABLE`, `BORROWED`, `RESERVED`, `CANCELED` |
+| `condition` | VARCHAR(20) | NOT NULL, DEFAULT 'INTACT' | Physical state: `INTACT`, `DAMAGED`, `LOST` |
 
-#### 5. `borrow_records` (Store D3)
-Stores borrowing, returning, and renewal history.
+#### 4. `borrow_records` (Store D3)
+Stores counter borrowing, returning, and loan renewal records (`FR-RDR-04` to `FR-RDR-06`, `FR-LIB-06` to `FR-LIB-08`).
 
-| Column | Type | Key / Constraints | Description |
+| Column Name | Data Type | Constraints & Keys | Description |
 |---|---|---|---|
-| `borrow_id` | INT | PK, AUTO_INCREMENT | Borrow record ID |
-| `user_id` | INT | FK (`users.user_id`), NOT NULL | Reader who borrowed the book |
-| `copy_id` | INT | FK (`book_copies.copy_id`), NOT NULL | Borrowed physical copy |
-| `librarian_id` | INT | FK (`users.user_id`), NOT NULL | Librarian who created the record |
-| `borrow_date` | DATETIME | NOT NULL | Borrow date and time |
-| `due_date` | DATETIME | NOT NULL | Expected return date |
-| `return_date` | DATETIME | NULL | Actual return date |
-| `return_condition` | VARCHAR(20) | NULL | Book condition when returned |
-| `renew_count` | INT | DEFAULT 0 | Times renewed |
-| `status` | VARCHAR(20) | DEFAULT 'BORROWED' | `BORROWED`, `RETURNED`, `OVERDUE` |
+| `borrow_id` | INT | PK, AUTO_INCREMENT | Unique borrowing transaction identifier |
+| `reader_id` | INT | FK (`users.user_id`), NOT NULL | Reader who borrowed the book |
+| `copy_id` | INT | FK (`book_copies.copy_id`), NOT NULL | Borrowed physical book copy |
+| `librarian_id` | INT | FK (`users.user_id`), NOT NULL | Librarian who created the transaction |
+| `borrow_date` | DATETIME | NOT NULL | Date and time of checkout |
+| `due_date` | DATETIME | NOT NULL | Expected return due date |
+| `return_date` | DATETIME | NULL | Actual return date (`NULL` if not yet returned) |
+| `return_condition` | VARCHAR(20) | NULL | Recorded condition upon return (`INTACT`, `DAMAGED`, `LOST`) |
+| `renew_count` | INT | NOT NULL, DEFAULT 0 | Number of times the loan has been renewed |
+| `status` | VARCHAR(20) | NOT NULL, DEFAULT 'BORROWED' | `BORROWED`, `RETURNED`, `OVERDUE` |
 
-#### 6. `reservations` (Store D3)
-Stores online book reservations and waiting lists.
+#### 5. `reservations` (Store D3)
+Stores online book reservations and waiting queues (`FR-RDR-03`, `FR-SYS-03`).
 
-| Column | Type | Key / Constraints | Description |
+| Column Name | Data Type | Constraints & Keys | Description |
 |---|---|---|---|
-| `reservation_id` | INT | PK, AUTO_INCREMENT | Reservation ID |
-| `user_id` | INT | FK (`users.user_id`), NOT NULL | Reader who reserved the book |
+| `reservation_id` | INT | PK, AUTO_INCREMENT | Unique reservation identifier |
+| `reader_id` | INT | FK (`users.user_id`), NOT NULL | Reader who placed the reservation |
 | `book_id` | INT | FK (`books.book_id`), NOT NULL | Reserved book title |
-| `copy_id` | INT | FK (`book_copies.copy_id`), NULL | Assigned copy when returned |
-| `reserve_date` | DATETIME | NOT NULL | Time of reservation |
-| `expire_date` | DATETIME | NULL | Last day to pick up the book |
-| `status` | VARCHAR(20) | DEFAULT 'WAITING' | `WAITING`, `READY`, `COMPLETED`, `CANCELED` |
+| `copy_id` | INT | FK (`book_copies.copy_id`), NULL | Specific copy held on the waiting shelf when returned |
+| `reserve_date` | DATETIME | NOT NULL | Date and time the reservation was made |
+| `expire_date` | DATETIME | NULL | Pickup deadline before automatic cancellation |
+| `status` | VARCHAR(20) | NOT NULL, DEFAULT 'WAITING' | `WAITING`, `READY`, `COMPLETED`, `CANCELED` |
 
-#### 7. `fines` (Store D4)
-Stores violation records and fine payments.
+#### 6. `fines` (Store D4)
+Stores violation records and counter fine payments (`FR-RDR-07`, `FR-LIB-09`, `FR-LIB-10`, `FR-SYS-01`).
 
-| Column | Type | Key / Constraints | Description |
+| Column Name | Data Type | Constraints & Keys | Description |
 |---|---|---|---|
-| `fine_id` | INT | PK, AUTO_INCREMENT | Fine ID |
-| `borrow_id` | INT | FK (`borrow_records.borrow_id`), NOT NULL | Related borrow record |
-| `user_id` | INT | FK (`users.user_id`), NOT NULL | Reader who received the fine |
-| `reason` | VARCHAR(50) | NOT NULL | `LATE_RETURN`, `DAMAGED`, `LOST` |
-| `amount` | DECIMAL(10,2) | NOT NULL | Fine amount in VND |
-| `is_paid` | BOOLEAN | DEFAULT FALSE | Paid status (`TRUE` or `FALSE`) |
-| `payment_method` | VARCHAR(30) | NULL | `COUNTER` or `ONLINE` |
-| `transaction_ref` | VARCHAR(100) | NULL | Payment gateway reference code |
-| `paid_at` | DATETIME | NULL | Time of payment |
+| `fine_id` | INT | PK, AUTO_INCREMENT | Unique fine identifier |
+| `borrow_id` | INT | FK (`borrow_records.borrow_id`), NOT NULL | Related borrowing record |
+| `reason` | VARCHAR(50) | NOT NULL | Violation reason: `LATE_RETURN`, `DAMAGED`, `LOST` |
+| `amount` | DECIMAL(10,2) | NOT NULL | Fine amount in VND (`NFR-COM-03`) |
+| `is_paid` | BOOLEAN | NOT NULL, DEFAULT FALSE | Payment status (`TRUE` if paid, `FALSE` if unpaid) |
+| `paid_at` | DATETIME | NULL | Date and time when the fine was paid at the counter |
 
-#### 8. `system_configs` (Store D5)
-Stores library settings that the Administrator can change.
+#### 7. `system_configs` (Process 5.0 Rules)
+Stores library parameters configured by the Administrator (`FR-ADM-03`, `NFR-MNT-02`).
 
-| Column | Type | Key / Constraints | Description |
+| Column Name | Data Type | Constraints & Keys | Description |
 |---|---|---|---|
-| `config_key` | VARCHAR(50) | PK | `MAX_BOOKS`, `MAX_DAYS`, `DAILY_FINE`, `HOLD_DAYS` |
-| `config_value` | VARCHAR(100) | NOT NULL | Setting value |
-| `updated_at` | DATETIME | NOT NULL | Last updated time |
+| `config_key` | VARCHAR(50) | PK | Rule key: `MAX_BOOKS`, `MAX_DAYS`, `DAILY_FINE`, `HOLD_DAYS` |
+| `config_value` | VARCHAR(100) | NOT NULL | Configured parameter value |
+| `updated_by` | INT | FK (`users.user_id`), NOT NULL | Administrator who last updated the rule |
+| `updated_at` | DATETIME | NOT NULL | Timestamp of the last update |
 
-#### 9. `notifications` (Store D5)
-Stores automatic reminders sent to Readers.
+#### 8. `notifications` (Store D3 Reminders)
+Stores automated due, overdue, and pickup reminders sent to Readers (`FR-SYS-02`, `NFR-REL-06`).
 
-| Column | Type | Key / Constraints | Description |
+| Column Name | Data Type | Constraints & Keys | Description |
 |---|---|---|---|
-| `notification_id` | INT | PK, AUTO_INCREMENT | Notification ID |
-| `user_id` | INT | FK (`users.user_id`), NOT NULL | Reader receiving the message |
-| `channel` | VARCHAR(20) | NOT NULL | `EMAIL`, `SMS`, `IN_APP` |
-| `message` | TEXT | NOT NULL | Message text |
-| `status` | VARCHAR(20) | DEFAULT 'PENDING' | `PENDING`, `SENT`, `FAILED` |
-| `sent_at` | DATETIME | NULL | Time sent |
-
-#### 10. `audit_logs` (Store D5)
-Stores read-only logs of Librarian and Administrator actions.
-
-| Column | Type | Key / Constraints | Description |
-|---|---|---|---|
-| `log_id` | INT | PK, AUTO_INCREMENT | Log ID |
-| `actor_id` | INT | FK (`users.user_id`), NOT NULL | Librarian or Admin who did the action |
-| `action` | VARCHAR(100) | NOT NULL | Action type (e.g., `EDIT_BOOK`, `LOCK_USER`) |
-| `target_id` | VARCHAR(50) | NOT NULL | ID of the affected record |
-| `created_at` | DATETIME | NOT NULL | Time of action |
+| `notification_id` | INT | PK, AUTO_INCREMENT | Unique notification identifier |
+| `reader_id` | INT | FK (`users.user_id`), NOT NULL | Recipient Reader |
+| `channel` | VARCHAR(20) | NOT NULL | Delivery channel: `EMAIL`, `SMS`, `IN_APP` |
+| `message` | TEXT | NOT NULL | Reminder message content |
+| `status` | VARCHAR(20) | NOT NULL, DEFAULT 'PENDING' | Delivery status: `PENDING`, `SENT`, `FAILED` |
+| `sent_at` | DATETIME | NULL | Timestamp when the notification was sent |
 
 ## 7. Interface Design Description
 
