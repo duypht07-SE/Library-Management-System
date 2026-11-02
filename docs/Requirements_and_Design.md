@@ -221,7 +221,7 @@ The whole system is drawn as one process, `0 Library Management System`, connect
 
 ### 3.4 Level 1 DFD
 
-Process 0.0 is split into five processes. Each process uses the data store drawn below it.
+Process 0 is split into five processes. Each process uses the data store drawn below it.
 
 ![Level 1 DFD](../diagrams/dfd-level-1.png)
 
