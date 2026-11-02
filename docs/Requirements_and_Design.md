@@ -461,12 +461,14 @@ Stores automated due, overdue, and pickup reminders sent to Readers (`FR-SYS-02`
 | `status` | VARCHAR(20) | NOT NULL, DEFAULT 'PENDING' | Delivery status: `PENDING`, `SENT`, `FAILED` |
 | `sent_at` | DATETIME | NULL | Timestamp when the notification was sent |
 
+## 7. Interface Design Description
+
 ### 7.1 Librarian Accounts Management
 This interface allows Administrators to manage librarian accounts, including adding new accounts, editing existing information, and locking/unlocking accounts.
 
-![Librarian Accounts](../diagrams/librarianaccounts.png)
+![Librarian Accounts](../ui/librarianaccounts.png)
 
 ### 7.2 Rules and Reports
 This interface allows Administrators to configure global library parameters (e.g., maximum borrowing days, fine rates) and view statistical reports.
 
-![Rules and Reports](../diagrams/rulesandreports.png)
+![Rules and Reports](../ui/rulesandreports.png)
