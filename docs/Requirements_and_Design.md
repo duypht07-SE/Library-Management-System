@@ -339,32 +339,21 @@ This section lists the main classes of the Library Management System (LMS) along
 
 ### 6.1 Overview
 
-The database uses UTF-8 (`utf8mb4`) encoding and consists of 8 relational tables in Third Normal Form (3NF). The tables correspond to the four data stores (`D1` to `D4`) in Section 3.3. The user roles (`Reader`, `Librarian`, `Administrator`) are stored in a single `users` table distinguished by a `role` column.
+The database uses UTF-8 (`utf8mb4`) encoding (`NFR-USA-01`, `NFR-COM-03`) and consists of 8 relational tables in Third Normal Form (3NF). The tables match the classes in Section 5 and the four data stores (`D1` to `D4`) in Section 3.3. The inheritance hierarchy of `User` (`Reader`, `Librarian`, `Administrator`) is mapped into a single `users` table using a `role` column.
 
 ### 6.2 Entity-Relationship Diagram (ERD)
 
-| Parent Table (PK) | Child Table (FK) | Cardinality | Relationship |
-|---|---|---|---|
-| `users` (`user_id`) | `notifications` (`reader_id`) | 1 : N | One Reader receives many notifications. |
-| `users` (`user_id`) | `reservations` (`reader_id`) | 1 : N | One Reader makes many reservations. |
-| `users` (`user_id`) | `borrow_records` (`reader_id`) | 1 : N | One Reader has many borrowing records. |
-| `users` (`user_id`) | `borrow_records` (`librarian_id`) | 1 : N | One Librarian creates many borrowing records. |
-| `users` (`user_id`) | `system_configs` (`updated_by`) | 1 : N | One Administrator updates many system rules. |
-| `books` (`book_id`) | `book_copies` (`book_id`) | 1 : N | One book title has many physical copies. |
-| `books` (`book_id`) | `reservations` (`book_id`) | 1 : N | One book title has many reservations. |
-| `book_copies` (`copy_id`) | `borrow_records` (`copy_id`) | 1 : N | One physical copy is lent across many borrow records over time. |
-| `book_copies` (`copy_id`) | `reservations` (`copy_id`) | 1 : 1 | One physical copy is held for at most one active reservation. |
-| `borrow_records` (`borrow_id`) | `fines` (`borrow_id`) | 1 : N | One borrowing record has zero or many fine records. |
+![Entity-Relationship Diagram](../diagrams/erd.png)
 
 ### 6.3 Mapping to DFD Data Stores
 
 | DFD Store | Store Name | Mapped Database Tables |
 |---|---|---|
-| D1 | Accounts | `users` |
-| D2 | Books | `books`, `book_copies` |
-| D3 | Loans & Reservations | `borrow_records`, `reservations`, `notifications` |
-| D4 | Fines | `fines` |
-| Internal | Process 5.0 Rules | `system_configs` |
+| **D1** | Accounts | `users` |
+| **D2** | Books | `books`, `book_copies` |
+| **D3** | Loans & Reservations | `borrow_records`, `reservations`, `notifications` |
+| **D4** | Fines | `fines` |
+| **Internal** | Process 5.0 Rules | `system_configs` |
 
 ### 6.4 Data Dictionary (Table Specifications)
 
@@ -375,7 +364,7 @@ Stores accounts for Readers, Librarians, and Administrators (`FR-GST-01`, `FR-GS
 |---|---|---|---|
 | `user_id` | INT | PK, AUTO_INCREMENT | Unique user identifier |
 | `role` | VARCHAR(20) | NOT NULL | Account role: `READER`, `LIBRARIAN`, `ADMIN` |
-| `card_code` | VARCHAR(30) | UNIQUE, NULL | Library card barcode for Readers |
+| `card_code` | VARCHAR(30) | UNIQUE, NULL | Library card barcode (for Readers only) |
 | `full_name` | VARCHAR(100) | NOT NULL | Full name of the user |
 | `email` | VARCHAR(100) | UNIQUE, NOT NULL | Unique email address |
 | `phone` | VARCHAR(15) | UNIQUE, NOT NULL | Unique phone number |
