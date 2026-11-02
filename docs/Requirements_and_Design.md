@@ -153,7 +153,7 @@ This section describes the quality requirements of the Library Management System
 |---|---|---|
 | NFR-COM-01 | The web application shall be fully compatible with the latest two major stable versions of major web browsers (Google Chrome, Microsoft Edge, Mozilla Firefox, Apple Safari) on both desktop and mobile platforms. | All |
 | NFR-COM-02 | The system shall interface seamlessly with standard USB/Bluetooth barcode scanners operating in Human Interface Device (HID) / Keyboard Wedge emulation mode. | FR-LIB-06, FR-LIB-07, FR-LIB-13 |
-| NFR-COM-03 | The system shall fully support Vietnamese localization (L10n), utilizing UTF-8 character encoding, formatting dates as DD/MM/YYYY, displaying currency in VND, and synchronizing timestamps with the Indochina Time zone (UTC+7). | All |
+| NFR-COM-03 | The system shall display all text in English using UTF-8 character encoding, format dates as DD/MM/YYYY, display currency in VND, and synchronize timestamps with the Indochina Time zone (UTC+7). | All |
 | NFR-COM-04 | The digital library component shall support processing, online rendering, and downloading of digital course materials in standard PDF and EPUB file formats. | FR-RDR-09 |
 
 ### 2.7 Maintainability and Scalability
@@ -184,7 +184,7 @@ FR-SYS-01 to FR-SYS-03 (overdue fines, reminders, expired holds) are handled ins
 
 ### 3.2 Context Diagram (Level 0 DFD)
 
-The whole system is drawn as one process, `0.0 Library Management System`, connected to four external entities.
+The whole system is drawn as one process, `0 Library Management System`, connected to four external entities.
 
 ![Context Diagram (Level 0 DFD)](../diagrams/dfd-level-0.png)
 
@@ -248,7 +248,7 @@ The flows between external entities and the system in Level 1 have the same name
 | 2.0 | NFR-PER-01 | Search results within 2 seconds. |
 | 3.0 | NFR-PER-02, NFR-REL-02, NFR-REL-03 | A borrow or return is saved within 2 seconds after the scan. A failed transaction is rolled back. One copy cannot be lent to two Readers at once. |
 | 3.0 | NFR-PER-04, NFR-REL-06 | The daily overdue scan finishes within 30 minutes. Reminders are sent asynchronously. |
-| All | NFR-SEC-07, NFR-USA-01, NFR-COM-03 | Input is validated. The interface is in Vietnamese (UTF-8), dates use DD/MM/YYYY, currency is VND. |
+| All | NFR-SEC-07, NFR-USA-01, NFR-COM-03 | Input is validated. The interface is in English (UTF-8), dates use DD/MM/YYYY, currency is VND. |
 
 ## 4. Use Case Diagram
 
