@@ -463,12 +463,86 @@ Stores automated due, overdue, and pickup reminders sent to Readers (`FR-SYS-02`
 
 ## 7. Interface Design Description
 
-### 7.1 Librarian Accounts Management
-This interface allows Administrators to manage librarian accounts, including adding new accounts, editing existing information, and locking/unlocking accounts.
+### 7.1 Guest
+
+#### 7.1.1 Home
+This interface shows the book categories, library news, and new books (FR-GST-03).
+
+![Home](../ui/home.png)
+
+#### 7.1.2 Search Books
+This interface shows the books that match a keyword or category and whether each book is available (FR-GST-02).
+
+![Search Books](../ui/searchbooks.png)
+
+#### 7.1.3 Loading
+This interface is shown while search results are loading.
+
+![Loading](../ui/loading.png)
+
+#### 7.1.4 Library Policies
+This interface shows the library rules on membership, borrowing, reservations, and fines (FR-GST-03).
+
+![Library Policies](../ui/librarypolicies.png)
+
+#### 7.1.5 Help
+This interface explains how to borrow a book and answers common questions (FR-GST-03).
+
+![Help](../ui/help.png)
+
+#### 7.1.6 Page Not Found
+This interface is shown when a page does not exist.
+
+![Page Not Found](../ui/pagenotfound.png)
+
+#### 7.1.7 Sign In
+This interface allows users to log in with email and password (FR-GST-04).
+
+![Sign In](../ui/signin.png)
+
+#### 7.1.8 Create Account
+This interface allows Guests to register for a library card (FR-GST-01).
+
+![Create Account](../ui/register.png)
+
+### 7.2 Reader
+
+#### 7.2.1 My Books
+This interface allows Readers to view current loans, renew books, and view fines (FR-RDR-04 to FR-RDR-07).
+
+![My Books](../ui/mybooks.png)
+
+### 7.3 Librarian
+
+#### 7.3.1 Check Out
+This interface allows Librarians to lend books by scanning the reader card and book barcodes (FR-LIB-06).
+
+![Check Out](../ui/checkout.png)
+
+#### 7.3.2 Check In
+This interface allows Librarians to record returned books, their condition, and fines (FR-LIB-07 to FR-LIB-09).
+
+![Check In](../ui/checkin.png)
+
+#### 7.3.3 Books
+This interface allows Librarians to add, edit, and retire books (FR-LIB-01 to FR-LIB-05).
+
+![Books](../ui/books.png)
+
+#### 7.3.4 Readers
+This interface allows Librarians to approve, lock, or unlock reader cards and record fine payments (FR-LIB-10 to FR-LIB-12).
+
+![Readers](../ui/readers.png)
+
+### 7.4 Administrator
+
+#### 7.4.1 Librarian Accounts
+This interface allows Administrators to add, edit, and lock librarian accounts (FR-ADM-01).
 
 ![Librarian Accounts](../ui/librarianaccounts.png)
 
-### 7.2 Rules and Reports
-This interface allows Administrators to configure global library parameters (e.g., maximum borrowing days, fine rates) and view statistical reports.
+#### 7.4.2 Rules and Reports
+This interface allows Administrators to configure library rules and view reports (FR-ADM-03, FR-ADM-04).
 
 ![Rules and Reports](../ui/rulesandreports.png)
+
