@@ -25,35 +25,26 @@ Send automated reminders and notifications.
 Generate statistical reports to support library management.
 
 📂 REPOSITORY DIRECTORY STRUCTURE
-.
+Library-Management-System/
+│
 ├── docs/
 │   └── Requirements_and_Design.md
-│       # Detailed requirements and system design documentation (7 sections)
 │
 ├── diagrams/
 │   ├── dfd_level0.drawio
-│   │   # Level 0 Data Flow Diagram (Context Diagram)
 │   ├── dfd_level1.drawio
-│   │   # Level 1 Data Flow Diagram (Process Decomposition)
 │   ├── usecase_diagram.puml
-│   │   # PlantUML source code for Use Case Diagram
 │   ├── class_diagram.puml
-│   │   # PlantUML source code for Class Diagram
 │   └── erd_schema.drawio
-│       # Relational Database Entity-Relationship Diagram (3NF)
 │
 ├── ui/
 │   ├── screen_guest_search.png
-│   │   # Book Search Screen Mockup
 │   ├── screen_librarian_counter.png
-│   │   # Librarian Borrowing/Returning Counter Screen Mockup
 │   ├── screen_reader_profile.png
-│   │   # Reader Profile & Fine Management Screen Mockup
 │   └── screen_admin_config.png
-│       # Administrator Configuration Screen Mockup
 │
 └── README.md
-    # Project overview and usage instructions
+
 
 📑 SYSTEM SPECIFICATIONS
 
