@@ -1,249 +1,55 @@
-📚 Library Management System (LMS) — Group 06
+Library Management System (LMS)
+This repository contains the software requirements specification, architectural design, and system diagrams for an academic Library Management System (LMS) developed by Group 06.
 
-Course Project: Software Engineering
+The system automates core library operations, including physical book circulation using barcode scanning, digital e-book access, reservation queues, fine tracking, and automated background jobs.
 
-📌 PROJECT OVERVIEW
+Standards Applied
+Software Requirements Specification: IEEE Std 830-1998
+System Modeling: UML 2.5 (Use Case, Class Diagrams)
+Database Normalization: Relational Schema in Third Normal Form (3NF)
 
-The Library Management System (LMS) is a software application designed to manage a university's digital library and automate its book borrowing and returning processes.
-
-The system addresses three core business domains:
-
-1. Book Catalog Search & Management
-Manage two levels of book information: Book Titles and physical Book Copies, each identified by a unique Barcode/RFID tag.
-Integrate a digital library that supports reading and downloading E-books in PDF/EPUB formats.
-Provide comprehensive book search and catalog management functionalities.
-2. Automated Circulation & Borrowing Management
-Support fast book check-in and check-out operations at the library counter using barcode scanning.
-Allow readers to renew borrowed books.
-Enable online book reservations and hold management.
-Handle violations and overdue fines.
-3. Administration & Automation
-Implement Role-Based Access Control (RBAC) for user permission management.
-Provide dynamic configuration of library policies and borrowing regulations.
-Automatically calculate overdue fines at 00:00 (midnight).
-Send automated reminders and notifications.
-Generate statistical reports to support library management.
-
-📂 REPOSITORY DIRECTORY STRUCTURE
-Library-Management-System/
-│
-├── docs/
-│   └── Requirements_and_Design.md
-│
-├── diagrams/
-│   ├── dfd_level0.drawio
-│   ├── dfd_level1.drawio
-│   ├── usecase_diagram.puml
-│   ├── class_diagram.puml
-│   └── erd_schema.drawio
-│
-├── ui/
-│   ├── screen_guest_search.png
-│   ├── screen_librarian_counter.png
-│   ├── screen_reader_profile.png
-│   └── screen_admin_config.png
-│
-└── README.md
-
-
-📑 SYSTEM SPECIFICATIONS
-
-The detailed system design documentation is located in docs/Requirements_and_Design.md and consists of seven standardized sections:
+System Overview & Architecture
+The complete system specification is documented in docs/Requirements_and_Design.md across seven structured sections:
 
 1. Functional Requirements (FR)
+Includes 37 defined requirements organized by five system actors:
 
-The system includes 37 Functional Requirements distributed across five actors:
-
-Guest (4 FRs):
-Search the public book catalog.
-View library news and regulations.
-Register a new account.
-Log in to the system.
-Reader (9 FRs):
-Manage personal profiles.
-Reserve books online.
-Renew borrowed books.
-View borrowing history and outstanding fines.
-Make online fine payments.
-Read digital E-books.
-Librarian (13 FRs):
-Manage the book inventory using DDC classification and ISBN.
-Perform book check-in/check-out operations using barcode scanning.
-Create violation records.
-Collect fine payments.
-Approve and suspend library membership cards.
-Conduct physical inventory checks.
-Administrator (7 FRs):
-Manage librarian accounts.
-Configure Role-Based Access Control (RBAC).
-Dynamically configure borrowing policies and fine regulations.
-Generate and export reports.
-Perform database backup and recovery.
-Review system Audit Logs.
-System (4 FRs):
-Automatically calculate overdue fines through background jobs at 00:00.
-Send automated reminders via Email, SMS, and in-app notifications.
-Automatically cancel expired reservations.
-Record system activity logs.
+Guest (4 FRs): Public catalog search, account registration, library news, and login.
+Reader (9 FRs): Profile management, online book reservation, loan renewals, borrowing history, online fine payment, and digital e-book reading (PDF/EPUB).
+Librarian (13 FRs): Book cataloging (ISBN/DDC classification), barcode-based checkout/checkin, physical condition assessment, violation recording, on-site fine collection, card approvals, and inventory audits.
+Administrator (7 FRs): Staff account management, role-based access control (RBAC), configuration of dynamic library parameters (max books, loan duration, daily fine rate), report generation, database backups, and audit log inspection.
+System (4 FRs): Automated midnight cron job (00:00) for calculating overdue fines, notification dispatch (Email/SMS/In-app), automatic cancellation of uncollected holds after 3 days, and activity logging.
 2. Non-Functional Requirements (NFR)
+Specifies 34 measurable quality attributes across six categories:
 
-The system specifies 34 measurable Non-Functional Requirements across six quality attributes:
-
-Performance (5 NFRs):
-Book search response time ≤ 2.0 seconds for a catalog of 100,000 books.
-Library counter transaction processing time ≤ 2.0 seconds.
-Page loading time ≤ 2.5 seconds.
-Support at least 100 concurrent users.
-Security (10 NFRs):
-Secure password hashing with unique salts.
-Encrypted data transmission using HTTPS/TLS.
-Role-Based Access Control (RBAC).
-Temporary account locking after multiple failed login attempts.
-Immutable Audit Logs.
-Reliability (6 NFRs):
-System availability ≥ 99.5%.
-ACID-compliant transactions with rollback support.
-Pessimistic Locking to prevent conflicting borrowing transactions.
-Recovery Time Objective (RTO) ≤ 4 hours.
-Recovery Point Objective (RPO) ≤ 24 hours.
-Usability (5 NFRs):
-Vietnamese user interface with UTF-8 encoding.
-New librarian training time ≤ 4 hours.
-Responsive web design supporting screens down to 360px.
-Confirmation modal dialogs for critical or potentially destructive operations.
-Compatibility (4 NFRs):
-Compatibility with the two latest versions of supported browsers.
-Support for HID barcode scanners.
-Vietnamese localization, including DD/MM/YYYY date format, VND currency, and UTC+7 timezone.
-Support for PDF and EPUB E-book formats.
-Maintainability (4 NFRs):
-Layered/MVC architecture following Low Coupling and High Cohesion principles.
-Clean Code practices and API specifications.
-Database scalability to support at least 100,000 books.
+Performance: Book search response time $\le 2.0$s for 100,000 records; checkout processing $\le 2.0$s; page load time $\le 2.5$s; 100 concurrent active users.
+Security: Password hashing using Bcrypt/Argon2 with salt; HTTPS/TLS 1.2+ encryption; RBAC authorization; 15-minute account lock after 5 failed login attempts; OWASP threat mitigation; immutable audit logs.
+Reliability: Uptime $\ge 99.5%$; ACID transaction compliance with automatic rollback; pessimistic locking for concurrent loan requests; daily automated backups at 00:00; RTO $\le 4$h, RPO $\le 24$h.
+Usability: UTF-8 Vietnamese interface; responsive layout down to 360px viewport; new librarian training time $\le 4$h; explicit confirmation modals for destructive operations.
+Compatibility: Supports current versions of major desktop/mobile browsers; compatible with HID barcode scanners; uses DD/MM/YYYY, VND, and UTC+7.
+Maintainability: Layered/MVC modular architecture with low coupling; dynamic parameter configuration without redeployment; clean code guidelines; database capacity for 100,000 books and 10,000 users.
 3. Data Flow Diagram (DFD)
-
-DFD Level 0 (Context Diagram):
-
-A central process, Process 0.0, interacts with five external entities:
-Guest
-Reader
-Librarian
-Administrator
-Payment Gateway
-The system consists of five data stores:
-D1: Users & Cards
-D2: Book Catalog
-D3: Borrowing & Reservations
-D4: Fines & Violations
-D5: Logs & Configurations
-
-DFD Level 1 (Process Decomposition):
-
-The central system is decomposed into six main processes:
-
-1.0 — User Authentication
-2.0 — Catalog Management
-3.0 — Circulation Management
-4.0 — Fines & Payments
-5.0 — Administration & Reports
-6.0 — Background Jobs
+Level 0 (Context Diagram): High-level boundary showing interactions between Process 0.0 and five external entities (Guest, Reader, Librarian, Admin, Payment Gateway).
+Data Stores: Five logical stores (D1 Users & Cards, D2 Books & Catalog, D3 Borrowing & Holds, D4 Fines & Violations, D5 System Configs & Logs).
+Level 1: Decomposed into six functional sub-processes (1.0 to 6.0).
 4. Use Case Diagram
-
-The Use Case Diagram illustrates the interactions between system actors and their corresponding functionalities.
-
-Generalization Relationships:
-Reader, Librarian, and Administrator inherit from the general User actor.
-All specialized actors inherit the common Login functionality.
-Relationships:
-<<include>> is used for mandatory authentication and other required sub-functions.
-<<extend>> is used for optional or exceptional workflows.
-Example: Record Violation extends Check In Books when returned books are overdue, damaged, or lost.
-5. Class Diagram (Object-Oriented Design)
-
-The Class Diagram represents the system's object-oriented structure and relationships between its main classes.
-
-The primary classes include:
-
-User (Abstract Class)
-Reader
-Librarian
-Administrator
-Book
-BookCopy
-BorrowRecord
-Reservation
-Fine
-Notification
-SystemConfig
-6. Data Model (3NF Relational Database)
-
-The system uses a relational database schema designed according to Third Normal Form (3NF) principles.
-
-Key database characteristics:
-
-UTF-8 character encoding using utf8mb4.
-Relational database support for MySQL/PostgreSQL.
-Structured relationships between entities.
-Reduced data redundancy and improved data integrity.
-
-The database consists of eight main tables:
-
-users
-books
-book_copies
-borrow_records
-reservations
-fines
-system_configs
-notifications
+Actor Inheritance: Reader, Librarian, and Administrator inherit from the base User actor, inheriting the Log In use case.
+Relationships: Uses <<include>> for mandatory sub-processes and <<extend>> for conditional workflows (e.g., Record Violation extending Check In Books when items are returned late or damaged).
+5. Class Diagram
+Defines 11 domain classes: User (Abstract base), Reader, Librarian, Administrator, Book, BookCopy, BorrowRecord, Reservation, Fine, Notification, and SystemConfig.
+6. Relational Data Model (3NF)
+Normalized relational database schema comprising 8 tables in Third Normal Form: users, books, book_copies, borrow_records, reservations, fines, system_configs, and notifications.
 7. Interface Design
-
-This section describes the system's UI/UX design specifications, including:
-
-UI/UX design guidelines and color palette.
-Application navigation flow.
-Wireframes and detailed mockups for core system screens.
-Responsive interface design for desktop and mobile devices.
-🛠️ TECHNOLOGY STACK & STANDARDS
-Component	Technology / Applicable Standards
-Requirements Specification	IEEE Std 830-1998 (Software Requirements Specification)
-System Modeling	UML 2.5 (Use Case Diagram, Class Diagram) using PlantUML and Draw.io
-Database	Relational Database Schema (MySQL / PostgreSQL), 3NF, UTF-8
-Security	Secure Password Hashing, HTTPS / TLS 1.2+, RBAC
-UI/UX Design	Responsive Web Design (Desktop & Mobile down to 360px), Figma / Draw.io
+UI/UX guidelines, navigation flow diagrams, and wireframe mockups for key application screens.
+Technical Stack & Tools
+Component	Tool / Standard
+Specification Standard	IEEE Std 830-1998
+System Modeling	UML 2.5 via PlantUML & Draw.io
+Database Architecture	Relational Schema (3NF), UTF-8 (utf8mb4)
+Interface Design	Wireframes & Mockups (Figma / Draw.io)
 Version Control	Git & GitHub
-👥 TEAM MEMBERS & RESPONSIBILITIES
-
-**Group 06 — Software Engineering Course Project**
-
-| No. | Full Name | Responsibilities |
-|:---:|---|---|
-| 1 | Phạm Hồ Thanh Duy | Project Introduction, Functional Requirements, and Non-Functional Requirements |
-| 2 | Võ Đức Thắng | Design of Data Flow Diagrams (DFD Level 0 and Level 1) and Use Case Diagram |
-| 3 | Lê Phước Sang | Design of Class Diagram |
-| 4 | Nguyễn Đức Tài | Design of Data Model |
-
-📖 HOW TO USE
-1. Access the Full Documentation
-
-Open the following file in the GitHub repository:
-
-text
-docs/Requirements_and_Design.md
-
-
-This file contains the complete requirements specification and detailed system design documentation.
-
-2. Edit and Export UML Diagrams
-Open .puml files using the PlantUML extension in Visual Studio Code or an online tool such as PlantText.
-Open .drawio files using Draw.io.
-Edit and export diagrams as needed.
-3. Contribute and Update the Project
-All documentation changes must be submitted through a Pull Request (PR).
-Contributors should provide clear descriptions of their changes.
-Every modification must be recorded in the Document Revision History table.
-Follow the team's Git and GitHub version control workflow to maintain project consistency.
-
-Group 06 — Library Management System (LMS)
-
-Software Engineering Course Project
+Working with Diagram Source Files
+PlantUML Files (.puml):
+Open .puml files in VS Code with the PlantUML extension installed, or paste the script into PlantText to render PNG/SVG diagrams.
+Draw.io Files (.drawio):
+Import .drawio files directly into draw.io to edit or export vector graphics.
