@@ -1,4 +1,4 @@
-Library Management System (LMS)
+# Library Management System (LMS)
 This repository contains the software requirements specification, architectural design, and system diagrams for an academic Library Management System (LMS) developed by Group 06.
 
 The system automates core library operations, including physical book circulation using barcode scanning, digital e-book access, reservation queues, fine tracking, and automated background jobs.
@@ -11,7 +11,7 @@ Database Normalization: Relational Schema in Third Normal Form (3NF)
 System Overview & Architecture
 The complete system specification is documented in docs/Requirements_and_Design.md across seven structured sections:
 
-1. Functional Requirements (FR)
+## 1. Functional Requirements (FR)
 Includes 37 defined requirements organized by five system actors:
 
 Guest (4 FRs): Public catalog search, account registration, library news, and login.
@@ -19,7 +19,8 @@ Reader (9 FRs): Profile management, online book reservation, loan renewals, borr
 Librarian (13 FRs): Book cataloging (ISBN/DDC classification), barcode-based checkout/checkin, physical condition assessment, violation recording, on-site fine collection, card approvals, and inventory audits.
 Administrator (7 FRs): Staff account management, role-based access control (RBAC), configuration of dynamic library parameters (max books, loan duration, daily fine rate), report generation, database backups, and audit log inspection.
 System (4 FRs): Automated midnight cron job (00:00) for calculating overdue fines, notification dispatch (Email/SMS/In-app), automatic cancellation of uncollected holds after 3 days, and activity logging.
-2. Non-Functional Requirements (NFR)
+
+## 2. Non-Functional Requirements (NFR)
 Specifies 34 measurable quality attributes across six categories:
 
 Performance: Book search response time $\le 2.0$s for 100,000 records; checkout processing $\le 2.0$s; page load time $\le 2.5$s; 100 concurrent active users.
@@ -29,28 +30,32 @@ Usability: UTF-8 Vietnamese interface; responsive layout down to 360px viewport;
 Compatibility: Supports current versions of major desktop/mobile browsers; compatible with HID barcode scanners; uses DD/MM/YYYY, VND, and UTC+7.
 Maintainability: Layered/MVC modular architecture with low coupling; dynamic parameter configuration without redeployment; clean code guidelines; database capacity for 100,000 books and 10,000 users.
 
-3. Data Flow Diagram (DFD)
+## 3. Data Flow Diagram (DFD)
 Level 0 (Context Diagram): High-level boundary showing interactions between Process 0.0 and five external entities (Guest, Reader, Librarian, Admin, Payment Gateway).
 Data Stores: Five logical stores (D1 Users & Cards, D2 Books & Catalog, D3 Borrowing & Holds, D4 Fines & Violations, D5 System Configs & Logs).
 Level 1: Decomposed into six functional sub-processes (1.0 to 6.0).
 
-4. Use Case Diagram
+## 4. Use Case Diagram
 Actor Inheritance: Reader, Librarian, and Administrator inherit from the base User actor, inheriting the Log In use case.
 Relationships: Uses <<include>> for mandatory sub-processes and <<extend>> for conditional workflows (e.g., Record Violation extending Check In Books when items are returned late or damaged).
 
-5. Class Diagram
+## 5. Class Diagram
 Defines 11 domain classes: User (Abstract base), Reader, Librarian, Administrator, Book, BookCopy, BorrowRecord, Reservation, Fine, Notification, and SystemConfig.
 
-6. Relational Data Model (3NF)
+## 6. Relational Data Model (3NF)
 Normalized relational database schema comprising 8 tables in Third Normal Form: users, books, book_copies, borrow_records, reservations, fines, system_configs, and notifications.
 
-7. Interface Design
+## 7. Interface Design
 UI/UX guidelines, navigation flow diagrams, and wireframe mockups for key application screens.
 
-Group 06 — Software Engineering Course Project
 
-|No. |	Full Name |	Responsibilities |
-|1	|	Phạm Hồ Thanh Duy | Project introduction, Functional Requirements, Non-Functional Requirements |
-|2	| Võ Đức Thắng |	Design of Data Flow Diagrams (DFD Level 0 and Level 1) and Use Case |
-|3	| Lê Phước Sang |Design of Class Diagram. |
-|4	| Nguyễn Đức Tài |Design of Data Model. |
+# Group 06 — Software Engineering Course Project
+
+## Team Members & Responsibilities
+
+| No. | Full Name | Responsibilities |
+|:---:|---|---|
+| 1 | Phạm Hồ Thanh Duy | Project Introduction, Functional Requirements, and Non-Functional Requirements |
+| 2 | Võ Đức Thắng | Data Flow Diagrams (DFD Level 0 and Level 1) and Use Case Diagram |
+| 3 | Lê Phước Sang | Class Diagram Design |
+| 4 | Nguyễn Đức Tài | Data Model Design |
