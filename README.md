@@ -3,12 +3,6 @@ This repository contains the software requirements specification, architectural 
 
 The system automates core library operations, including physical book circulation using barcode scanning, digital e-book access, reservation queues, fine tracking, and automated background jobs.
 
-## Standards Applied
-
-* **Software Requirements Specification:** IEEE Std 830-1998
-* **System Modeling:** UML 2.5 (Use Case, Class Diagrams)
-* **Database Normalization:** Relational Schema in Third Normal Form (3NF)
-
 ### Repository Structure
 
 ```text
