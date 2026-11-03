@@ -208,13 +208,14 @@ UI/UX Design	Responsive Web Design (Desktop & Mobile down to 360px), Figma / Dra
 Version Control	Git & GitHub
 👥 TEAM MEMBERS & RESPONSIBILITIES
 
-Group 06 — Software Engineering Course Project
+**Group 06 — Software Engineering Course Project**
 
-|No. |	Full Name |	Responsibilities |
-|1	|	Phạm Hồ Thanh Duy | Project introduction, Functional Requirements, Non-Functional Requirements |
-|2	| Võ Đức Thắng |	Design of Data Flow Diagrams (DFD Level 0 and Level 1) and Use Case |
-|3	| Lê Phước Sang |Design of Class Diagram. |
-|4	| Nguyễn Đức Tài |Design of Data Model. |
+| No. | Full Name | Responsibilities |
+|:---:|---|---|
+| 1 | Phạm Hồ Thanh Duy | Project Introduction, Functional Requirements, and Non-Functional Requirements |
+| 2 | Võ Đức Thắng | Design of Data Flow Diagrams (DFD Level 0 and Level 1) and Use Case Diagram |
+| 3 | Lê Phước Sang | Design of Class Diagram |
+| 4 | Nguyễn Đức Tài | Design of Data Model |
 
 📖 HOW TO USE
 1. Access the Full Documentation
