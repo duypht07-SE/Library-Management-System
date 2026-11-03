@@ -28,28 +28,29 @@ Reliability: Uptime $\ge 99.5%$; ACID transaction compliance with automatic roll
 Usability: UTF-8 Vietnamese interface; responsive layout down to 360px viewport; new librarian training time $\le 4$h; explicit confirmation modals for destructive operations.
 Compatibility: Supports current versions of major desktop/mobile browsers; compatible with HID barcode scanners; uses DD/MM/YYYY, VND, and UTC+7.
 Maintainability: Layered/MVC modular architecture with low coupling; dynamic parameter configuration without redeployment; clean code guidelines; database capacity for 100,000 books and 10,000 users.
+
 3. Data Flow Diagram (DFD)
 Level 0 (Context Diagram): High-level boundary showing interactions between Process 0.0 and five external entities (Guest, Reader, Librarian, Admin, Payment Gateway).
 Data Stores: Five logical stores (D1 Users & Cards, D2 Books & Catalog, D3 Borrowing & Holds, D4 Fines & Violations, D5 System Configs & Logs).
 Level 1: Decomposed into six functional sub-processes (1.0 to 6.0).
+
 4. Use Case Diagram
 Actor Inheritance: Reader, Librarian, and Administrator inherit from the base User actor, inheriting the Log In use case.
 Relationships: Uses <<include>> for mandatory sub-processes and <<extend>> for conditional workflows (e.g., Record Violation extending Check In Books when items are returned late or damaged).
+
 5. Class Diagram
 Defines 11 domain classes: User (Abstract base), Reader, Librarian, Administrator, Book, BookCopy, BorrowRecord, Reservation, Fine, Notification, and SystemConfig.
+
 6. Relational Data Model (3NF)
 Normalized relational database schema comprising 8 tables in Third Normal Form: users, books, book_copies, borrow_records, reservations, fines, system_configs, and notifications.
+
 7. Interface Design
 UI/UX guidelines, navigation flow diagrams, and wireframe mockups for key application screens.
-Technical Stack & Tools
-Component	Tool / Standard
-Specification Standard	IEEE Std 830-1998
-System Modeling	UML 2.5 via PlantUML & Draw.io
-Database Architecture	Relational Schema (3NF), UTF-8 (utf8mb4)
-Interface Design	Wireframes & Mockups (Figma / Draw.io)
-Version Control	Git & GitHub
-Working with Diagram Source Files
-PlantUML Files (.puml):
-Open .puml files in VS Code with the PlantUML extension installed, or paste the script into PlantText to render PNG/SVG diagrams.
-Draw.io Files (.drawio):
-Import .drawio files directly into draw.io to edit or export vector graphics.
+
+Group 06 — Software Engineering Course Project
+
+|No. |	Full Name |	Responsibilities |
+|1	|	Phạm Hồ Thanh Duy | Project introduction, Functional Requirements, Non-Functional Requirements |
+|2	| Võ Đức Thắng |	Design of Data Flow Diagrams (DFD Level 0 and Level 1) and Use Case |
+|3	| Lê Phước Sang |Design of Class Diagram. |
+|4	| Nguyễn Đức Tài |Design of Data Model. |
