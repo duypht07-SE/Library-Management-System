@@ -83,9 +83,7 @@ Specifies 34 measurable quality attributes across six categories:
 
 ### Working with Diagram Source Files
 
-1. **PlantUML Files (`.puml`):**
-   * Open `.puml` files in VS Code with the PlantUML extension installed, or paste the script into PlantText to render PNG/SVG diagrams.
-2. **Draw.io Files (`.drawio`):**
+1. **Draw.io Files (`.drawio`):**
    * Import `.drawio` files directly into draw.io to edit or export vector graphics.
 
 ## Group 06 — Software Engineering Course Project
