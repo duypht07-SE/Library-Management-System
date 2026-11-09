@@ -26,53 +26,53 @@ This section lists the functional requirements of the Library Management System 
 
 | ID | Requirement |
 |---|---|
-| FR-GST-01 | The system shall allow a Guest to register an account by entering personal information (full name, student/staff ID, email, phone number, and password). The system shall check for duplicate email, phone number, or ID before creating the account with a pending status. |
-| FR-GST-02 | The system shall allow a Guest to search public books by title, author, ISBN, or category and see whether a book is available or out of stock. A Guest shall not be able to borrow or reserve a book. |
-| FR-GST-03 | The system shall allow a Guest to view the library's rules, opening hours, events, and news. |
-| FR-GST-04 | The system shall allow a Guest to log in with an account and password, and shall open the interface for Reader, Librarian, or Administrator based on the account's role. If the login details are wrong or the account is locked, the system shall show an error message. |
-| FR-GST-05 | The system shall allow a Guest who forgot their password to send a password reset request with their registered email or ID so that an Administrator can reset it. |
+| FR-GST-01 | A Guest shall be able to submit a registration request by providing personal information (full name, student/staff ID, email, phone number, and password). The System shall check for duplicate email addresses, phone numbers, or IDs and, if none exist, create the account with pending status. |
+| FR-GST-02 | A Guest shall be able to search the public catalog by title, author, ISBN, or category and view whether a book is available or out of stock. Guests shall not be able to borrow or reserve books. |
+| FR-GST-03 | A Guest shall be able to view the library's rules, opening hours, events, and news. |
+| FR-GST-04 | A Guest shall be able to log in with an account and password. The System shall display the interface corresponding to the account's role (Reader, Librarian, or Administrator). If the login details are incorrect or the account is locked, the System shall display an error message. |
+| FR-GST-05 | A Guest who has forgotten their password shall be able to submit a password reset request using their registered email address or ID. An Administrator shall be able to review and process the request by resetting the password. |
 
 ### 1.3 Reader
 
 | ID | Requirement |
 |---|---|
-| FR-RDR-01 | The system shall give a Reader all functions of a Guest (searching books and viewing library information). |
-| FR-RDR-02 | The system shall allow a Reader to view and update personal information, including changing their password, avatar, phone number, or contact email. |
-| FR-RDR-03 | The system shall allow a Reader with an active card to reserve a book online when all copies are currently borrowed, adding the Reader to a first-in, first-out (FIFO) waiting queue, or to cancel their reservation. |
-| FR-RDR-04 | The system shall allow a Reader to send a renewal request for a borrowed book before its due date. |
-| FR-RDR-05 | The system shall approve a renewal request only if the Reader's account is active, the book is not overdue, the renewal limit has not been reached, and no other Reader has reserved the book. |
-| FR-RDR-06 | The system shall allow a Reader to view their borrowing history, including currently borrowed books, returned books, due dates, reservation status, and any recorded rule violations. |
-| FR-RDR-07 | The system shall allow a Reader to read e-books and digital course materials online, or download them in PDF or EPUB format. |
+| FR-RDR-01 | A Reader shall be able to use all Guest functions, including searching for books and viewing library information. |
+| FR-RDR-02 | A Reader shall be able to view and update their personal information, including their password, avatar, phone number, and contact email. |
+| FR-RDR-03 | A Reader with an active card shall be able to reserve a book online when all copies are borrowed. The System shall add the Reader to a first-in, first-out (FIFO) waiting queue. A Reader shall be able to cancel their reservation. |
+| FR-RDR-04 | A Reader shall be able to request renewal of a borrowed book before its due date. |
+| FR-RDR-05 | The System shall approve a renewal request only if the Reader's account is active, the book is not overdue, the renewal limit has not been reached, and no other Reader has reserved the book. |
+| FR-RDR-06 | A Reader shall be able to view their borrowing history, including currently borrowed books, returned books, due dates, reservation status, and recorded rule violations. |
+| FR-RDR-07 | A Reader shall be able to read e-books and digital course materials online or download them in PDF or EPUB format. |
 
 ### 1.4 Librarian
 
 | ID | Requirement |
 |---|---|
-| FR-LIB-01 | The system shall allow a Librarian to add a new book title and its physical copies (each with a unique barcode) to the system. |
-| FR-LIB-02 | The system shall allow a Librarian to edit book information and update copy details. |
-| FR-LIB-03 | The system shall allow a Librarian to classify a book by standard code (DDC/ISBN) and category. |
-| FR-LIB-04 | The system shall allow a Librarian to set and update the shelf location of each physical copy in the storage. |
-| FR-LIB-05 | The system shall allow a Librarian to retire a book copy by changing its status to canceled, removing old, torn, or outdated copies from circulation. A copy currently on loan shall not be retired. |
-| FR-LIB-06 | The system shall allow a Librarian to create a borrowing record at the counter by scanning the Reader's card code and the barcode on each book copy. |
-| FR-LIB-07 | Before saving a borrowing record, the system shall check that the Reader's card is active, the Reader has no overdue books, the maximum book limit has not been reached, and the book copy is available (or reserved for that Reader). |
-| FR-LIB-08 | The system shall allow a Librarian to record a returned book by scanning its barcode, saving the return date, and setting its status to available, or to on hold if another Reader is waiting in the reservation queue. |
-| FR-LIB-09 | The system shall allow a Librarian to record the condition of a returned book (intact, damaged, or lost) and log a violation on the Reader's account if the book is returned late, damaged, or lost. |
-| FR-LIB-10 | The system shall allow a Librarian to review and approve or reject new library card registrations. |
-| FR-LIB-11 | The system shall allow a Librarian to lock or unlock a Reader's account when the Reader breaks library rules (such as keeping overdue books or damaging/losing a book) or after the issue is resolved at the counter. |
-| FR-LIB-12 | The system shall allow a Librarian to run batch barcode scans to compare the actual number of books on the shelves with the numbers in the software. |
+| FR-LIB-01 | A Librarian shall be able to add a new book title and its physical copies, each with a unique barcode, to the catalog. |
+| FR-LIB-02 | A Librarian shall be able to edit book information and update copy details. |
+| FR-LIB-03 | A Librarian shall be able to classify a book by standard code (DDC/ISBN) and category. |
+| FR-LIB-04 | A Librarian shall be able to set and update the shelf location of each physical copy. |
+| FR-LIB-05 | A Librarian shall be able to retire an old, torn, or outdated book copy by changing its status to canceled. The System shall prevent a copy that is currently on loan from being retired. |
+| FR-LIB-06 | A Librarian shall be able to create a borrowing record at the counter by scanning the Reader's card code and each book copy's barcode. |
+| FR-LIB-07 | Before saving a borrowing record, the System shall verify that the Reader's card is active, the Reader has no overdue books, the maximum borrowing limit has not been reached, and the book copy is available or reserved for that Reader. |
+| FR-LIB-08 | A Librarian shall be able to record a returned book by scanning its barcode. The System shall save the return date and set the copy status to available, or to on hold if another Reader is waiting in the reservation queue. |
+| FR-LIB-09 | A Librarian shall be able to record the condition of a returned book (intact, damaged, or lost). The System shall log a violation on the Reader's account if the book is returned late, damaged, or lost. |
+| FR-LIB-10 | A Librarian shall be able to review new library card registrations and approve or reject them. |
+| FR-LIB-11 | A Librarian shall be able to lock a Reader's account when the Reader breaks library rules (such as keeping overdue books or damaging or losing a book), and unlock the account after the issue is resolved at the counter. |
+| FR-LIB-12 | A Librarian shall be able to run batch barcode scans to compare the actual number of books on the shelves with the number recorded in the catalog. |
 
 ### 1.5 Administrator
 
 | ID | Requirement |
 |---|---|
-| FR-ADM-01 | The system shall allow an Administrator to create new Librarian accounts, edit their information, or lock and unlock them. |
-| FR-ADM-02 | The system shall allow an Administrator to create roles and assign specific permissions to each role (for example, one Librarian role can only handle borrowing, returning, and reader cards, while another role can only manage the book catalog). |
-| FR-ADM-03 | The system shall allow an Administrator to review password reset requests and manually reset the password of any Reader or Librarian account to a temporary password. |
-| FR-ADM-04 | The system shall allow an Administrator to set library rules: the maximum number of books a Reader may borrow, the maximum borrowing days, the maximum renewals per loan, and the number of days a reserved book is held on the waiting shelf. |
-| FR-ADM-05 | The system shall allow an Administrator to view and export charts and reports on borrowing counts, overdue loans, book stock, and new Readers, by month or by year. |
-| FR-ADM-06 | The system shall allow an Administrator to back up the database. |
-| FR-ADM-07 | The system shall allow an Administrator to restore the system from a backup when a technical failure occurs. |
-| FR-ADM-08 | The system shall allow an Administrator to view system audit logs (user logins, role and permission changes, password resets, and data edits). |
+| FR-ADM-01 | An Administrator shall be able to create Librarian accounts, edit their information, and lock or unlock them. |
+| FR-ADM-02 | An Administrator shall be able to create roles and assign specific permissions to each role (for example, one Librarian role may handle borrowing, returning, and reader cards, while another may manage only the book catalog). |
+| FR-ADM-03 | An Administrator shall be able to review password reset requests and manually reset the password of any Reader or Librarian account to a temporary password. |
+| FR-ADM-04 | An Administrator shall be able to configure library rules, including the maximum number of books a Reader may borrow, the maximum loan period, the maximum number of renewals per loan, and the number of days a reserved book is held on the waiting shelf. |
+| FR-ADM-05 | An Administrator shall be able to view and export monthly or yearly charts and reports on borrowing counts, overdue loans, book stock, and new Readers. |
+| FR-ADM-06 | An Administrator shall be able to back up the database. |
+| FR-ADM-07 | An Administrator shall be able to restore the database from a backup when a technical failure occurs. |
+| FR-ADM-08 | An Administrator shall be able to view audit logs of user logins, role and permission changes, password resets, and data edits. |
 
 ### 1.6 System (Automatic Functions)
 
@@ -103,29 +103,29 @@ This section describes the quality requirements of the Library Management System
 
 | ID | Requirement | Related FR |
 |---|---|---|
-| NFR-PER-01 | The system shall return book search results within 2 seconds for a catalog of up to 100,000 book records. | FR-GST-02, FR-RDR-01 |
-| NFR-PER-02 | The system shall save a borrowing or returning record within 2 seconds after the Librarian scans the barcode. | FR-LIB-06, FR-LIB-08 |
-| NFR-PER-03 | The system shall load standard pages within 3 seconds and generate statistical reports within 5 seconds. | FR-ADM-05 |
-| NFR-PER-04 | The system shall support at least 100 concurrent active users without response times increasing by more than 10%. | All |
-| NFR-PER-05 | The daily background job that checks for overdue loans and expired reservation holds shall finish within 10 minutes for up to 50,000 active records. | FR-SYS-01, FR-SYS-03 |
+| NFR-PER-01 | A Guest or Reader shall receive book search results within 2 seconds for a catalog of up to 100,000 book records. | FR-GST-02, FR-RDR-01 |
+| NFR-PER-02 | A Librarian shall receive confirmation that a borrowing or returning record has been saved within 2 seconds after scanning the barcode. | FR-LIB-06, FR-LIB-08 |
+| NFR-PER-03 | An Administrator shall be able to load standard pages within 3 seconds and generate statistical reports within 5 seconds. | FR-ADM-05 |
+| NFR-PER-04 | The LMS shall support at least 100 concurrent active users while keeping response times within 10% of the baseline response times measured with one active user. | All |
+| NFR-PER-05 | The daily overdue-loan and expired-reservation-hold processing task shall finish within 10 minutes for up to 50,000 active records. | FR-SYS-01, FR-SYS-03 |
 
 ### 2.3 Security
 
 | ID | Requirement | Related FR |
 |---|---|---|
-| NFR-SEC-01 | The system shall hash all user passwords using Bcrypt (cost factor 12 or higher) before saving them to the database. Plain-text passwords shall never be stored or shown in logs. | FR-GST-01, FR-GST-04, FR-RDR-02, FR-ADM-03 |
-| NFR-SEC-02 | The system shall use HTTPS (TLS 1.2 or 1.3) for all client-server traffic. | All |
-| NFR-SEC-03 | The system shall check Role-Based Access Control (RBAC) permissions on the server side for every request so users can only run actions allowed for their assigned role. | FR-GST-04, FR-ADM-02, FR-SYS-04 |
+| NFR-SEC-01 | The authentication service shall hash all user passwords using bcrypt (cost factor 12 or higher) before saving them to the database. No component shall store plain-text passwords or include them in logs. | FR-GST-01, FR-GST-04, FR-RDR-02, FR-ADM-03 |
+| NFR-SEC-02 | All client-server connections to the LMS shall use HTTPS with TLS 1.2 or TLS 1.3. | All |
+| NFR-SEC-03 | The LMS server shall check Role-Based Access Control (RBAC) permissions for every request and allow users to perform only actions permitted for their assigned roles. | FR-GST-04, FR-ADM-02, FR-SYS-04 |
 | NFR-SEC-04 | A Reader shall only be able to view and edit their own profile, borrowing history, and reservation records. | FR-RDR-02, FR-RDR-06 |
 | NFR-SEC-05 | When an Administrator resets a forgotten password, the temporary password shall expire after 24 hours and the user shall be required to set a new password upon logging in. | FR-GST-05, FR-ADM-03 |
-| NFR-SEC-06 | The system shall log out inactive sessions after 30 minutes and lock an account for 15 minutes after 5 failed login attempts in a row. | FR-GST-04 |
+| NFR-SEC-06 | The LMS shall end inactive sessions after 30 minutes and lock an account for 15 minutes after 5 consecutive failed login attempts. | FR-GST-04 |
 | NFR-SEC-07 | Audit logs shall be append-only; no user, including an Administrator, shall be able to edit or delete existing log entries through the application. | FR-ADM-08, FR-SYS-04 |
 
 ### 2.4 Reliability and Data Integrity
 
 | ID | Requirement | Related FR |
 |---|---|---|
-| NFR-REL-01 | The system shall have an uptime of at least 99.5% during library opening hours. | All |
+| NFR-REL-01 | The LMS shall maintain at least 99.5% uptime during library opening hours. | All |
 | NFR-REL-02 | Borrowing, returning, and reservation updates shall run as atomic database transactions. If an error occurs midway, the database shall roll back all changes from that transaction. | FR-RDR-03, FR-LIB-06, FR-LIB-07, FR-LIB-08 |
 | NFR-REL-03 | The database shall use row-level locking when checking out or reserving a book copy so two users cannot borrow or reserve the last available copy at the same time. | FR-RDR-03, FR-LIB-06, FR-LIB-07 |
 | NFR-REL-04 | A full database restore from a backup file shall complete within 30 minutes. | FR-ADM-06, FR-ADM-07 |
@@ -143,7 +143,7 @@ This section describes the quality requirements of the Library Management System
 | ID | Requirement | Related FR |
 |---|---|---|
 | NFR-COM-01 | The web application shall run on the latest two versions of Google Chrome, Mozilla Firefox, Microsoft Edge, and Safari. | All |
-| NFR-COM-02 | The system shall accept input from standard USB and Bluetooth barcode scanners operating in keyboard wedge (HID) mode. | FR-LIB-01, FR-LIB-06, FR-LIB-08, FR-LIB-12 |
+| NFR-COM-02 | The LMS client shall accept input from standard USB and Bluetooth barcode scanners operating in keyboard wedge (HID) mode. | FR-LIB-01, FR-LIB-06, FR-LIB-08, FR-LIB-12 |
 
 ### 2.7 Maintainability
 
