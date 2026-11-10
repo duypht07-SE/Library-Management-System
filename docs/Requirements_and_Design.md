@@ -152,6 +152,16 @@ This section describes the quality requirements of the Library Management System
 | NFR-MNT-01 | The codebase shall separate the user interface, business logic, and data access into distinct layers (such as MVC). | All |
 | NFR-MNT-02 | Library rules (borrowing limits, loan days, renewal limits, and hold days) shall be stored in database configuration tables rather than hard-coded in the source code. | FR-ADM-04 |
 
+### 2.8 Development Requirements
+
+| ID | Requirement | Related FR |
+|---|---|---|
+| NFR-DEV-01 | The core business logic and object-oriented classes shall be written in C++ (C++17 standard) or Python 3.11+, following the class structure and inheritance hierarchy defined in the Class Diagram. | All |
+| NFR-DEV-02 | The user interface shall be built using HTML5, CSS3, and JavaScript (with Python Flask/Django) or Qt Framework for desktop screens to match the designed UI mockups. | All |
+| NFR-DEV-03 | The system shall use MySQL 8.0 (or SQLite 3) as the relational database management system (RDBMS) to store tables, enforce foreign keys, and run ACID transactions. | All |
+| NFR-DEV-04 | The team shall use Git and GitHub to manage source code, track issues, and store project documents. | All |
+| NFR-DEV-05 | System diagrams (DFD, Use Case, Class Diagram, and ERD) shall be drawn with draw.io, and interface screens shall be designed with Figma. | All |
+
 
 ## 3. Data Flow Diagram (DFD)
 
