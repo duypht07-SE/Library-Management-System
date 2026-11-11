@@ -88,14 +88,7 @@ This section lists the functional requirements of the Library Management System 
 
 ### 2.1 Overview
 
-This section describes the quality requirements of the Library Management System (LMS): how well the system shall perform, not what functions it provides. Each requirement is written to be measurable where possible.
-
-**Conventions**
-
-- The word **"shall"** indicates a mandatory requirement.
-- Requirement IDs use the format `NFR-<CATEGORY>-<NN>`.
-- The numeric values (response times, number of users, and so on) are **proposed targets**. The team shall confirm them with the instructor before treating them as final.
-- The "Related FR" column links a requirement to the functional requirements in Section 1.
+Non-functional requirements describe how well the system must work, not what it does. Each one has a number so it can be tested. IDs follow the pattern `NFR-<CATEGORY>-<NN>`. The numbers (response times, number of users, and so on) are proposed targets that the team will confirm with the instructor. The Related FR column links each requirement back to Section 1.
 
 ---
 
@@ -103,54 +96,65 @@ This section describes the quality requirements of the Library Management System
 
 | ID | Requirement | Related FR |
 |---|---|---|
-| NFR-PER-01 | A Guest or Reader shall receive book search results within 2 seconds for a catalog of up to 100,000 book records. | FR-GST-02, FR-RDR-01 |
-| NFR-PER-02 | A Librarian shall receive confirmation that a borrowing or returning record has been saved within 2 seconds after scanning the barcode. | FR-LIB-06, FR-LIB-08 |
-| NFR-PER-03 | An Administrator shall be able to load standard pages within 3 seconds and generate statistical reports within 5 seconds. | FR-ADM-05 |
-| NFR-PER-04 | The LMS shall support at least 100 concurrent active users while keeping response times within 10% of the baseline response times measured with one active user. | All |
-| NFR-PER-05 | The daily overdue-loan and expired-reservation-hold processing task shall finish within 10 minutes for up to 50,000 active records. | FR-SYS-01, FR-SYS-03 |
+| NFR-PER-01 | Book search results shall appear within 2.0 seconds under normal load, with up to 100,000 book records. | FR-GST-02 |
+| NFR-PER-02 | A borrowing or returning transaction shall be saved and shown to the Librarian within 2.0 seconds after the barcode is scanned. | FR-LIB-06, FR-LIB-07 |
+| NFR-PER-03 | The system shall support at least 100 active users at the same time, with average response time getting no more than 10% slower. | All |
+| NFR-PER-04 | The daily scan of borrowing records (fines and reminders) shall finish within 30 minutes during off-peak hours (for example at 00:00) without slowing down the website. | FR-SYS-01, FR-SYS-02 |
+| NFR-PER-05 | The first page of the web application shall load within 2.5 seconds for at least 95% of requests on a normal network. | All |
 
 ### 2.3 Security
 
 | ID | Requirement | Related FR |
 |---|---|---|
-| NFR-SEC-01 | The authentication service shall hash all user passwords using bcrypt (cost factor 12 or higher) before saving them to the database. No component shall store plain-text passwords or include them in logs. | FR-GST-01, FR-GST-04, FR-RDR-02, FR-ADM-03 |
-| NFR-SEC-02 | All client-server connections to the LMS shall use HTTPS with TLS 1.2 or TLS 1.3. | All |
-| NFR-SEC-03 | The LMS server shall check Role-Based Access Control (RBAC) permissions for every request and allow users to perform only actions permitted for their assigned roles. | FR-GST-04, FR-ADM-02, FR-SYS-04 |
-| NFR-SEC-04 | A Reader shall only be able to view and edit their own profile, borrowing history, and reservation records. | FR-RDR-02, FR-RDR-06 |
-| NFR-SEC-05 | When an Administrator resets a forgotten password, the temporary password shall expire after 24 hours and the user shall be required to set a new password upon logging in. | FR-GST-05, FR-ADM-03 |
-| NFR-SEC-06 | The LMS shall end inactive sessions after 30 minutes and lock an account for 15 minutes after 5 consecutive failed login attempts. | FR-GST-04 |
-| NFR-SEC-07 | Audit logs shall be append-only; no user, including an Administrator, shall be able to edit or delete existing log entries through the application. | FR-ADM-08, FR-SYS-04 |
+| NFR-SEC-01 | Passwords shall be stored with a salted hash (for example Bcrypt with cost factor 12 or more, or Argon2), never as plain text. | FR-GST-04, FR-RDR-02 |
+| NFR-SEC-02 | All traffic between the browser and the server shall use HTTPS with TLS 1.2 or 1.3. | All |
+| NFR-SEC-03 | The system shall use role-based access control (RBAC). A user shall not reach functions or data outside their role, including by typing a URL directly. | FR-ADM-02 |
+| NFR-SEC-04 | A Reader shall only see their own profile, borrowing history, and fines. | FR-RDR-02, FR-RDR-06, FR-RDR-07 |
+| NFR-SEC-05 | A session shall end after 30 minutes without activity. | FR-GST-04 |
+| NFR-SEC-06 | An account shall be locked for 15 minutes after 5 wrong passwords in a row. | FR-GST-04 |
+| NFR-SEC-07 | All user input shall be checked to block SQL injection, cross-site scripting (XSS), and CSRF. | All |
+| NFR-SEC-08 | Logs of Librarian and Administrator actions shall be read-only in the application, and only an Administrator can view them. | FR-SYS-04, FR-ADM-07 |
+| NFR-SEC-09 | The system shall not store card, bank, or e-wallet details. Payments shall go through a third-party payment gateway. | FR-RDR-08 |
+| NFR-SEC-10 | Only logged-in Readers with active accounts shall read or download e-books and course materials. | FR-RDR-09 |
 
-### 2.4 Reliability and Data Integrity
+### 2.4 Reliability, Availability, and Data Integrity
 
 | ID | Requirement | Related FR |
 |---|---|---|
-| NFR-REL-01 | The LMS shall maintain at least 99.5% uptime during library opening hours. | All |
-| NFR-REL-02 | Borrowing, returning, and reservation updates shall run as atomic database transactions. If an error occurs midway, the database shall roll back all changes from that transaction. | FR-RDR-03, FR-LIB-06, FR-LIB-07, FR-LIB-08 |
-| NFR-REL-03 | The database shall use row-level locking when checking out or reserving a book copy so two users cannot borrow or reserve the last available copy at the same time. | FR-RDR-03, FR-LIB-06, FR-LIB-07 |
-| NFR-REL-04 | A full database restore from a backup file shall complete within 30 minutes. | FR-ADM-06, FR-ADM-07 |
+| NFR-REL-01 | The system shall be available at least 99.5% of library opening hours, not counting planned maintenance. | All |
+| NFR-REL-02 | Borrowing and returning shall run as database transactions. If one fails halfway, all its changes shall be rolled back. | FR-LIB-06, FR-LIB-07 |
+| NFR-REL-03 | The database shall use locking so that two Librarians cannot lend the same copy at the same time. | FR-LIB-06 |
+| NFR-REL-04 | The database shall be backed up every day at 00:00 and kept in two separate places (for example a local server and cloud storage). | FR-ADM-05 |
+| NFR-REL-05 | After a failure, the system shall be back within 4 hours (RTO) and lose at most 24 hours of data (RPO). | FR-ADM-06 |
+| NFR-REL-06 | Reminders shall be sent in the background and retried on failure. A failed reminder shall not stop borrowing or returning. | FR-SYS-02 |
 
 ### 2.5 Usability
 
 | ID | Requirement | Related FR |
 |---|---|---|
-| NFR-USA-01 | The web interface shall support UTF-8 encoding and display properly on desktop and mobile screens from 360px to 1920px wide. | All |
-| NFR-USA-02 | At the circulation desk, the cursor shall automatically move to the next barcode field after each scan so the Librarian can check out books without using the mouse. | FR-LIB-06, FR-LIB-08 |
-| NFR-USA-03 | Error messages (such as wrong password, locked card, or borrowing limit reached) shall state the specific reason for the failure. | FR-GST-04, FR-LIB-07 |
+| NFR-USA-01 | The user interface shall be in English, with UTF-8 encoding for all screens, forms, and stored data. | All |
+| NFR-USA-02 | A new Librarian shall be able to lend and receive books without help after at most 4 hours of training. | FR-LIB-06, FR-LIB-07 |
+| NFR-USA-03 | Error messages shall be clear and non-technical. They shall say what went wrong and what to do next. | All |
+| NFR-USA-04 | The Guest and Reader pages shall work on desktop and mobile browsers (Chrome, Safari, Firefox, Edge) down to a screen width of 360 px. | FR-GST-02, FR-RDR-06, FR-RDR-09 |
+| NFR-USA-05 | The system shall ask for confirmation before actions that cannot be undone, such as retiring a book, locking an account, or changing library rules. | FR-LIB-05, FR-LIB-12, FR-ADM-01, FR-ADM-03 |
 
-### 2.6 Compatibility
-
-| ID | Requirement | Related FR |
-|---|---|---|
-| NFR-COM-01 | The web application shall run on the latest two versions of Google Chrome, Mozilla Firefox, Microsoft Edge, and Safari. | All |
-| NFR-COM-02 | The LMS client shall accept input from standard USB and Bluetooth barcode scanners operating in keyboard wedge (HID) mode. | FR-LIB-01, FR-LIB-06, FR-LIB-08, FR-LIB-12 |
-
-### 2.7 Maintainability
+### 2.6 Compatibility and Localization
 
 | ID | Requirement | Related FR |
 |---|---|---|
-| NFR-MNT-01 | The codebase shall separate the user interface, business logic, and data access into distinct layers (such as MVC). | All |
-| NFR-MNT-02 | Library rules (borrowing limits, loan days, renewal limits, and hold days) shall be stored in database configuration tables rather than hard-coded in the source code. | FR-ADM-04 |
+| NFR-COM-01 | The web application shall work on the latest two versions of Chrome, Edge, Firefox, and Safari, on desktop and mobile. | All |
+| NFR-COM-02 | The system shall work with standard USB or Bluetooth barcode scanners in keyboard (HID) mode. | FR-LIB-06, FR-LIB-07, FR-LIB-13 |
+| NFR-COM-03 | All text shall be in English with UTF-8 encoding. Dates shall use DD/MM/YYYY, money shall be in VND, and times shall use the UTC+7 time zone. | All |
+| NFR-COM-04 | E-books and course materials shall be supported in PDF and EPUB, for reading online and downloading. | FR-RDR-09 |
+
+### 2.7 Maintainability and Scalability
+
+| ID | Requirement | Related FR |
+|---|---|---|
+| NFR-MNT-01 | The code shall be split into modules (layered architecture or MVC) with low coupling and high cohesion, so a change in one module (User, Catalog, Circulation, Report) does not affect the others. | All |
+| NFR-MNT-02 | Library rules such as the borrowing limit, loan period, and daily fine shall be changed on the Administrator screen, without changing code or redeploying. | FR-ADM-03 |
+| NFR-MNT-03 | The code shall follow common coding standards, have inline comments, and have clear API documentation so new developers can start quickly. | All |
+| NFR-MNT-04 | The database and its indexes shall handle at least 100,000 books, 10,000 active Readers, and 500,000 transaction logs without a redesign. | All |
 
 ### 2.8 Development Requirements
 
