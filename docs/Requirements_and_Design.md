@@ -55,7 +55,7 @@ This section lists the functional requirements of the Library Management System 
 | FR-LIB-02 | A Librarian shall be able to edit book information and update copy details. |
 | FR-LIB-03 | A Librarian shall be able to classify a book by standard code (DDC/ISBN) and category. |
 | FR-LIB-04 | A Librarian shall be able to set and update the shelf location of each physical copy. |
-| FR-LIB-05 | A Librarian shall be able to retire an old, torn, or outdated book copy by changing its status to canceled. The System shall prevent a copy that is currently on loan from being retired. |
+| FR-LIB-05 | A Librarian shall be able to retire an old, torn, or outdated book copy by changing its status to canceled. The copy record is kept for loan history and is not deleted. The System shall allow retiring only a copy that is available on the shelf, so a copy that is on loan or on hold for a Reader cannot be retired. If no other usable copy of the book is left, the System shall cancel the waiting reservations for that book and notify those Readers. |
 | FR-LIB-06 | A Librarian shall be able to create a borrowing record at the counter by scanning the Reader's card code and each book copy's barcode. The System shall set the due date to the borrow date plus the maximum loan period. |
 | FR-LIB-07 | Before saving a borrowing record, the System shall verify that the Reader's card is active, the Reader has no overdue books and no unpaid fines, the maximum borrowing limit has not been reached, and the book copy is available or reserved for that Reader. |
 | FR-LIB-08 | A Librarian shall be able to record a returned book by scanning its barcode. The System shall save the return date and set the copy status to available, or to reserved (on hold) if another Reader is waiting in the reservation queue. A copy returned damaged or lost shall not be set to available; its status shall be set to canceled until the Librarian reviews it. |
@@ -84,7 +84,7 @@ This section lists the functional requirements of the Library Management System 
 | ID | Requirement |
 |---|---|
 | FR-SYS-01 | The system shall scan all active borrowing records every day at 00:00, mark unreturned loans past their due date as overdue, and block the Reader from borrowing or renewing books until the overdue books are returned. |
-| FR-SYS-02 | The system shall send in-app notifications to Readers when a borrowed book is due in 2 days, when a book is overdue, or when a reserved book is ready for pickup at the counter. |
+| FR-SYS-02 | The system shall send in-app notifications to Readers when a borrowed book is due in 2 days, when a book is overdue, when a reserved book is ready for pickup at the counter, or when a reservation is canceled because no copy of the book is left. |
 | FR-SYS-03 | The system shall cancel a reservation hold if the Reader does not pick up the book within the hold days set by the Administrator (FR-ADM-04), and shall set the book copy back to available or hold it for the next Reader in the waiting queue with a new hold period. |
 | FR-SYS-04 | The system shall check user role permissions on every action and log the actions of Librarians and Administrators (such as book edits, account locks, role changes, and password resets) for security tracking. |
 
@@ -323,7 +323,7 @@ Reader, Librarian, and Administrator get Log In from User through actor generali
 | Search Books | `<<extend>>` | Reserve Book | Only when no copy of the book is available on the shelf. | FR-RDR-03 |
 | Manage Books | `<<extend>>` | Add Book and Copies | When the Librarian adds a title and its copies. | FR-LIB-01, FR-LIB-03, FR-LIB-04 |
 | Manage Books | `<<extend>>` | Update Book Information | When the Librarian edits a book or copy. | FR-LIB-02 to FR-LIB-04 |
-| Manage Books | `<<extend>>` | Retire Book Copy | Only for a copy that is not on loan. | FR-LIB-05 |
+| Manage Books | `<<extend>>` | Retire Book Copy | Only for a copy that is on the shelf (not on loan and not on hold). | FR-LIB-05 |
 | Manage Reader Cards | `<<extend>>` | Approve / Reject Card | When a new registration is pending. | FR-LIB-10 |
 | Manage Reader Cards | `<<extend>>` | Lock / Unlock Card | When a Reader breaks the rules or the issue is resolved. | FR-LIB-11 |
 | Check In Books | `<<extend>>` | Hold Copy for Next Reader | Only when another Reader is waiting in the queue. | FR-LIB-08 |
@@ -360,8 +360,8 @@ This section lists the main classes of the Library Management System (LMS) along
 | `Reader` | Inherits from `User`. Adds `cardCode` and methods for reserving books, requesting renewals, and viewing borrowing history and fines. | D1 | FR-RDR-01 to FR-RDR-06, FR-RDR-08 |
 | `Librarian` | Inherits from `User`. Provides methods to manage books, approve or lock reader cards, check out and check in books, and record fines and cash payments. | D1 | FR-LIB-01 to FR-LIB-11, FR-LIB-13 |
 | `Administrator` | Inherits from `User`. Provides methods to manage librarian accounts, configure library rules, and view reports. | D1 | FR-ADM-01, FR-ADM-04, FR-ADM-05 |
-| `Book` | Contains book information (`bookId`, `isbn`, `ddcCode`, `title`, `author`, `category`, `availableCopies`) and search method. | D2 | FR-GST-02, FR-LIB-01 to FR-LIB-03 |
-| `BookCopy` | A physical copy of a book on the shelf (`copyId`, `barcode`, `shelfLocation`, `status`, `condition`). | D2 | FR-LIB-04, FR-LIB-05, FR-LIB-08 |
+| `Book` | Contains book information (`bookId`, `isbn`, `ddcCode`, `title`, `author`, `category`) and search method. `/availableCopies` is a derived attribute: it is counted from the copies and not stored. | D2 | FR-GST-02, FR-LIB-01 to FR-LIB-03 |
+| `BookCopy` | A physical copy of a book on the shelf (`copyId`, `barcode`, `shelfLocation`, `status`, `copyCondition`). | D2 | FR-LIB-04, FR-LIB-05, FR-LIB-08 |
 | `BorrowRecord` | Records a borrowing transaction (`borrowId`, `borrowDate`, `dueDate`, `returnDate`, `returnCondition`, `renewCount`, `status`). | D3 | FR-RDR-04 to FR-RDR-06, FR-LIB-06 to FR-LIB-09, FR-SYS-01 |
 | `Reservation` | Keeps track of online book holds and waiting queues (`reservationId`, `reserveDate`, `expireDate`, `status`). | D3 | FR-RDR-03, FR-SYS-03 |
 | `Notification` | Stores reminder messages (`notificationId`, `channel`, `message`, `status`, `sentAt`) sent to Readers. | D3 | FR-SYS-02 |
@@ -374,12 +374,12 @@ This section lists the main classes of the Library Management System (LMS) along
 | Relationship | Type | Multiplicity | Meaning |
 |---|---|---|---|
 | Reader, Librarian, Administrator -> User | Generalization | - | Each role is a kind of User and shares login data. |
-| Administrator - Librarian (manages) | Association | 1 : 0..* | One Administrator manages many Librarian accounts. |
+| Administrator - Librarian (manages) | Association | 1..* : 0..* | Any Administrator can manage any Librarian account. |
 | Administrator - SystemConfig (configures) | Association | 1 : 1..* | The Administrator sets the library rules. |
 | Reader - Notification (receives) | Association | 1 : 0..* | A Reader can receive many reminders. |
 | Reader - Reservation (makes) | Association | 1 : 0..* | A Reader can make many reservations. |
 | Book - Reservation (for) | Association | 1 : 0..* | A reservation is for a book title; one title can have a queue. |
-| Reservation - BookCopy (holds) | Association | 0..1 : 0..1 | When a copy comes back, it is held for one reservation. |
+| Reservation - BookCopy (holds) | Association | 0..* : 0..1 | A reservation holds at most one copy. A copy is held for one reservation at a time, but over time it can be held for many. |
 | Reader - BorrowRecord (borrows) | Association | 1 : 0..* | A Reader can have many loans. |
 | Librarian - BorrowRecord (creates) | Association | 1 : 0..* | Each loan is created by one Librarian at the counter. |
 | BookCopy - BorrowRecord | Association | 1 : 0..* | A copy is lent many times over time; each loan is for one copy. |
@@ -407,6 +407,25 @@ The database uses UTF-8 (`utf8mb4`) encoding (`NFR-USA-01`, `NFR-COM-03`) and co
 | **D4** | Fines | `fines` |
 | **Internal** | Process 5.0 Rules | `system_configs` |
 
+The table below shows how each relationship in the class diagram (Section 5.3) is stored in the ERD.
+
+| Class Diagram | ERD |
+|---|---|
+| Reader, Librarian, Administrator -> User | One `users` table with a `role` column |
+| Reader - Notification | `notifications.reader_id` |
+| Reader - Reservation | `reservations.reader_id` |
+| Book - Reservation | `reservations.book_id` |
+| Reservation - BookCopy (holds) | `reservations.copy_id` (NULL until a copy is held) |
+| Reader - BorrowRecord | `borrow_records.reader_id` |
+| Librarian - BorrowRecord | `borrow_records.librarian_id` |
+| BookCopy - BorrowRecord | `borrow_records.copy_id` |
+| Book - BookCopy (composition) | `book_copies.book_id` (NOT NULL) |
+| BorrowRecord - Fine | `fines.borrow_id` |
+| Administrator - SystemConfig | `system_configs.updated_by` |
+| Administrator - Librarian (manages) | No column: only users with role `ADMIN` can change Librarian accounts (`NFR-SEC-03`) |
+| BorrowRecord -> SystemConfig (uses) | No column: the rule values are read when a loan is created or closed |
+| `Book./availableCopies` (derived) | No column: counted from `book_copies` |
+
 ### 6.4 Data Dictionary (Table Specifications)
 
 #### 1. `users` (Store D1)
@@ -426,7 +445,7 @@ Stores accounts for Readers, Librarians, and Administrators (`FR-GST-01`, `FR-GS
 | `locked_until` | DATETIME | NULL | End time of temporary login lock (`NFR-SEC-06`) |
 
 #### 2. `books` (Store D2)
-Stores book title metadata (`FR-GST-02`, `FR-LIB-01` to `FR-LIB-03`).
+Stores book title metadata (`FR-GST-02`, `FR-LIB-01` to `FR-LIB-03`). The number of available copies is not stored. It is counted from `book_copies` with status `AVAILABLE` each time it is shown, so it cannot get out of step with the copies, and the table stays in 3NF.
 
 | Column Name | Data Type | Constraints & Keys | Description |
 |---|---|---|---|
@@ -436,7 +455,6 @@ Stores book title metadata (`FR-GST-02`, `FR-LIB-01` to `FR-LIB-03`).
 | `title` | VARCHAR(255) | NOT NULL | Book title |
 | `author` | VARCHAR(150) | NOT NULL | Author name |
 | `category` | VARCHAR(100) | NOT NULL | Book category |
-| `available_copies` | INT | NOT NULL, DEFAULT 0 | Number of copies with status `AVAILABLE`; recalculated in the same transaction whenever a copy's status changes (`NFR-REL-02`) |
 
 #### 3. `book_copies` (Store D2)
 Stores physical book copies for barcode scanning (`FR-LIB-01`, `FR-LIB-04`, `FR-LIB-05`, `FR-LIB-08`).
@@ -447,8 +465,8 @@ Stores physical book copies for barcode scanning (`FR-LIB-01`, `FR-LIB-04`, `FR-
 | `book_id` | INT | FK (`books.book_id`), NOT NULL | Reference to the book title |
 | `barcode` | VARCHAR(50) | UNIQUE, NOT NULL | Barcode label on the physical copy |
 | `shelf_location` | VARCHAR(50) | NOT NULL | Shelf location in the storage |
-| `status` | VARCHAR(20) | NOT NULL, DEFAULT 'AVAILABLE' | `AVAILABLE`, `BORROWED`, `RESERVED` (on hold for a Reader), `CANCELED` (retired, damaged, or lost) |
-| `condition` | VARCHAR(20) | NOT NULL, DEFAULT 'INTACT' | Physical state: `INTACT`, `DAMAGED`, `LOST` |
+| `status` | VARCHAR(20) | NOT NULL, DEFAULT 'AVAILABLE' | `AVAILABLE`, `BORROWED`, `RESERVED` (on hold for a Reader), `CANCELED` (retired, damaged, or lost; the row is kept for loan history) |
+| `copy_condition` | VARCHAR(20) | NOT NULL, DEFAULT 'INTACT' | Physical state: `INTACT`, `DAMAGED`, `LOST` (not named `condition`, which is a reserved word in MySQL) |
 
 #### 4. `borrow_records` (Store D3)
 Stores counter borrowing, returning, and loan renewal records (`FR-RDR-04` to `FR-RDR-06`, `FR-LIB-06` to `FR-LIB-09`, `FR-SYS-01`).
@@ -456,9 +474,9 @@ Stores counter borrowing, returning, and loan renewal records (`FR-RDR-04` to `F
 | Column Name | Data Type | Constraints & Keys | Description |
 |---|---|---|---|
 | `borrow_id` | INT | PK, AUTO_INCREMENT | Unique borrowing transaction identifier |
-| `reader_id` | INT | FK (`users.user_id`), NOT NULL | Reader who borrowed the book |
+| `reader_id` | INT | FK (`users.user_id`), NOT NULL | Reader who borrowed the book (a user with role `READER`) |
 | `copy_id` | INT | FK (`book_copies.copy_id`), NOT NULL | Borrowed physical book copy |
-| `librarian_id` | INT | FK (`users.user_id`), NOT NULL | Librarian who created the transaction |
+| `librarian_id` | INT | FK (`users.user_id`), NOT NULL | Librarian who created the transaction (a user with role `LIBRARIAN`) |
 | `borrow_date` | DATETIME | NOT NULL | Date and time of checkout |
 | `due_date` | DATETIME | NOT NULL | Borrow date plus `MAX_DAYS`; extended by `MAX_DAYS` on each renewal |
 | `return_date` | DATETIME | NULL | Actual return date (`NULL` if not yet returned) |
@@ -474,7 +492,7 @@ Stores online book reservations and waiting queues (`FR-RDR-03`, `FR-LIB-08`, `F
 | `reservation_id` | INT | PK, AUTO_INCREMENT | Unique reservation identifier |
 | `reader_id` | INT | FK (`users.user_id`), NOT NULL | Reader who placed the reservation |
 | `book_id` | INT | FK (`books.book_id`), NOT NULL | Reserved book title |
-| `copy_id` | INT | FK (`book_copies.copy_id`), NULL | Specific copy held on the waiting shelf when returned |
+| `copy_id` | INT | FK (`book_copies.copy_id`), NULL | Copy held on the waiting shelf; set when the reservation becomes `READY` |
 | `reserve_date` | DATETIME | NOT NULL | Date and time the reservation was made (sets the FIFO order) |
 | `expire_date` | DATETIME | NULL | Pickup deadline: hold start plus `HOLD_DAYS` |
 | `status` | VARCHAR(20) | NOT NULL, DEFAULT 'WAITING' | `WAITING`, `READY`, `COMPLETED`, `CANCELED` |
@@ -487,7 +505,7 @@ Stores violation records and cash fine payments at the counter (`FR-RDR-08`, `FR
 | `fine_id` | INT | PK, AUTO_INCREMENT | Unique fine identifier |
 | `borrow_id` | INT | FK (`borrow_records.borrow_id`), NOT NULL | Related borrowing record |
 | `reason` | VARCHAR(50) | NOT NULL | Violation reason: `LATE_RETURN`, `DAMAGED`, `LOST` |
-| `amount` | DECIMAL(10,2) | NOT NULL | Fine amount in VND (`NFR-COM-03`) |
+| `amount` | DECIMAL(12,0) | NOT NULL, > 0 | Fine amount in whole VND, which has no smaller unit (`NFR-COM-03`) |
 | `is_paid` | BOOLEAN | NOT NULL, DEFAULT FALSE | Payment status (`TRUE` if paid, `FALSE` if unpaid) |
 | `paid_at` | DATETIME | NULL | Date and time when the fine was paid in cash at the counter |
 
@@ -515,7 +533,7 @@ Stores automated due, overdue, and pickup reminders sent to Readers (`FR-SYS-02`
 
 ### 6.5 Status Changes for Borrowing and Returning
 
-Each event below runs as one transaction (`NFR-REL-02`). The checks come from Section 1. Whenever a copy's status changes, `books.available_copies` is recalculated.
+Each event below runs as one transaction (`NFR-REL-02`). The checks come from Section 1. Available copies are counted from `book_copies`, so no counter has to be updated.
 
 | Event | Check before saving | Table changes |
 |---|---|---|
@@ -524,9 +542,10 @@ Each event below runs as one transaction (`NFR-REL-02`). The checks come from Se
 | Reserve (FR-RDR-03) | Card `ACTIVE`; no copy of the book is `AVAILABLE`; at least one copy is not `CANCELED` | New `reservations` row (`WAITING`) |
 | Daily scan 00:00 (FR-SYS-01, FR-SYS-02) | `BORROWED` loan with `due_date` < today, or due in 2 days | Past due: loan -> `OVERDUE` and overdue reminder. Due in 2 days: due-soon reminder |
 | Return, intact (FR-LIB-08) | Copy is `BORROWED` | `return_date`, `return_condition` = `INTACT`, loan -> `RETURNED`. If a reservation is `WAITING`: copy -> `RESERVED`, first reservation -> `READY` with `copy_id` and `expire_date` = now + `HOLD_DAYS`, pickup reminder. Otherwise copy -> `AVAILABLE` |
-| Return, damaged or lost (FR-LIB-08, FR-LIB-09) | Copy is `BORROWED` | Loan -> `RETURNED`; copy `condition` updated, status -> `CANCELED`; new `fines` row (`DAMAGED` or `LOST`, amount entered by the Librarian) |
+| Return, damaged or lost (FR-LIB-08, FR-LIB-09) | Copy is `BORROWED` | Loan -> `RETURNED`; copy `copy_condition` updated, status -> `CANCELED`; new `fines` row (`DAMAGED` or `LOST`, amount entered by the Librarian). If no usable copy of the book is left, its `WAITING` reservations are canceled as in Retire copy |
 | Return late (FR-LIB-09) | `return_date` > `due_date` | New `fines` row (`LATE_RETURN`, amount = days late × `DAILY_FINE`). If the book is also damaged or lost, the row above adds a second fine |
 | Cash payment (FR-LIB-13) | Fine `is_paid` = `FALSE` | `is_paid` = `TRUE`, `paid_at` = now |
+| Retire copy (FR-LIB-05) | Copy is `AVAILABLE` (not `BORROWED` or `RESERVED`) | Copy -> `CANCELED`; the row is kept. If every copy of the book is now `CANCELED`: its `WAITING` reservations -> `CANCELED` and a notice to each Reader |
 | Hold expires (FR-SYS-03) | `READY` reservation with `expire_date` < now | Reservation -> `CANCELED`. Next `WAITING` reservation -> `READY` with a new `expire_date`, or copy -> `AVAILABLE` |
 
 ## 7. Interface Design Description
@@ -559,7 +578,7 @@ This interface explains how to borrow a book and answers common questions (FR-GS
 ![Help](../ui/help.png)
 
 #### 7.1.6 Page Not Found
-This interface is shown when a page does not exist.
+This interface is shown when a page does not exist. It has one Go to Home button. To find a book, the user types in the search bar in the shared header, which is the same on every page, so the page has no separate Search Books button.
 
 ![Page Not Found](../ui/pagenotfound.png)
 

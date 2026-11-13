@@ -229,7 +229,7 @@
         <mxCell id="B_5" parent="B" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fontColor=#000000;" value="- category: String" vertex="1">
           <mxGeometry height="20" width="280" y="126" as="geometry" />
         </mxCell>
-        <mxCell id="B_6" parent="B" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fontColor=#000000;" value="- availableCopies: int" vertex="1">
+        <mxCell id="B_6" parent="B" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fontColor=#000000;" value="- /availableCopies: int" vertex="1">
           <mxGeometry height="20" width="280" y="146" as="geometry" />
         </mxCell>
         <mxCell id="B_7" parent="B" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=#000000;" value="" vertex="1">
@@ -253,7 +253,7 @@
         <mxCell id="BC_3" parent="BC" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fontColor=#000000;" value="- status: String" vertex="1">
           <mxGeometry height="20" width="280" y="86" as="geometry" />
         </mxCell>
-        <mxCell id="BC_4" parent="BC" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fontColor=#000000;" value="- condition: String" vertex="1">
+        <mxCell id="BC_4" parent="BC" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fontColor=#000000;" value="- copyCondition: String" vertex="1">
           <mxGeometry height="20" width="280" y="106" as="geometry" />
         </mxCell>
         <mxCell id="BC_5" parent="BC" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=#000000;" value="" vertex="1">
@@ -399,7 +399,7 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="e10m0" connectable="0" parent="e10" style="edgeLabel;html=1;resizable=0;align=left;verticalAlign=top;labelBackgroundColor=none;fontSize=11;fontFamily=Helvetica;fontColor=#000000;" value="0..1" vertex="1">
+        <mxCell id="e10m0" connectable="0" parent="e10" style="edgeLabel;html=1;resizable=0;align=left;verticalAlign=top;labelBackgroundColor=none;fontSize=11;fontFamily=Helvetica;fontColor=#000000;" value="0..*" vertex="1">
           <mxGeometry relative="1" x="-1" as="geometry">
             <mxPoint x="4" y="-18" as="offset" />
           </mxGeometry>
