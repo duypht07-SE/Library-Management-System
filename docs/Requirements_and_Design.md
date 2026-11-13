@@ -369,6 +369,24 @@ This section lists the main classes of the Library Management System (LMS) along
 | `SystemConfig` | Stores library settings (`configKey`, `configValue`, `updatedAt`) such as borrowing limits, loan days, renewal limits, hold days, and the daily fine rate. | Internal | FR-ADM-04 |
 
 
+### 5.3 Relationships
+
+| Relationship | Type | Multiplicity | Meaning |
+|---|---|---|---|
+| Reader, Librarian, Administrator -> User | Generalization | - | Each role is a kind of User and shares login data. |
+| Administrator - Librarian (manages) | Association | 1 : 0..* | One Administrator manages many Librarian accounts. |
+| Administrator - SystemConfig (configures) | Association | 1 : 1..* | The Administrator sets the library rules. |
+| Reader - Notification (receives) | Association | 1 : 0..* | A Reader can receive many reminders. |
+| Reader - Reservation (makes) | Association | 1 : 0..* | A Reader can make many reservations. |
+| Book - Reservation (for) | Association | 1 : 0..* | A reservation is for a book title; one title can have a queue. |
+| Reservation - BookCopy (holds) | Association | 0..1 : 0..1 | When a copy comes back, it is held for one reservation. |
+| Reader - BorrowRecord (borrows) | Association | 1 : 0..* | A Reader can have many loans. |
+| Librarian - BorrowRecord (creates) | Association | 1 : 0..* | Each loan is created by one Librarian at the counter. |
+| BookCopy - BorrowRecord | Association | 1 : 0..* | A copy is lent many times over time; each loan is for one copy. |
+| Book - BookCopy | Composition | 1 : 1..* | A copy is part of a title and does not exist without it. |
+| BorrowRecord - Fine (has) | Association | 1 : 0..* | A loan can have no fine or several fines. |
+| BorrowRecord -> SystemConfig (uses) | Dependency | - | A loan reads the loan period and fine rate when it is created or closed. |
+
 ## 6. Data Model
 
 ### 6.1 Overview
