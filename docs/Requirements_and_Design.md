@@ -519,15 +519,15 @@ Each event below runs as one transaction (`NFR-REL-02`). The checks come from Se
 
 | Event | Check before saving | Table changes |
 |---|---|---|
-| Check out (FR-LIB-06, FR-LIB-07) | Card `ACTIVE`; no `OVERDUE` loan; no unpaid fine; loans below `MAX_BOOKS`; copy `AVAILABLE`, or `RESERVED` for this Reader | New `borrow_records` row (`BORROWED`, `due_date` = now + `MAX_DAYS`); copy → `BORROWED`; the Reader's `READY` reservation → `COMPLETED` |
+| Check out (FR-LIB-06, FR-LIB-07) | Card `ACTIVE`; no `OVERDUE` loan; no unpaid fine; loans below `MAX_BOOKS`; copy `AVAILABLE`, or `RESERVED` for this Reader | New `borrow_records` row (`BORROWED`, `due_date` = now + `MAX_DAYS`); copy -> `BORROWED`; the Reader's `READY` reservation -> `COMPLETED` |
 | Renew (FR-RDR-04, FR-RDR-05) | Card `ACTIVE`; no `OVERDUE` loan; no unpaid fine; `renew_count` < `MAX_RENEW`; no `WAITING` reservation for the book | `due_date` + `MAX_DAYS`; `renew_count` + 1 |
 | Reserve (FR-RDR-03) | Card `ACTIVE`; no copy of the book is `AVAILABLE`; at least one copy is not `CANCELED` | New `reservations` row (`WAITING`) |
-| Daily scan 00:00 (FR-SYS-01, FR-SYS-02) | `BORROWED` loan with `due_date` < today, or due in 2 days | Past due: loan → `OVERDUE` and overdue reminder. Due in 2 days: due-soon reminder |
-| Return, intact (FR-LIB-08) | Copy is `BORROWED` | `return_date`, `return_condition` = `INTACT`, loan → `RETURNED`. If a reservation is `WAITING`: copy → `RESERVED`, first reservation → `READY` with `copy_id` and `expire_date` = now + `HOLD_DAYS`, pickup reminder. Otherwise copy → `AVAILABLE` |
-| Return, damaged or lost (FR-LIB-08, FR-LIB-09) | Copy is `BORROWED` | Loan → `RETURNED`; copy `condition` updated, status → `CANCELED`; new `fines` row (`DAMAGED` or `LOST`, amount entered by the Librarian) |
+| Daily scan 00:00 (FR-SYS-01, FR-SYS-02) | `BORROWED` loan with `due_date` < today, or due in 2 days | Past due: loan -> `OVERDUE` and overdue reminder. Due in 2 days: due-soon reminder |
+| Return, intact (FR-LIB-08) | Copy is `BORROWED` | `return_date`, `return_condition` = `INTACT`, loan -> `RETURNED`. If a reservation is `WAITING`: copy -> `RESERVED`, first reservation -> `READY` with `copy_id` and `expire_date` = now + `HOLD_DAYS`, pickup reminder. Otherwise copy -> `AVAILABLE` |
+| Return, damaged or lost (FR-LIB-08, FR-LIB-09) | Copy is `BORROWED` | Loan -> `RETURNED`; copy `condition` updated, status -> `CANCELED`; new `fines` row (`DAMAGED` or `LOST`, amount entered by the Librarian) |
 | Return late (FR-LIB-09) | `return_date` > `due_date` | New `fines` row (`LATE_RETURN`, amount = days late × `DAILY_FINE`). If the book is also damaged or lost, the row above adds a second fine |
 | Cash payment (FR-LIB-13) | Fine `is_paid` = `FALSE` | `is_paid` = `TRUE`, `paid_at` = now |
-| Hold expires (FR-SYS-03) | `READY` reservation with `expire_date` < now | Reservation → `CANCELED`. Next `WAITING` reservation → `READY` with a new `expire_date`, or copy → `AVAILABLE` |
+| Hold expires (FR-SYS-03) | `READY` reservation with `expire_date` < now | Reservation -> `CANCELED`. Next `WAITING` reservation -> `READY` with a new `expire_date`, or copy -> `AVAILABLE` |
 
 ## 7. Interface Design Description
 
