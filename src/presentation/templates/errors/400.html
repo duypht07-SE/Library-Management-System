@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Form Expired{% endblock %}
+
+{% block content %}
+<h1 class="section-title"><span>Form Expired</span></h1>
+<div class="notice">
+  <p>The form could not be checked. Reload the page and try again.</p>
+  <a class="btn btn--primary" href="{{ url_for('guest.home') }}">Go to Home</a>
+</div>
+{% endblock %}

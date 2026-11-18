@@ -30,19 +30,22 @@ Each member owns one version. The next member starts after the previous version 
 
 Fixed: a returned loan was counted as late when its status was not updated yet.
 
-## [0.2.0] - Planned: Sign In and Accounts
+## [0.2.0] - 2026-11-18: Sign In and Accounts
 
-**Owner: Duy**
+**Owner: Duy** · Status: complete on `feature/v0.2.0-auth`, waiting for reviewer Sang.
 
-- [ ] Create Account and Sign In pages (FR-GST-01, FR-GST-04). Class methods: `User.login`, `User.logout`, `User.update_profile`.
-- [ ] Lock the account for 15 minutes after 5 wrong passwords. End the session after 30 minutes (NFR-SEC-05, NFR-SEC-06).
-- [ ] Check the role on every page, including typed URLs (NFR-SEC-03).
-- [ ] Profile page for Readers (FR-RDR-02).
-- [ ] Readers screen: approve, reject, lock, unlock cards (FR-LIB-10, FR-LIB-11). Class methods: `Librarian.approve_card`, `Librarian.lock_reader`.
-- [ ] Librarian Accounts screen (FR-ADM-01). Class method: `Administrator.manage_librarian`.
-- [ ] Rules screen: change the 5 rules without changing code (FR-ADM-04). Class method: `Administrator.configure_rules`.
+- [x] Create Account and Sign In pages (FR-GST-01, FR-GST-04). Class methods: `User.login`, `User.logout`, `User.update_profile`.
+- [x] Lock the account for 15 minutes after 5 wrong passwords. End the session after 30 minutes (NFR-SEC-05, NFR-SEC-06).
+- [x] Check the role on every page, including typed URLs (NFR-SEC-03). Guest, Reader, Librarian, and Administrator each have their own pages.
+- [x] Profile page for Readers with name, Student/Staff ID, email, phone, avatar, and password (FR-RDR-02).
+- [x] Readers screen: approve, reject, lock, unlock cards (FR-LIB-10, FR-LIB-11). Class methods: `Librarian.approve_card`, `Librarian.reject_card`, `Librarian.lock_reader`, `Librarian.unlock_reader`.
+- [x] Librarian Accounts screen: create, edit, lock, unlock (FR-ADM-01). Class method: `Administrator.manage_librarian`.
+- [x] Rules screen: change the 5 rules without changing code (FR-ADM-04). Class method: `Administrator.configure_rules`.
+- [x] CSRF token for every form; server-side validation; Bcrypt hashes from the configured cost (NFR-SEC-01, NFR-SEC-07).
+- [x] Database: add `users.student_id` and `users.avatar_path`, with an automatic `ALTER TABLE` for databases made by 0.1.0.
+- [x] 100 new pytest tests (178 total, 0 failed) and manual test cases TC20 to TC36.
 
-Tips: use `PasswordHasher` and `UserRepository.find_by_email`. Replace the `/signin` link in `base.html`. Until 0.4.0, send users to the Home page after sign in.
+Note: run `python src/app.py --reset-db` to load the new sample Student/Staff IDs into an existing 0.1.0 database.
 
 ## [0.3.0] - Planned: Books and Fines
 

@@ -61,15 +61,28 @@ class Database:
         return row is not None
 
     def initialize(self, seed: bool = True) -> None:
-        if self.is_initialized():
-            return
         conn = self.connect()
         try:
+            if self.is_initialized():
+                self._add_missing_columns(conn)
+                return
             conn.executescript(SCHEMA_FILE.read_text(encoding="utf-8"))
             if seed:
                 Seeder(conn).run()
         finally:
             conn.close()
+
+    def _add_missing_columns(self, conn: sqlite3.Connection) -> None:
+        """Small 0.2.0 migration for databases created by version 0.1.0."""
+        existing = {row["name"] for row in
+                    conn.execute("PRAGMA table_info(users)")}
+        additions = {
+            "student_id": "VARCHAR(30)",
+            "avatar_path": "VARCHAR(255)",
+        }
+        for name, sql_type in additions.items():
+            if name not in existing:
+                conn.execute(f"ALTER TABLE users ADD COLUMN {name} {sql_type}")
 
     def reset(self, seed: bool = True) -> None:
         if self.path.exists():

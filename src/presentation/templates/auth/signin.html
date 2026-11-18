@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Sign In{% endblock %}
+
+{% block content %}
+<h1 class="section-title"><span>Sign In</span></h1>
+<section class="auth-card">
+  <p class="muted">Use the email address and password of your library account.</p>
+  <form class="form" method="post" action="{{ url_for('auth.signin', next=request.args.get('next', '')) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="form__row">
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" value="{{ form.email }}"
+             maxlength="100" autocomplete="email" required autofocus>
+    </div>
+    <div class="form__row">
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password"
+             autocomplete="current-password" required>
+    </div>
+    <div class="form__actions">
+      <button class="btn btn--primary" type="submit">Sign In</button>
+      <a class="form__link" href="{{ url_for('auth.register') }}">Create account</a>
+    </div>
+  </form>
+  <p class="form__hint muted">Five wrong passwords lock the account for 15 minutes.</p>
+</section>
+{% endblock %}

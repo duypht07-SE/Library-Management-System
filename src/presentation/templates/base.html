@@ -17,7 +17,25 @@
         <input class="search__input" type="search" name="q" value="{{ keyword | default('') }}" aria-label="Search books">
         <button class="btn" type="submit">Search</button>
       </form>
-      <a class="btn topbar__signin" href="/signin">Sign In</a>
+      {% if current_user %}
+        <nav class="account" aria-label="Account">
+          <span class="account__name">{{ current_user.full_name }} <span class="account__role">{{ current_user.role.value | title }}</span></span>
+          {% if current_user.role.value == 'READER' %}
+            <a class="btn" href="{{ url_for('reader.profile') }}">My Profile</a>
+          {% elif current_user.role.value == 'LIBRARIAN' %}
+            <a class="btn" href="{{ url_for('librarian.readers') }}">Reader Cards</a>
+          {% elif current_user.role.value == 'ADMIN' %}
+            <a class="btn" href="{{ url_for('admin.librarians') }}">Librarians</a>
+            <a class="btn" href="{{ url_for('admin.rules') }}">Rules</a>
+          {% endif %}
+          <form method="post" action="{{ url_for('auth.signout') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn--outline" type="submit">Sign Out</button>
+          </form>
+        </nav>
+      {% else %}
+        <a class="btn topbar__signin" href="{{ url_for('auth.signin') }}">Sign In</a>
+      {% endif %}
     </div>
   </header>
 
@@ -26,6 +44,18 @@
       <button class="subbar__menu" type="button" data-menu-toggle aria-expanded="true">☰  BOOK CATEGORIES</button>
       <span class="subbar__hotline">Hotline:</span>
     </div>
+  </div>
+
+  <div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-list">
+          {% for category, message in messages %}
+            <p class="flash flash--{{ category }}" role="status">{{ message }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
   </div>
 
   <div class="container layout">

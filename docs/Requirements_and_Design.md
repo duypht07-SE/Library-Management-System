@@ -356,7 +356,7 @@ This section lists the main classes of the Library Management System (LMS) along
 
 | Class | Description | DFD Store | Related FR |
 |---|---|---|---|
-| `User` | Base class for all accounts (`userId`, `fullName`, `email`, `phone`, `passwordHash`, `status`, `failedLogins`, `lockedUntil`) with login, logout, and profile update methods. | D1 | FR-GST-01, FR-GST-04, FR-RDR-02 |
+| `User` | Base class for all accounts (`userId`, `fullName`, `email`, `phone`, `passwordHash`, `status`, `failedLogins`, `lockedUntil`, `studentId`, `avatarPath`) with login, logout, and profile update methods. | D1 | FR-GST-01, FR-GST-04, FR-RDR-02 |
 | `Reader` | Inherits from `User`. Adds `cardCode` and methods for reserving books, requesting renewals, and viewing borrowing history and fines. | D1 | FR-RDR-01 to FR-RDR-06, FR-RDR-08 |
 | `Librarian` | Inherits from `User`. Provides methods to manage books, approve or lock reader cards, check out and check in books, and record fines and cash payments. | D1 | FR-LIB-01 to FR-LIB-11, FR-LIB-13 |
 | `Administrator` | Inherits from `User`. Provides methods to manage librarian accounts, configure library rules, and view reports. | D1 | FR-ADM-01, FR-ADM-04, FR-ADM-05 |
@@ -436,10 +436,12 @@ Stores accounts for Readers, Librarians, and Administrators (`FR-GST-01`, `FR-GS
 | `user_id` | INT | PK, AUTO_INCREMENT | Unique user identifier |
 | `role` | VARCHAR(20) | NOT NULL | Account role: `READER`, `LIBRARIAN`, `ADMIN` |
 | `card_code` | VARCHAR(30) | UNIQUE, NULL | Library card barcode (for Readers only) |
+| `student_id` | VARCHAR(30) | UNIQUE, NULL | Student or staff ID given at registration (`FR-GST-01`) |
 | `full_name` | VARCHAR(100) | NOT NULL | Full name of the user |
 | `email` | VARCHAR(100) | UNIQUE, NOT NULL | Unique email address |
 | `phone` | VARCHAR(15) | UNIQUE, NOT NULL | Unique phone number |
 | `password_hash` | VARCHAR(255) | NOT NULL | Salted Bcrypt password hash (`NFR-SEC-01`) |
+| `avatar_path` | VARCHAR(255) | NULL | File name of the uploaded avatar in `instance/avatars` (`FR-RDR-02`) |
 | `status` | VARCHAR(20) | NOT NULL, DEFAULT 'PENDING' | Account status: `PENDING`, `ACTIVE`, `LOCKED`, `REJECTED` |
 | `failed_logins` | INT | NOT NULL, DEFAULT 0 | Consecutive failed login attempts (`NFR-SEC-06`) |
 | `locked_until` | DATETIME | NULL | End time of temporary login lock (`NFR-SEC-06`) |
@@ -594,7 +596,10 @@ This interface allows Guests to register for a library card (FR-GST-01).
 
 ### 7.2 Reader
 
-#### 7.2.1 My Books
+#### 7.2.1 Profile
+This interface allows a Reader to view and update their name, Student/Staff ID, email, phone, avatar, and password (FR-RDR-02).
+
+#### 7.2.2 My Books
 This interface allows Readers to view current loans, renew books, and view fines to pay at the counter (FR-RDR-04 to FR-RDR-06, FR-RDR-08).
 
 ![My Books](../ui/mybooks.png)

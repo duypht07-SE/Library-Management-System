@@ -4,14 +4,23 @@ import argparse
 
 from flask import Flask
 
+from business.account_service import AccountService
+from business.auth_service import AuthService
+from business.catalog_service import CatalogService
+from business.rule_service import RuleService
+from common import csrf
+from common.security import PasswordHasher
 from config import SRC_DIR, Config
 from data.database import Database
 from data.repositories import (BookRepository, ConfigRepository,
                                UserRepository)
-from business.catalog_service import CatalogService
-from business.rule_service import RuleService
+from presentation.access import current_user, load_user
+from presentation.admin_controller import AdminController
+from presentation.auth_controller import AuthController
 from presentation.error_controller import ErrorController
 from presentation.guest_controller import GuestController
+from presentation.librarian_controller import LibrarianController
+from presentation.reader_controller import ReaderController
 
 
 class LibraryApp:
@@ -24,9 +33,12 @@ class LibraryApp:
         self.users = UserRepository(self.database)
         self.books = BookRepository(self.database)
         self.configs = ConfigRepository(self.database)
+        self.hasher = PasswordHasher(self.config.BCRYPT_ROUNDS)
 
         self.catalog_service = CatalogService(self.books)
         self.rule_service = RuleService(self.configs)
+        self.auth_service = AuthService(self.users, self.hasher)
+        self.account_service = AccountService(self.users, self.hasher)
 
         presentation = SRC_DIR / "presentation"
         self.flask = Flask(
@@ -38,16 +50,26 @@ class LibraryApp:
         self.flask.extensions["lms"] = self
 
         self.database.initialize(seed=self.config.SEED_SAMPLE_DATA)
+        csrf.init_app(self.flask)
+        self.flask.before_request(csrf.check_request)
+        self.flask.before_request(load_user(self.users))
         self._register_controllers()
 
     def _register_controllers(self) -> None:
-        guest = GuestController(self.catalog_service, self.rule_service)
-        guest.register(self.flask)
+        GuestController(self.catalog_service, self.rule_service).register(
+            self.flask)
+        AuthController(self.auth_service).register(self.flask)
+        ReaderController(self.auth_service, self.rule_service,
+                         self.config).register(self.flask)
+        LibrarianController(self.account_service).register(self.flask)
+        AdminController(self.account_service, self.rule_service).register(
+            self.flask)
         ErrorController().register(self.flask)
 
         @self.flask.context_processor
         def layout_data():
-            return {"categories": self.catalog_service.categories()}
+            return {"categories": self.catalog_service.categories(),
+                    "current_user": current_user()}
 
     def run(self) -> None:
         self.flask.run(host=self.config.HOST, port=self.config.PORT,

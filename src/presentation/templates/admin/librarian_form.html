@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Edit Librarian{% endblock %}
+
+{% block content %}
+<h1 class="section-title"><span>Edit Librarian</span></h1>
+<p class="muted page-intro">{{ librarian.full_name }} · {{ librarian.status.value | title }}</p>
+<form class="form form--grid" method="post"
+      action="{{ url_for('admin.edit_librarian', librarian_id=librarian.user_id) }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="form__row">
+    <label for="full_name">Full name</label>
+    <input id="full_name" name="full_name" value="{{ form.full_name }}"
+           maxlength="100" required>
+  </div>
+  <div class="form__row">
+    <label for="student_id">Staff ID</label>
+    <input id="student_id" name="student_id" value="{{ form.student_id }}"
+           maxlength="30">
+  </div>
+  <div class="form__row">
+    <label for="email">Email</label>
+    <input id="email" name="email" type="email" value="{{ form.email }}"
+           maxlength="100" required>
+  </div>
+  <div class="form__row">
+    <label for="phone">Phone number</label>
+    <input id="phone" name="phone" type="tel" value="{{ form.phone }}"
+           maxlength="15" required>
+  </div>
+  <div class="form__actions">
+    <button class="btn btn--primary" type="submit">Save Changes</button>
+    <a class="btn btn--outline" href="{{ url_for('admin.librarians') }}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

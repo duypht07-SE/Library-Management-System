@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Library Rules{% endblock %}
+
+{% block content %}
+<h1 class="section-title"><span>Library Rules</span></h1>
+<p class="muted page-intro">Saved rules apply immediately; no code change or restart
+   is needed.</p>
+<form class="form form--grid" method="post" action="{{ url_for('admin.rules') }}"
+      data-confirm="Save these rules for the whole library?">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  {% for key, field in fields.items() %}
+    {% set attribute = field[0] %}
+    <div class="form__row">
+      <label for="{{ key }}">{{ field[1] }}</label>
+      <input id="{{ key }}" name="{{ key }}" type="number" min="1"
+             value="{{ rules[attribute] }}" required>
+    </div>
+  {% endfor %}
+  <div class="form__actions">
+    <button class="btn btn--primary" type="submit">Save Rules</button>
+  </div>
+</form>
+{% endblock %}

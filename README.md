@@ -2,7 +2,7 @@
 
 This repository contains the requirements, design, and source code of the Library Management System developed by Group 06 for the Software Engineering course.
 
-The system supports counter borrowing and returning with barcode scanning, reservation queues, fines paid in cash at the counter, and daily automatic tasks. The full specification is in [`docs/Requirements_and_Design.md`](docs/Requirements_and_Design.md). The coding plan and the owner of each version are in [`CHANGELOG.md`](CHANGELOG.md).
+The system supports counter borrowing and returning with barcode scanning, reservation queues, fines paid in cash at the counter, and daily automatic tasks. Version 0.2.0 adds sign in, role-based access, Reader profiles, reader-card approval, Librarian accounts, and editable library rules. The full specification is in [`docs/Requirements_and_Design.md`](docs/Requirements_and_Design.md). The coding plan and the owner of each version are in [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Getting Started
 
@@ -54,7 +54,7 @@ Open http://127.0.0.1:5000. Run the tests with `pytest`. Reset the database with
 
 ### Sample Accounts
 
-Every sample account uses the password `Library@123`. Sign in is added in version 0.2.0.
+Every sample account uses the password `Library@123`. Sign in is available in version 0.2.0. The sample Readers with a pending or locked card cannot sign in until a Librarian approves or unlocks the card.
 
 | Role | Email | Status |
 |---|---|---|
@@ -65,6 +65,17 @@ Every sample account uses the password `Library@123`. Sign in is added in versio
 | Reader | reader3@library.test | Active |
 | Reader | pending@library.test | Waiting for card approval |
 | Reader | locked@library.test | Locked |
+
+### Accounts and Roles
+
+| Role | Pages |
+|---|---|
+| Guest | Home, Search Books, Library Policies, Help, Sign In, Create Account |
+| Reader | Guest pages and My Profile (details, avatar, password) |
+| Librarian | `/librarian/readers`: approve, reject, lock, and unlock reader cards |
+| Administrator | `/admin/librarians` (create, edit, lock staff) and `/admin/rules` |
+
+Each page checks the role on the server, so typing a URL does not bypass access control. Five wrong passwords lock the account for 15 minutes, and a session ends after 30 minutes without activity. Passwords need at least 8 characters with one letter and one digit.
 
 ### Settings
 
@@ -78,6 +89,9 @@ The app reads these environment variables. Copy `.env.example` to `.env` to chan
 | `LMS_PORT` | `5000` | Server port |
 | `LMS_DB_PATH` | `instance/library.db` | SQLite database file |
 | `LMS_SEED` | `1` | Load sample data when the database is created |
+| `LMS_AVATAR_DIR` | `instance/avatars` | Folder for uploaded profile avatars |
+| `LMS_BCRYPT_ROUNDS` | `12` | Bcrypt cost factor (NFR-SEC-01) |
+| `LMS_SESSION_COOKIE_SECURE` | `0` | Set to `1` when the site uses HTTPS |
 
 ## Architecture
 
@@ -98,11 +112,11 @@ The code follows a layered architecture with MVC in the presentation layer (NFR-
 ├── src/
 │   ├── app.py              # Entry point, builds LibraryApp
 │   ├── config.py
-│   ├── common/             # PasswordHasher
+│   ├── common/             # PasswordHasher, validation, CSRF
 │   ├── models/
 │   ├── data/
 │   │   └── repositories/
-│   ├── business/
+│   ├── business/           # Catalog, Rule, Auth, and Account services
 │   └── presentation/
 │       ├── templates/
 │       └── static/
@@ -136,12 +150,15 @@ Run `pytest` (or `docker compose run --rm web pytest`) before every commit. All 
 | File | Level | Content |
 |---|---|---|
 | `tests/test_models.py` | Unit | Each domain class, with equivalence partitions and boundary values |
+| `tests/test_auth.py` | Unit | Input validation, login status, temporary lock, card actions |
 | `tests/test_database.py` | Component | Schema, constraints, repositories, and transactions |
+| `tests/test_accounts.py` | Component | Registration, login attempts, profiles, cards, staff, rules, migration |
 | `tests/test_pages.py` | System | Guest pages through the Flask test client |
+| `tests/test_auth_pages.py` | System | Sign in, roles, profile, avatar, reader cards, staff, rules, CSRF |
 
 Test names end with the requirement they check, for example `test_login_lock_nfr_sec_06`.
 
-Manual test cases are in [`docs/Test_Cases.xlsx`](docs/Test_Cases.xlsx), written with the course Testing Document Template.
+Manual test cases are in [`docs/Test_Cases.xlsx`](docs/Test_Cases.xlsx), written with the course Testing Document Template. TC20 to TC36 cover version 0.2.0.
 
 ## Tech Stack
 

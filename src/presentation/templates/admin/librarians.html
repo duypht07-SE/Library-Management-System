@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Librarian Accounts{% endblock %}
+
+{% block content %}
+<h1 class="section-title"><span>Librarian Accounts</span></h1>
+
+<h2 class="subheading">Create a Librarian account</h2>
+<form class="form form--grid" method="post" action="{{ url_for('admin.librarians') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="form__row">
+    <label for="full_name">Full name</label>
+    <input id="full_name" name="full_name" value="{{ form.full_name }}"
+           maxlength="100" required>
+  </div>
+  <div class="form__row">
+    <label for="student_id">Staff ID (optional)</label>
+    <input id="student_id" name="student_id" value="{{ form.student_id }}"
+           maxlength="30">
+  </div>
+  <div class="form__row">
+    <label for="email">Email</label>
+    <input id="email" name="email" type="email" value="{{ form.email }}"
+           maxlength="100" required>
+  </div>
+  <div class="form__row">
+    <label for="phone">Phone number</label>
+    <input id="phone" name="phone" type="tel" value="{{ form.phone }}"
+           maxlength="15" required>
+  </div>
+  <div class="form__row">
+    <label for="password">Temporary password</label>
+    <input id="password" name="password" type="password"
+           autocomplete="new-password" required>
+  </div>
+  <div class="form__actions">
+    <button class="btn btn--primary" type="submit">Create Librarian</button>
+  </div>
+</form>
+
+<h2 class="subheading">Current Librarians</h2>
+<div class="table-wrap">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Staff ID</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for librarian in librarians %}
+        <tr>
+          <td>{{ librarian.full_name }}</td>
+          <td>{{ librarian.student_id or "—" }}</td>
+          <td>{{ librarian.email }}</td>
+          <td>{{ librarian.phone }}</td>
+          <td><span class="badge badge--{{ librarian.status.value | lower }}">{{ librarian.status.value | title }}</span></td>
+          <td class="actions">
+            <a class="btn btn--small" href="{{ url_for('admin.edit_librarian', librarian_id=librarian.user_id) }}">Edit</a>
+            {% if librarian.status.value == 'ACTIVE' %}
+              <form method="post" action="{{ url_for('admin.librarian_action', librarian_id=librarian.user_id, action='lock') }}"
+                    data-confirm="Lock this Librarian account?">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn--small btn--danger" type="submit">Lock</button>
+              </form>
+            {% elif librarian.status.value == 'LOCKED' %}
+              <form method="post" action="{{ url_for('admin.librarian_action', librarian_id=librarian.user_id, action='unlock') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn--small" type="submit">Unlock</button>
+              </form>
+            {% endif %}
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="6" class="muted">There are no Librarian accounts.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

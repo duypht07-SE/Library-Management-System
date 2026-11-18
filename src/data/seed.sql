@@ -1,13 +1,13 @@
 -- Sample data. Every account uses the password in README.md; {{PASSWORD_HASH}} is filled in by Seeder.
 
-INSERT INTO users (user_id, role, card_code, full_name, email, phone, password_hash, status) VALUES
-    (1, 'ADMIN',     NULL,      'Nguyen Thanh Admin', 'admin@library.test',      '0900000001', '{{PASSWORD_HASH}}', 'ACTIVE'),
-    (2, 'LIBRARIAN', NULL,      'Tran Thi Lan',       'librarian@library.test',  '0900000002', '{{PASSWORD_HASH}}', 'ACTIVE'),
-    (3, 'READER',    'RD-0001', 'Nguyen Van An',      'reader@library.test',     '0900000003', '{{PASSWORD_HASH}}', 'ACTIVE'),
-    (4, 'READER',    'RD-0002', 'Le Thi Binh',        'reader2@library.test',    '0900000004', '{{PASSWORD_HASH}}', 'ACTIVE'),
-    (5, 'READER',    NULL,      'Pham Minh Chau',     'pending@library.test',    '0900000005', '{{PASSWORD_HASH}}', 'PENDING'),
-    (6, 'READER',    'RD-0003', 'Hoang Duc Dung',     'locked@library.test',     '0900000006', '{{PASSWORD_HASH}}', 'LOCKED'),
-    (7, 'READER',    'RD-0004', 'Vo Thi Em',          'reader3@library.test',    '0900000007', '{{PASSWORD_HASH}}', 'ACTIVE');
+INSERT INTO users (user_id, role, card_code, student_id, full_name, email, phone, password_hash, status) VALUES
+    (1, 'ADMIN',     NULL,      'STF-0001', 'Nguyen Thanh Admin', 'admin@library.test',      '0900000001', '{{PASSWORD_HASH}}', 'ACTIVE'),
+    (2, 'LIBRARIAN', NULL,      'STF-0002', 'Tran Thi Lan',       'librarian@library.test',  '0900000002', '{{PASSWORD_HASH}}', 'ACTIVE'),
+    (3, 'READER',    'RD-0001', '22520001', 'Nguyen Van An',      'reader@library.test',     '0900000003', '{{PASSWORD_HASH}}', 'ACTIVE'),
+    (4, 'READER',    'RD-0002', '22520002', 'Le Thi Binh',        'reader2@library.test',    '0900000004', '{{PASSWORD_HASH}}', 'ACTIVE'),
+    (5, 'READER',    NULL,      '22520003', 'Pham Minh Chau',     'pending@library.test',    '0900000005', '{{PASSWORD_HASH}}', 'PENDING'),
+    (6, 'READER',    'RD-0003', '22520004', 'Hoang Duc Dung',     'locked@library.test',     '0900000006', '{{PASSWORD_HASH}}', 'LOCKED'),
+    (7, 'READER',    'RD-0004', '22520005', 'Vo Thi Em',          'reader3@library.test',    '0900000007', '{{PASSWORD_HASH}}', 'ACTIVE');
 
 INSERT INTO books (book_id, isbn, ddc_code, title, author, category) VALUES
     (1,  '9780132350884', '005.1',  'Clean Code',                        'Robert C. Martin',      'Computer Science'),

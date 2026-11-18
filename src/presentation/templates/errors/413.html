@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}File Too Large{% endblock %}
+
+{% block content %}
+<h1 class="section-title"><span>File Too Large</span></h1>
+<div class="notice">
+  <p>The uploaded file is larger than the 2 MB limit.</p>
+  <a class="btn btn--primary" href="{{ url_for('reader.profile') }}">Back to Profile</a>
+</div>
+{% endblock %}
