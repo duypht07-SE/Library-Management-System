@@ -85,6 +85,15 @@ class Fine:
         self.is_paid = True
         self.paid_at = at
 
+    @classmethod
+    def from_row(cls, row) -> "Fine":
+        paid_at = row["paid_at"]
+        return cls(
+            fine_id=row["fine_id"], borrow_id=row["borrow_id"],
+            reason=FineReason(row["reason"]), amount=int(row["amount"]),
+            is_paid=bool(row["is_paid"]),
+            paid_at=datetime.fromisoformat(paid_at) if paid_at else None)
+
 
 @dataclass
 class Notification:

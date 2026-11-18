@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}My Fines{% endblock %}
+{% block content %}
+<h1 class="section-title"><span>My Fines</span></h1>
+<p class="muted page-intro">Unpaid fines are paid in cash at the library counter.</p>
+<div class="table-wrap"><table class="table"><thead><tr><th>Reason</th><th>Amount</th><th>Status</th><th>Paid at</th></tr></thead><tbody>
+{% for fine in fines %}<tr><td>{{ fine.reason.value | replace('_',' ') | title }}</td><td>{{ "{:,}".format(fine.amount) }} VND</td><td>{{ 'Paid' if fine.is_paid else 'Unpaid' }}</td><td>{{ fine.paid_at.strftime('%d/%m/%Y %H:%M') if fine.paid_at else '—' }}</td></tr>
+{% else %}<tr><td colspan="4" class="muted">You have no recorded fines.</td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}

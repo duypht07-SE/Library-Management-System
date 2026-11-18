@@ -7,12 +7,15 @@ from flask import Flask
 from business.account_service import AccountService
 from business.auth_service import AuthService
 from business.catalog_service import CatalogService
+from business.fine_service import FineService
+from business.report_service import ReportService
 from business.rule_service import RuleService
 from common import csrf
 from common.security import PasswordHasher
 from config import SRC_DIR, Config
 from data.database import Database
 from data.repositories import (BookRepository, ConfigRepository,
+                               FineRepository, ReportRepository,
                                UserRepository)
 from presentation.access import current_user, load_user
 from presentation.admin_controller import AdminController
@@ -33,9 +36,13 @@ class LibraryApp:
         self.users = UserRepository(self.database)
         self.books = BookRepository(self.database)
         self.configs = ConfigRepository(self.database)
+        self.fines = FineRepository(self.database)
+        self.reports = ReportRepository(self.database)
         self.hasher = PasswordHasher(self.config.BCRYPT_ROUNDS)
 
         self.catalog_service = CatalogService(self.books)
+        self.fine_service = FineService(self.fines)
+        self.report_service = ReportService(self.reports)
         self.rule_service = RuleService(self.configs)
         self.auth_service = AuthService(self.users, self.hasher)
         self.account_service = AccountService(self.users, self.hasher)
@@ -60,10 +67,11 @@ class LibraryApp:
             self.flask)
         AuthController(self.auth_service).register(self.flask)
         ReaderController(self.auth_service, self.rule_service,
-                         self.config).register(self.flask)
-        LibrarianController(self.account_service).register(self.flask)
-        AdminController(self.account_service, self.rule_service).register(
-            self.flask)
+                         self.config, self.fine_service).register(self.flask)
+        LibrarianController(self.account_service, self.catalog_service,
+                            self.fine_service).register(self.flask)
+        AdminController(self.account_service, self.rule_service,
+                        self.report_service).register(self.flask)
         ErrorController().register(self.flask)
 
         @self.flask.context_processor

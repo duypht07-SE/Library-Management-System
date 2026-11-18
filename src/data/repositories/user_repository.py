@@ -2,6 +2,7 @@ import sqlite3
 from datetime import datetime
 
 from data.repositories.base_repository import BaseRepository
+from config import now
 from models import Role, User, UserFactory, UserStatus
 
 
@@ -43,11 +44,11 @@ class UserRepository(BaseRepository):
         with self.db.transaction() as conn:
             cursor = conn.execute(
                 "INSERT INTO users (role, card_code, student_id, full_name,"
-                " email, phone, password_hash, status, avatar_path)"
-                " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                " email, phone, password_hash, status, avatar_path, created_at)"
+                " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 (user.role.value, card_code, user.student_id, user.full_name,
                  user.email, user.phone, password_hash, user.status.value,
-                 user.avatar_path))
+                 user.avatar_path, now().isoformat(sep=" ")))
             user.user_id = cursor.lastrowid
         return user
 

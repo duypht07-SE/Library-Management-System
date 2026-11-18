@@ -1,7 +1,12 @@
-from flask import flash, g, redirect, render_template, request, url_for
+import csv
+from io import StringIO
+
+from flask import (flash, g, make_response, redirect, render_template, request,
+                   url_for)
 
 from business.account_service import AccountService
 from business.rule_service import RuleService
+from business.report_service import ReportService
 from common.exceptions import ValidationError
 from presentation.access import roles_required
 from presentation.base_controller import BaseController
@@ -22,10 +27,12 @@ class AdminController(BaseController):
     name = "admin"
     url_prefix = "/admin"
 
-    def __init__(self, accounts: AccountService, rules: RuleService) -> None:
+    def __init__(self, accounts: AccountService, rules: RuleService,
+                 reports: ReportService | None = None) -> None:
         super().__init__()
         self.accounts = accounts
         self.rules = rules
+        self.reports = reports
 
     def add_routes(self) -> None:
         bp = self.blueprint
@@ -40,6 +47,7 @@ class AdminController(BaseController):
                         methods=["POST"])
         bp.add_url_rule("/rules", "rules", self.rules_page,
                         methods=["GET", "POST"])
+        bp.add_url_rule("/reports", "reports", self.reports_page)
 
     @roles_required(ADMIN)
     def index(self):
@@ -132,6 +140,49 @@ class AdminController(BaseController):
         return render_template("admin/rules.html",
                                rules=self.rules.current_rules(),
                                fields=RULE_FIELDS)
+
+    @roles_required(ADMIN)
+    def reports_page(self):
+        if self.reports is None:
+            return render_template("errors/404.html"), 404
+        period = request.args.get("period", "month")
+        value = request.args.get("value", "")
+        reports = None
+        if value:
+            try:
+                reports = self.reports.view_reports(g.user, period, value)
+                values = [
+                    ("Borrowings", reports["borrowings"]),
+                    ("Overdue loans", reports["overdue"]),
+                    ("Fines collected (VND)", reports["fines_collected"]),
+                    ("Book titles", reports["book_titles"]),
+                    ("Available copies", reports["available_copies"]),
+                    ("New Readers", reports["new_readers"]),
+                ]
+                maximum = max((number for _, number in values), default=0)
+                reports["metrics"] = [
+                    (label, number,
+                     max(5, round(number / maximum * 100)) if maximum else 0)
+                    for label, number in values]
+            except ValidationError as error:
+                flash(error.message, "error")
+        if reports and request.args.get("format") == "csv":
+            output = StringIO()
+            writer = csv.writer(output)
+            writer.writerow(["Report", reports["label"]])
+            writer.writerow(["Borrowings", reports["borrowings"]])
+            writer.writerow(["Overdue loans", reports["overdue"]])
+            writer.writerow(["Fines collected (VND)", reports["fines_collected"]])
+            writer.writerow(["Book titles", reports["book_titles"]])
+            writer.writerow(["Available copies", reports["available_copies"]])
+            writer.writerow(["New Readers", reports["new_readers"]])
+            response = make_response(output.getvalue())
+            response.headers["Content-Type"] = "text/csv; charset=utf-8"
+            response.headers["Content-Disposition"] = (
+                f"attachment; filename=library-report-{value}.csv")
+            return response
+        return render_template("admin/reports.html", reports=reports,
+                               period=period, value=value)
 
     def _librarian_form(self, include_password: bool = True) -> dict:
         form = {

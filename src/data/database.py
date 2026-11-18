@@ -79,10 +79,14 @@ class Database:
         additions = {
             "student_id": "VARCHAR(30)",
             "avatar_path": "VARCHAR(255)",
+            "created_at": "DATETIME",
         }
         for name, sql_type in additions.items():
             if name not in existing:
                 conn.execute(f"ALTER TABLE users ADD COLUMN {name} {sql_type}")
+        if "created_at" not in existing:
+            conn.execute("UPDATE users SET created_at = CURRENT_TIMESTAMP "
+                         "WHERE created_at IS NULL")
 
     def reset(self, seed: bool = True) -> None:
         if self.path.exists():

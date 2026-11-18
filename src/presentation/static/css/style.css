@@ -310,3 +310,49 @@ a { color: var(--link); }
 .badge--active { background: #d8efd9; color: var(--green); }
 .badge--pending { background: #fff1c2; color: var(--gold-text); }
 .badge--locked, .badge--rejected { background: #f7d9d9; color: var(--red); }
+
+.book-details {
+  display: grid;
+  grid-template-columns: minmax(120px, 180px) 1fr;
+  gap: 8px 16px;
+  max-width: 640px;
+  padding: 18px;
+  background: var(--gray-bg);
+}
+.book-details dt { font-weight: 700; }
+.book-details dd { margin: 0; }
+.catalog-admin {
+  margin: 18px 0;
+  padding: 16px;
+  border: 1px solid var(--divider);
+  border-radius: 6px;
+}
+.catalog-admin__heading, .report-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.catalog-admin__heading h3, .report-heading h2 { margin: 0; }
+.catalog-admin .form--inline { align-items: end; }
+.catalog-admin .table { min-width: 620px; }
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+.report-card {
+  padding: 16px;
+  border: 1px solid var(--divider);
+  border-radius: 6px;
+  background: #fff;
+}
+.report-card h3 { margin: 0; font-size: 14px; }
+.report-card p { margin: 10px 0; font-size: 24px; font-weight: 700; }
+.report-bar { height: 8px; overflow: hidden; background: var(--gray-bg); }
+.report-bar span { display: block; height: 100%; background: var(--gold); }
+@media (max-width: 640px) {
+  .catalog-admin__heading, .report-heading { align-items: flex-start; flex-direction: column; }
+  .catalog-admin .form--inline { flex-direction: column; align-items: stretch; }
+}

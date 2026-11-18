@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}{{ book.title }}{% endblock %}
+{% block content %}
+<h1 class="section-title"><span>{{ book.title }}</span></h1>
+<dl class="book-details">
+  <dt>Author</dt><dd>{{ book.author }}</dd>
+  <dt>ISBN</dt><dd>{{ book.isbn }}</dd>
+  <dt>DDC</dt><dd>{{ book.ddc_code }}</dd>
+  <dt>Category</dt><dd>{{ book.category }}</dd>
+  <dt>Available copies</dt><dd>{{ book.available_copies }}</dd>
+</dl>
+<h2>Copy availability</h2>
+<div class="table-wrap"><table class="table"><thead><tr><th>Copy</th><th>Shelf</th><th>Status</th></tr></thead>
+  <tbody>{% for copy in book.copies if copy.status.value != 'CANCELED' %}
+    <tr><td>{{ copy.barcode }}</td><td>{{ copy.shelf_location }}</td><td>{{ copy.status.value | title }}</td></tr>
+  {% else %}<tr><td colspan="3" class="muted">No usable copies are currently listed.</td></tr>{% endfor %}</tbody>
+</table></div>
+<a class="btn" href="{{ url_for('guest.search') }}">Back to Search</a>
+{% endblock %}

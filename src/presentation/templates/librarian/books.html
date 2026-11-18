@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Manage Books{% endblock %}
+{% block content %}
+<h1 class="section-title"><span>Manage Books</span></h1>
+<h2>Add a book title</h2>
+<form class="form form--grid" method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  {% for key, label in [('isbn','ISBN'),('ddc_code','DDC code'),('title','Title'),('author','Author'),('category','Category')] %}
+    <div class="form__row"><label for="{{ key }}">{{ label }}</label><input id="{{ key }}" name="{{ key }}" value="{{ form[key] }}" maxlength="{{ {'isbn':20,'ddc_code':20,'title':255,'author':150,'category':100}[key] }}" required></div>
+  {% endfor %}<div class="form__actions"><button class="btn btn--primary" type="submit">Add Book</button></div>
+</form>
+<h2>Catalog and copies</h2>
+{% for book in books %}
+<section class="catalog-admin">
+  <div class="catalog-admin__heading"><div><h3>{{ book.title }}</h3><p class="muted">{{ book.author }} · ISBN {{ book.isbn }} · {{ book.category }} · {{ book.available_copies }} available</p></div>
+    <a class="btn btn--small" href="{{ url_for('librarian.edit_book', book_id=book.book_id) }}">Edit title</a></div>
+  <form class="form form--inline" method="post" action="{{ url_for('librarian.add_copy', book_id=book.book_id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="form__row"><label>New copy barcode</label><input name="barcode" maxlength="50" required></div>
+    <div class="form__row"><label>Shelf location</label><input name="shelf_location" maxlength="50" required></div>
+    <button class="btn btn--small btn--primary" type="submit">Add Copy</button>
+  </form>
+  <div class="table-wrap"><table class="table"><thead><tr><th>Barcode</th><th>Shelf</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+    {% for copy in book.copies %}<tr><td>{{ copy.barcode }}</td><td>{{ copy.shelf_location }}</td><td>{{ copy.status.value | title }}</td><td class="actions">
+      {% if copy.status.value != 'CANCELED' %}
+      <form class="form--inline" method="post" action="{{ url_for('librarian.edit_copy', copy_id=copy.copy_id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="book_id" value="{{ book.book_id }}"><input name="barcode" value="{{ copy.barcode }}" aria-label="Barcode" required><input name="shelf_location" value="{{ copy.shelf_location }}" aria-label="Shelf location" required><button class="btn btn--small" type="submit">Save</button></form>
+      {% if copy.status.value == 'AVAILABLE' %}<form method="post" action="{{ url_for('librarian.retire_copy', copy_id=copy.copy_id) }}" data-confirm="Retire this available copy? The copy record will be retained."><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn--small btn--danger" type="submit">Retire</button></form>{% endif %}
+      {% else %}<span class="muted">Retired</span>{% endif %}</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% else %}<p class="muted">No books have been added yet.</p>{% endfor %}
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Fines at the Counter{% endblock %}
+{% block content %}
+<h1 class="section-title"><span>Fines at the Counter</span></h1>
+<h2>Record a fine</h2>
+<form class="form form--inline" method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="fine">
+  <div class="form__row"><label for="borrow_id">Borrow record ID</label><input id="borrow_id" name="borrow_id" type="number" min="1" required></div>
+  <div class="form__row"><label for="reason">Reason</label><select id="reason" name="reason"><option value="LATE_RETURN">Late return</option><option value="DAMAGED">Damaged</option><option value="LOST">Lost</option></select></div>
+  <div class="form__row"><label for="amount">Amount (VND)</label><input id="amount" name="amount" type="number" min="1" required></div>
+  <button class="btn btn--primary" type="submit">Record Fine</button>
+</form>
+<h2>Fine payments</h2>
+<div class="table-wrap"><table class="table"><thead><tr><th>Reader</th><th>Borrow ID</th><th>Reason</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead><tbody>
+{% for fine in fines %}<tr><td>{{ fine.reader_name }}</td><td>{{ fine.borrow_id }}</td><td>{{ fine.reason | replace('_',' ') | title }}</td><td>{{ "{:,}".format(fine.amount) }} VND</td><td>{{ 'Paid' if fine.is_paid else 'Unpaid' }}</td><td>{% if not fine.is_paid %}<form method="post" data-confirm="Confirm that {{ "{:,}".format(fine.amount) }} VND was received in cash?"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="payment"><input type="hidden" name="fine_id" value="{{ fine.fine_id }}"><button class="btn btn--small btn--primary" type="submit">Record Cash Payment</button></form>{% else %}{{ fine.paid_at[:10] if fine.paid_at else 'Paid' }}{% endif %}</td></tr>
+{% else %}<tr><td colspan="6" class="muted">There are no fines yet.</td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}

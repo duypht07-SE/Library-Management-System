@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Edit Book{% endblock %}
+{% block content %}
+<h1 class="section-title"><span>Edit Book</span></h1>
+<form class="form form--grid" method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  {% for key, label, value, size in [('isbn','ISBN',book.isbn,20),('ddc_code','DDC code',book.ddc_code,20),('title','Title',book.title,255),('author','Author',book.author,150),('category','Category',book.category,100)] %}
+  <div class="form__row"><label for="{{ key }}">{{ label }}</label><input id="{{ key }}" name="{{ key }}" value="{{ value }}" maxlength="{{ size }}" required></div>
+  {% endfor %}<div class="form__actions"><button class="btn btn--primary" type="submit">Save Changes</button><a class="btn" href="{{ url_for('librarian.books') }}">Cancel</a></div>
+</form>
+{% endblock %}
