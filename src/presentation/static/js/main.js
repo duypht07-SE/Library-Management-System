@@ -39,6 +39,16 @@ class SearchLoader {
   }
 }
 
+class ConfirmAction {
+  constructor(form) {
+    this.form = form;
+    this.message = form.dataset.confirm;
+    form.addEventListener("submit", (event) => {
+      if (!window.confirm(this.message)) event.preventDefault();
+    });
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const carousel = document.querySelector("[data-carousel]");
   if (carousel) new Carousel(carousel);
@@ -51,4 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const template = document.getElementById("loading-template");
   const content = document.querySelector(".content");
   if (form && template && content) new SearchLoader(form, template, content);
+
+  document.querySelectorAll("form[data-confirm]").forEach(
+    (form) => new ConfirmAction(form));
 });

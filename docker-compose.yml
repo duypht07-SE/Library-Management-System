@@ -7,6 +7,9 @@ services:
     environment:
       LMS_SECRET_KEY: ${LMS_SECRET_KEY:-change-me-in-production}
       LMS_DEBUG: ${LMS_DEBUG:-1}
+      LMS_AVATAR_DIR: ${LMS_AVATAR_DIR:-/app/instance/avatars}
+      LMS_BCRYPT_ROUNDS: ${LMS_BCRYPT_ROUNDS:-12}
+      LMS_SESSION_COOKIE_SECURE: ${LMS_SESSION_COOKIE_SECURE:-0}
     volumes:
       - lms-data:/app/instance
       # Mount the source code so changes show without rebuilding the image

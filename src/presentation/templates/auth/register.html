@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Create Account{% endblock %}
+
+{% block content %}
+<h1 class="section-title"><span>Create Account</span></h1>
+<section class="auth-card">
+  <p class="muted">Register for a library card. A librarian approves the card before
+     you can borrow books.</p>
+  <form class="form" method="post" action="{{ url_for('auth.register') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="form__row">
+      <label for="full_name">Full name</label>
+      <input id="full_name" name="full_name" value="{{ form.full_name }}"
+             maxlength="100" autocomplete="name" required>
+    </div>
+    <div class="form__row">
+      <label for="student_id">Student/Staff ID</label>
+      <input id="student_id" name="student_id" value="{{ form.student_id }}"
+             maxlength="30" required>
+    </div>
+    <div class="form__row">
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" value="{{ form.email }}"
+             maxlength="100" autocomplete="email" required>
+    </div>
+    <div class="form__row">
+      <label for="phone">Phone number</label>
+      <input id="phone" name="phone" type="tel" value="{{ form.phone }}"
+             maxlength="15" autocomplete="tel" required>
+    </div>
+    <div class="form__row">
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password"
+             autocomplete="new-password" required>
+      <span class="form__hint muted">At least 8 characters, with a letter and a digit.</span>
+    </div>
+    <div class="form__row">
+      <label for="confirmation">Confirm password</label>
+      <input id="confirmation" name="confirmation" type="password"
+             autocomplete="new-password" required>
+    </div>
+    <div class="form__actions">
+      <button class="btn btn--primary" type="submit">Create Account</button>
+      <a class="form__link" href="{{ url_for('auth.signin') }}">I already have an account</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

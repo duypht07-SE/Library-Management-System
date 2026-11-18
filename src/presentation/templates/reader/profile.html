@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<h1 class="section-title"><span>My Profile</span></h1>
+<section class="profile">
+  <div class="profile__head">
+    {% if user.avatar_path %}
+      <img class="avatar" src="{{ url_for('reader.avatar', filename=user.avatar_path) }}"
+           alt="Avatar of {{ user.full_name }}" width="96" height="96">
+    {% else %}
+      <div class="avatar avatar--empty" aria-hidden="true">{{ user.full_name[:1] }}</div>
+    {% endif %}
+    <div>
+      <h2>{{ user.full_name }}</h2>
+      <p class="muted">Card: {{ user.card_code or "Waiting for approval" }}
+        · Status: {{ user.status.value | title }}</p>
+    </div>
+  </div>
+
+  <form class="form form--inline" method="post"
+        action="{{ url_for('reader.upload_avatar') }}" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="form__row">
+      <label for="avatar">Avatar (PNG, JPEG, GIF, or WebP, up to 2 MB)</label>
+      <input id="avatar" name="avatar" type="file"
+             accept="image/png,image/jpeg,image/gif,image/webp" required>
+    </div>
+    <div class="form__actions">
+      <button class="btn" type="submit">Upload Avatar</button>
+    </div>
+  </form>
+
+  <h2 class="subheading">Personal information</h2>
+  <form class="form" method="post" action="{{ url_for('reader.profile') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="form__row">
+      <label for="full_name">Full name</label>
+      <input id="full_name" name="full_name" value="{{ user.full_name }}"
+             maxlength="100" required>
+    </div>
+    <div class="form__row">
+      <label for="student_id">Student/Staff ID</label>
+      <input id="student_id" name="student_id" value="{{ user.student_id or '' }}"
+             maxlength="30" required>
+    </div>
+    <div class="form__row">
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" value="{{ user.email }}"
+             maxlength="100" required>
+    </div>
+    <div class="form__row">
+      <label for="phone">Phone number</label>
+      <input id="phone" name="phone" type="tel" value="{{ user.phone }}"
+             maxlength="15" required>
+    </div>
+    <div class="form__actions">
+      <button class="btn btn--primary" type="submit">Save Profile</button>
+    </div>
+  </form>
+
+  <h2 class="subheading">Change password</h2>
+  <form class="form" method="post" action="{{ url_for('reader.change_password') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="form__row">
+      <label for="current_password">Current password</label>
+      <input id="current_password" name="current_password" type="password"
+             autocomplete="current-password" required>
+    </div>
+    <div class="form__row">
+      <label for="new_password">New password</label>
+      <input id="new_password" name="new_password" type="password"
+             autocomplete="new-password" required>
+    </div>
+    <div class="form__row">
+      <label for="confirmation">Confirm new password</label>
+      <input id="confirmation" name="confirmation" type="password"
+             autocomplete="new-password" required>
+    </div>
+    <div class="form__actions">
+      <button class="btn btn--primary" type="submit">Change Password</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

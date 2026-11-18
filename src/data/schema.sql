@@ -4,10 +4,12 @@ CREATE TABLE IF NOT EXISTS users (
     user_id        INTEGER PRIMARY KEY AUTOINCREMENT,
     role           VARCHAR(20)  NOT NULL CHECK (role IN ('READER', 'LIBRARIAN', 'ADMIN')),
     card_code      VARCHAR(30)  UNIQUE,
+    student_id     VARCHAR(30)  UNIQUE,
     full_name      VARCHAR(100) NOT NULL,
     email          VARCHAR(100) NOT NULL UNIQUE,
     phone          VARCHAR(15)  NOT NULL UNIQUE,
     password_hash  VARCHAR(255) NOT NULL,
+    avatar_path    VARCHAR(255),
     status         VARCHAR(20)  NOT NULL DEFAULT 'PENDING'
                    CHECK (status IN ('PENDING', 'ACTIVE', 'LOCKED', 'REJECTED')),
     failed_logins  INTEGER      NOT NULL DEFAULT 0,

@@ -3,7 +3,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Mapping
 
-from models.enums import Role, UserStatus
+from common.exceptions import AuthenticationError
+from models.enums import Role, RuleKey, UserStatus
 
 
 @dataclass
@@ -18,6 +19,8 @@ class User(ABC):
     status: UserStatus = UserStatus.PENDING
     failed_logins: int = 0
     locked_until: datetime | None = None
+    student_id: str | None = None
+    avatar_path: str | None = None
 
     @property
     @abstractmethod
@@ -39,6 +42,48 @@ class User(ABC):
     def has_role(self, *roles: Role) -> bool:
         return self.role in roles
 
+    def login(self, at: datetime) -> None:
+        """Raise AuthenticationError when this account may not sign in."""
+        if self.status == UserStatus.PENDING:
+            raise AuthenticationError(
+                "Your library card is waiting for approval by a librarian.")
+        if self.status == UserStatus.REJECTED:
+            raise AuthenticationError(
+                "Your registration was rejected. Please contact the library "
+                "desk.")
+        if self.status == UserStatus.LOCKED:
+            raise AuthenticationError(
+                "This account is locked. Please contact the library desk.")
+        if self.is_login_locked(at):
+            raise AuthenticationError(
+                "Too many wrong passwords. Try again after "
+                f"{self.locked_until:%H:%M}.")
+
+    def logout(self) -> None:
+        """The Flask session is cleared by the controller (FR-GST-04)."""
+        return None
+
+    def update_profile(self, full_name: str | None = None,
+                       email: str | None = None, phone: str | None = None,
+                       student_id: str | None = None,
+                       avatar_path: str | None = None) -> None:
+        """Copy the values that the profile form changed (FR-RDR-02)."""
+        if full_name is not None:
+            self.full_name = full_name
+        if email is not None:
+            self.email = email
+        if phone is not None:
+            self.phone = phone
+        if student_id is not None:
+            self.student_id = student_id
+        if avatar_path is not None:
+            self.avatar_path = avatar_path
+
+    def update_password(self, password_hash: str) -> None:
+        self.password_hash = password_hash
+        self.failed_logins = 0
+        self.locked_until = None
+
 
 @dataclass
 class Reader(User):
@@ -50,7 +95,7 @@ class Reader(User):
 
     @property
     def home_endpoint(self) -> str:
-        return "reader.my_books"
+        return "reader.profile"
 
 
 @dataclass
@@ -61,7 +106,24 @@ class Librarian(User):
 
     @property
     def home_endpoint(self) -> str:
-        return "librarian.checkout"
+        return "librarian.readers"
+
+    def approve_card(self, reader: Reader, card_code: str) -> None:
+        """Approve a pending reader and give the card its barcode."""
+        reader.status = UserStatus.ACTIVE
+        reader.card_code = card_code
+        reader.failed_logins = 0
+        reader.locked_until = None
+
+    def reject_card(self, reader: Reader) -> None:
+        reader.status = UserStatus.REJECTED
+
+    def lock_reader(self, reader: Reader) -> None:
+        """Lock a reader who broke the library rules (FR-LIB-11)."""
+        reader.status = UserStatus.LOCKED
+
+    def unlock_reader(self, reader: Reader) -> None:
+        reader.status = UserStatus.ACTIVE
 
 
 @dataclass
@@ -73,6 +135,33 @@ class Administrator(User):
     @property
     def home_endpoint(self) -> str:
         return "admin.librarians"
+
+    def manage_librarian(self, librarian: Librarian, action: str) -> None:
+        """Create, lock, or unlock a staff account (FR-ADM-01)."""
+        if action == "lock":
+            librarian.status = UserStatus.LOCKED
+        elif action == "unlock":
+            librarian.status = UserStatus.ACTIVE
+        else:
+            raise ValueError(f"Unknown action: {action}")
+
+    def configure_rules(self, values: Mapping[str, int]) -> dict[str, int]:
+        """Check the five rules before they are saved (FR-ADM-04)."""
+        clean: dict[str, int] = {}
+        for key, value in values.items():
+            try:
+                rule_key = RuleKey(key)
+            except ValueError as error:
+                raise ValueError("Unknown library rule.") from error
+            try:
+                number = int(value)
+            except (TypeError, ValueError) as error:
+                raise ValueError(
+                    f"{rule_key.value} must be a whole number.") from error
+            if number < 1:
+                raise ValueError("A rule value must be a whole number above 0")
+            clean[rule_key.value] = number
+        return clean
 
 
 class UserFactory:
@@ -96,10 +185,17 @@ class UserFactory:
             status=UserStatus(row["status"]),
             failed_logins=row["failed_logins"],
             locked_until=_parse_datetime(row["locked_until"]),
+            student_id=_column(row, "student_id"),
+            avatar_path=_column(row, "avatar_path"),
         )
         if role == Role.READER:
             fields["card_code"] = row["card_code"]
         return cls._classes[role](**fields)
+
+
+def _column(row: Mapping[str, Any], name: str) -> Any:
+    """Reads a column that older databases do not have yet."""
+    return row[name] if name in row.keys() else None
 
 
 def _parse_datetime(value: Any) -> datetime | None:

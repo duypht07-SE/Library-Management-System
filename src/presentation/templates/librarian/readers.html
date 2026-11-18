@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Reader Cards{% endblock %}
+
+{% block content %}
+<h1 class="section-title"><span>Reader Cards</span></h1>
+<p class="muted page-intro">Approve new registrations, then lock or unlock a card
+   when a Reader breaks the library rules.</p>
+
+<div class="table-wrap">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Student/Staff ID</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Card</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for reader in readers %}
+        <tr>
+          <td>{{ reader.full_name }}</td>
+          <td>{{ reader.student_id or "—" }}</td>
+          <td>{{ reader.email }}</td>
+          <td>{{ reader.phone }}</td>
+          <td>{{ reader.card_code or "—" }}</td>
+          <td><span class="badge badge--{{ reader.status.value | lower }}">{{ reader.status.value | title }}</span></td>
+          <td class="actions">
+            {% if reader.status.value == 'PENDING' %}
+              <form method="post" action="{{ url_for('librarian.reader_action', reader_id=reader.user_id, action='approve') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn--small" type="submit">Approve</button>
+              </form>
+              <form method="post" action="{{ url_for('librarian.reader_action', reader_id=reader.user_id, action='reject') }}"
+                    data-confirm="Reject this registration?">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn--small btn--danger" type="submit">Reject</button>
+              </form>
+            {% elif reader.status.value == 'ACTIVE' %}
+              <form method="post" action="{{ url_for('librarian.reader_action', reader_id=reader.user_id, action='lock') }}"
+                    data-confirm="Lock this card? The Reader will not be able to sign in.">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn--small btn--danger" type="submit">Lock</button>
+              </form>
+            {% elif reader.status.value == 'LOCKED' %}
+              <form method="post" action="{{ url_for('librarian.reader_action', reader_id=reader.user_id, action='unlock') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn--small" type="submit">Unlock</button>
+              </form>
+            {% else %}
+              <span class="muted">No action</span>
+            {% endif %}
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="7" class="muted">There are no Readers yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
