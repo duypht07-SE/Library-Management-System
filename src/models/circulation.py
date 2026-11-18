@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from models.enums import (BorrowStatus, CopyCondition, FineReason,
                           NotificationChannel, NotificationStatus,
@@ -26,8 +26,15 @@ class BorrowRecord:
         return (self.return_date is None
                 and self.status != BorrowStatus.RETURNED)
 
-    def is_past_due(self, at: datetime) -> bool:
+    def is_overdue(self, at: datetime) -> bool:
         return self.is_open and at > self.due_date
+
+    def renew(self, max_renew: int, max_days: int) -> bool:
+        if not self.is_open or self.renew_count >= max_renew:
+            return False
+        self.due_date += timedelta(days=max_days)
+        self.renew_count += 1
+        return True
 
     def days_late(self, at: datetime) -> int:
         end = self.return_date or at
@@ -50,6 +57,12 @@ class Reservation:
         return (self.status == ReservationStatus.READY
                 and self.expire_date is not None and at > self.expire_date)
 
+    def cancel(self) -> None:
+        if self.status in (ReservationStatus.COMPLETED,
+                           ReservationStatus.CANCELED):
+            raise ValueError("This reservation is already closed")
+        self.status = ReservationStatus.CANCELED
+
 
 @dataclass
 class Fine:
@@ -66,6 +79,12 @@ class Fine:
         if self.amount <= 0:
             raise ValueError("A fine amount must be greater than 0")
 
+    def mark_paid(self, at: datetime) -> None:
+        if self.is_paid:
+            raise ValueError("This fine is already paid")
+        self.is_paid = True
+        self.paid_at = at
+
 
 @dataclass
 class Notification:
@@ -77,3 +96,10 @@ class Notification:
     channel: NotificationChannel = NotificationChannel.IN_APP
     status: NotificationStatus = NotificationStatus.PENDING
     sent_at: datetime | None = None
+
+    def send(self, at: datetime) -> bool:
+        if self.status == NotificationStatus.SENT:
+            return False
+        self.status = NotificationStatus.SENT
+        self.sent_at = at
+        return True

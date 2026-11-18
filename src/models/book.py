@@ -23,6 +23,9 @@ class BookCopy:
     def can_retire(self) -> bool:
         return self.status == CopyStatus.AVAILABLE
 
+    def update_status(self, status: CopyStatus) -> None:
+        self.status = CopyStatus(status)
+
     @classmethod
     def from_row(cls, row: Mapping[str, Any]) -> "BookCopy":
         return cls(
@@ -58,6 +61,15 @@ class Book:
     @property
     def is_available(self) -> bool:
         return self.available_copies > 0
+
+    def matches(self, keyword: str) -> bool:
+        key = keyword.strip().lower()
+        return any(key in v.lower() for v in
+                   (self.title, self.author, self.isbn, self.category))
+
+    @staticmethod
+    def search(books: list["Book"], keyword: str) -> list["Book"]:
+        return [b for b in books if b.matches(keyword)]
 
     @classmethod
     def from_row(cls, row: Mapping[str, Any]) -> "Book":
