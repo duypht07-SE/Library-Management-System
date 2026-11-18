@@ -18,7 +18,7 @@ Each member owns one version. The next member starts after the previous version 
 4. Open a pull request into `main`. The reviewer checks and merges it.
 5. Change `Planned` to the merge date, then tell the next owner to start.
 
-## [0.1.0] - Planned: Project Setup
+## [0.1.0] - 2026-11-18: Project Setup
 
 **Owner: Thắng**
 
