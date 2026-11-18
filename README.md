@@ -141,6 +141,8 @@ Run `pytest` (or `docker compose run --rm web pytest`) before every commit. All 
 
 Test names end with the requirement they check, for example `test_login_lock_nfr_sec_06`.
 
+Manual test cases are in [`docs/Test_Cases.xlsx`](docs/Test_Cases.xlsx), written with the course Testing Document Template.
+
 ## Tech Stack
 
 | Component | Tool |

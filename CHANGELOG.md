@@ -14,7 +14,7 @@ Each member owns one version. The next member starts after the previous version 
 
 1. `git pull origin main`, then create a branch: `git checkout -b v0.2.0`.
 2. Code your version. Every screen needs a GUI page, and every class method in the class diagram must exist in the code with the same name (in snake_case). Tick each task below when it is done.
-3. Run `pytest`. All tests must pass.
+3. Add test cases for your screens to `docs/Test_Cases.xlsx` (Testing Document Template, same columns, next TC number). Run `pytest`. All tests must pass.
 4. Open a pull request into `main`. The reviewer checks and merges it.
 5. Change `Planned` to the merge date, then tell the next owner to start.
 
@@ -26,7 +26,7 @@ Each member owns one version. The next member starts after the previous version 
 - [x] Database with the 8 tables from Section 6.4 and sample data.
 - [x] Classes from the class diagram with their methods: `renew`, `is_overdue`, `cancel`, `mark_paid`, `send`, `update_status`, `update`, `search`.
 - [x] Guest pages: Home, Library Policies, Help, Loading, Page Not Found, and a 500 error page.
-- [x] 78 pytest tests and a README with setup steps.
+- [x] 78 pytest tests, test cases TC01 to TC19 in `docs/Test_Cases.xlsx`, and a README with setup steps.
 
 Fixed: a returned loan was counted as late when its status was not updated yet.
 
@@ -74,7 +74,7 @@ Each step runs as one transaction. Follow the status table in Section 6.5.
 **Owner: Everyone**
 
 - [ ] Each member retests their own version and fixes their bugs.
-- [ ] Write a test case for every use case in Section 4.3, using the Testing Document Template from Elearning 5 (a different template scores 0).
+- [ ] Check that `docs/Test_Cases.xlsx` covers every use case in Section 4.3. Keep the Testing Document Template from Elearning 5 (a different template scores 0).
 - [ ] Report bugs as GitHub Issues.
 - [ ] Prepare demo data and run every use case in Section 4.
 - [ ] Tag the release: `git tag v1.0.0`.
