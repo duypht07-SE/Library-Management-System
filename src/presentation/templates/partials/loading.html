@@ -1,0 +1,13 @@
+<div class="loading" data-loading>
+  {% for i in range(3) %}
+    <div class="skeleton">
+      <div class="skeleton__cover"></div>
+      <div class="skeleton__lines">
+        <span class="skeleton__line skeleton__line--long"></span>
+        <span class="skeleton__line skeleton__line--mid"></span>
+        <span class="skeleton__line skeleton__line--short"></span>
+      </div>
+    </div>
+  {% endfor %}
+  <p class="loading__text">Loading results...</p>
+</div>

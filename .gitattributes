@@ -1,0 +1,6 @@
+# Keep LF line endings in the repo so the code runs the same on Windows, Linux, and in Docker
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.docx binary
+*.pdf binary

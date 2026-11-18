@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Library{% endblock %} | Library</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar__inner">
+      <a class="logo" href="{{ url_for('guest.home') }}">LIBRARY</a>
+      <form class="search" action="{{ url_for('guest.search') }}" method="get" data-loading-form>
+        <input class="search__input" type="search" name="q" value="{{ keyword | default('') }}" aria-label="Search books">
+        <button class="btn" type="submit">Search</button>
+      </form>
+      <a class="btn topbar__signin" href="/signin">Sign In</a>
+    </div>
+  </header>
+
+  <div class="subbar">
+    <div class="container subbar__inner">
+      <button class="subbar__menu" type="button" data-menu-toggle aria-expanded="true">☰  BOOK CATEGORIES</button>
+      <span class="subbar__hotline">Hotline:</span>
+    </div>
+  </div>
+
+  <div class="container layout">
+    <nav class="sidebar" data-menu>
+      <ul>
+        {% for name in categories %}
+          <li>
+            <a class="sidebar__link {% if category == name %}is-active{% endif %}"
+               href="{{ url_for('guest.search', category=name) }}">{{ name }}</a>
+          </li>
+        {% endfor %}
+      </ul>
+    </nav>
+    <main class="content">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+  {% block after_layout %}{% endblock %}
+
+  <template id="loading-template">
+    <h1 class="section-title"><span>Search Results</span></h1>
+    {% include "partials/loading.html" %}
+  </template>
+
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
