@@ -30,11 +30,12 @@ def post(client, token_url: str, url: str, data: dict):
 
 
 @pytest.mark.parametrize(("query", "expected"), [
+    ("q=Software+Engineering", "Software Engineering"),
     ("q=Robert+C.+Martin", "Clean Code"),
     ("q=9780132350884", "Clean Code"),
     ("category=Law", "Civil Law Basics"),
 ])
-def test_guest_searches_books_by_author_isbn_or_category(client, query,
+def test_guest_searches_books_by_title_author_isbn_or_category(client, query,
                                                           expected):
     response = client.get(f"/search?{query}")
     assert response.status_code == 200
@@ -45,7 +46,7 @@ def test_book_details_show_derived_available_copy_count(client):
     page = client.get("/books/2").get_data(as_text=True)
     assert "Software Engineering" in page
     assert "Available copies" in page
-    assert "1" in page
+    assert "<dd>1</dd>" in page
     assert "LIB-00022" in page
 
 
@@ -157,7 +158,6 @@ def test_librarian_records_fine_and_cash_payment(client, library_app):
         client, "/librarian/fines", "/librarian/fines",
         {"action": "payment", "fine_id": str(recorded.fine_id)})
     assert "already paid" in response.get_data(as_text=True)
-    assert "already paid" in response.get_data(as_text=True)
 
 
 def test_return_service_creates_separate_late_and_damage_fines(library_app):
@@ -208,4 +208,3 @@ def test_administrator_views_monthly_yearly_reports_and_csv(client):
 def test_0_3_pages_enforce_role_access(client, email, url):
     sign_in(client, email)
     assert client.get(url).status_code == 403
-
