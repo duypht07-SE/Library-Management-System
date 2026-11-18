@@ -208,4 +208,3 @@ def test_administrator_views_monthly_yearly_reports_and_csv(client):
 def test_0_3_pages_enforce_role_access(client, email, url):
     sign_in(client, email)
     assert client.get(url).status_code == 403
-
