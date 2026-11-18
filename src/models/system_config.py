@@ -13,6 +13,13 @@ class SystemConfig:
     updated_by: int
     updated_at: datetime
 
+    def update(self, value: str, by: int, at: datetime) -> None:
+        if not str(value).isdigit() or int(value) <= 0:
+            raise ValueError("A rule value must be a whole number above 0")
+        self.config_value = str(value)
+        self.updated_by = by
+        self.updated_at = at
+
 
 @dataclass(frozen=True)
 class LibraryRules:
