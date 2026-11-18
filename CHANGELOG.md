@@ -47,7 +47,7 @@ Fixed: a returned loan was counted as late when its status was not updated yet.
 
 Note: run `python src/app.py --reset-db` to load the new sample Student/Staff IDs into an existing 0.1.0 database.
 
-## [0.3.0] - Planned: Books and Fines
+## [0.3.0] - 2026-11-18: Books and Fines
 
 **Owner: Sang**
 
