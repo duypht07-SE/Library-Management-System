@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
     phone          VARCHAR(15)  NOT NULL UNIQUE,
     password_hash  VARCHAR(255) NOT NULL,
     avatar_path    VARCHAR(255),
+    created_at     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     status         VARCHAR(20)  NOT NULL DEFAULT 'PENDING'
                    CHECK (status IN ('PENDING', 'ACTIVE', 'LOCKED', 'REJECTED')),
     failed_logins  INTEGER      NOT NULL DEFAULT 0,
@@ -96,3 +97,4 @@ CREATE INDEX IF NOT EXISTS idx_borrow_reader    ON borrow_records (reader_id, st
 CREATE INDEX IF NOT EXISTS idx_borrow_due       ON borrow_records (status, due_date);
 CREATE INDEX IF NOT EXISTS idx_reservation_book ON reservations (book_id, status, reserve_date);
 CREATE INDEX IF NOT EXISTS idx_fines_borrow     ON fines (borrow_id, is_paid);
+CREATE INDEX IF NOT EXISTS idx_fines_paid_at    ON fines (paid_at, is_paid);

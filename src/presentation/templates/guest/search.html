@@ -3,6 +3,22 @@
 
 {% block content %}
 <h1 class="section-title"><span>Search Results</span></h1>
-{# TODO(0.3.0, Sang): list the matching books like frame "02 Search Books - Guest" #}
-<p class="search-summary">Search results will be shown here from version 0.3.0.</p>
+<p class="search-summary">{% if keyword %}Results for “{{ keyword }}”{% elif category %}Books in {{ category }}{% else %}Browse the catalog{% endif %}</p>
+<form class="form form--inline" action="{{ url_for('guest.search') }}" method="get">
+  <div class="form__row"><label for="q">Title, author, ISBN, or category</label>
+    <input id="q" name="q" type="search" value="{{ keyword }}" maxlength="100"></div>
+  <div class="form__row"><label for="category">Category</label>
+    <select id="category" name="category"><option value="">All categories</option>
+      {% for item in categories %}<option value="{{ item }}" {% if category == item %}selected{% endif %}>{{ item }}</option>{% endfor %}
+    </select></div>
+  <button class="btn btn--primary" type="submit">Search</button>
+</form>
+<div class="table-wrap"><table class="table">
+  <thead><tr><th>Title</th><th>Author</th><th>ISBN</th><th>Category</th><th>Availability</th></tr></thead>
+  <tbody>{% for book in books %}
+    <tr><td><a href="{{ url_for('guest.book_detail', book_id=book.book_id) }}">{{ book.title }}</a></td>
+      <td>{{ book.author }}</td><td>{{ book.isbn }}</td><td>{{ book.category }}</td>
+      <td>{% if book.available_copies %}{{ book.available_copies }} available{% else %}Out of stock{% endif %}</td></tr>
+  {% else %}<tr><td colspan="5" class="muted">No matching books were found.</td></tr>{% endfor %}</tbody>
+</table></div>
 {% endblock %}

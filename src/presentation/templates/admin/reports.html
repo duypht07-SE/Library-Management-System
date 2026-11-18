@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Library Reports{% endblock %}
+{% block content %}
+<h1 class="section-title"><span>Library Reports</span></h1>
+<form class="form form--inline" method="get">
+  <div class="form__row"><label for="period">Report period</label><select id="period" name="period" data-period-select><option value="month" {% if period == 'month' %}selected{% endif %}>Monthly</option><option value="year" {% if period == 'year' %}selected{% endif %}>Yearly</option></select></div>
+  <div class="form__row"><label for="value" data-period-label>{{ 'Month' if period == 'month' else 'Year' }}</label><input id="value" name="value" type="{{ 'month' if period == 'month' else 'number' }}" value="{{ value }}" {% if period == 'year' %}min="2000" max="2200"{% endif %} required></div>
+  <button class="btn btn--primary" type="submit">View Report</button>
+</form>
+{% if reports %}
+<div class="report-heading"><h2>{{ reports.label }}</h2><a class="btn" href="{{ url_for('admin.reports', period=period, value=value, format='csv') }}">Export CSV</a></div>
+<div class="report-grid">
+  {% for label, number, width in reports.metrics %}
+  <article class="report-card"><h3>{{ label }}</h3><p>{{ "{:,}".format(number) }}</p><div class="report-bar" role="img" aria-label="{{ label }}: {{ number }}"><span style="width: {{ width }}%"></span></div></article>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

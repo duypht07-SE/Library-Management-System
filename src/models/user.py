@@ -5,6 +5,8 @@ from typing import Any, Mapping
 
 from common.exceptions import AuthenticationError
 from models.enums import Role, RuleKey, UserStatus
+from models.enums import FineReason
+from models.circulation import Fine
 
 
 @dataclass
@@ -97,6 +99,10 @@ class Reader(User):
     def home_endpoint(self) -> str:
         return "reader.profile"
 
+    def view_fines(self, fines: list[Fine]) -> list[Fine]:
+        """Return this Reader's fines; the repository scopes them by owner."""
+        return fines
+
 
 @dataclass
 class Librarian(User):
@@ -107,6 +113,23 @@ class Librarian(User):
     @property
     def home_endpoint(self) -> str:
         return "librarian.readers"
+
+    def manage_book(self, action: str, **values) -> dict:
+        """Describe a validated catalog operation for the catalog service."""
+        if action not in {"add_book", "edit_book", "add_copy", "edit_copy",
+                          "retire_copy"}:
+            raise ValueError("Unknown book action.")
+        return {"action": action, **values}
+
+    def record_fine(self, borrow_id: int, reason: FineReason | str,
+                    amount: int) -> Fine:
+        """Create a fine entry for a recorded loan violation (FR-LIB-09)."""
+        return Fine(None, borrow_id, FineReason(reason), int(amount))
+
+    def record_payment(self, fine: Fine, at: datetime) -> Fine:
+        """Mark a counter cash payment (FR-LIB-13)."""
+        fine.mark_paid(at)
+        return fine
 
     def approve_card(self, reader: Reader, card_code: str) -> None:
         """Approve a pending reader and give the card its barcode."""
@@ -135,6 +158,10 @@ class Administrator(User):
     @property
     def home_endpoint(self) -> str:
         return "admin.librarians"
+
+    def view_reports(self, reports: dict) -> dict:
+        """Return report data prepared by the report service (FR-ADM-05)."""
+        return reports
 
     def manage_librarian(self, librarian: Librarian, action: str) -> None:
         """Create, lock, or unlock a staff account (FR-ADM-01)."""

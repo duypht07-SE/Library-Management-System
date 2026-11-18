@@ -64,4 +64,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.querySelectorAll("form[data-confirm]").forEach(
     (form) => new ConfirmAction(form));
+
+  const reportPeriod = document.querySelector("[data-period-select]");
+  const reportValue = document.getElementById("value");
+  const reportLabel = document.querySelector("[data-period-label]");
+  if (reportPeriod && reportValue && reportLabel) {
+    reportPeriod.addEventListener("change", () => {
+      const monthly = reportPeriod.value === "month";
+      reportValue.type = monthly ? "month" : "number";
+      reportValue.value = "";
+      reportValue.min = monthly ? "" : "2000";
+      reportValue.max = monthly ? "" : "2200";
+      reportLabel.textContent = monthly ? "Month" : "Year";
+    });
+  }
 });

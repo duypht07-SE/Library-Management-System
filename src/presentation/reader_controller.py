@@ -6,6 +6,7 @@ from flask import (flash, g, redirect, render_template, request,
                    send_from_directory, url_for)
 
 from business.auth_service import AuthService
+from business.fine_service import FineService
 from business.rule_service import RuleService
 from common.exceptions import AuthenticationError, ValidationError
 from config import Config
@@ -35,11 +36,12 @@ class ReaderController(BaseController):
     name = "reader"
 
     def __init__(self, auth: AuthService, rules: RuleService,
-                 config: Config) -> None:
+                 config: Config, fines: FineService | None = None) -> None:
         super().__init__()
         self.auth = auth
         self.rules = rules
         self.config = config
+        self.fines = fines
 
     def add_routes(self) -> None:
         bp = self.blueprint
@@ -50,6 +52,7 @@ class ReaderController(BaseController):
         bp.add_url_rule("/profile/avatar", "upload_avatar",
                         self.upload_avatar, methods=["POST"])
         bp.add_url_rule("/avatar/<path:filename>", "avatar", self.avatar)
+        bp.add_url_rule("/fines", "fines", self.fines_page)
 
     @roles_required(READER)
     def profile(self):
@@ -69,6 +72,13 @@ class ReaderController(BaseController):
             flash("Your profile has been updated.", "success")
             return redirect(url_for("reader.profile"))
         return render_template("reader/profile.html", user=user)
+
+    @roles_required(READER)
+    def fines_page(self):
+        if self.fines is None:
+            return render_template("errors/404.html"), 404
+        return render_template("reader/fines.html",
+                               fines=self.fines.view_fines(g.user))
 
     @roles_required(READER)
     def change_password(self):

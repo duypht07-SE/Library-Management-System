@@ -22,11 +22,15 @@
           <span class="account__name">{{ current_user.full_name }} <span class="account__role">{{ current_user.role.value | title }}</span></span>
           {% if current_user.role.value == 'READER' %}
             <a class="btn" href="{{ url_for('reader.profile') }}">My Profile</a>
+            <a class="btn" href="{{ url_for('reader.fines') }}">My Fines</a>
           {% elif current_user.role.value == 'LIBRARIAN' %}
             <a class="btn" href="{{ url_for('librarian.readers') }}">Reader Cards</a>
+            <a class="btn" href="{{ url_for('librarian.books') }}">Books</a>
+            <a class="btn" href="{{ url_for('librarian.fines') }}">Fines</a>
           {% elif current_user.role.value == 'ADMIN' %}
             <a class="btn" href="{{ url_for('admin.librarians') }}">Librarians</a>
             <a class="btn" href="{{ url_for('admin.rules') }}">Rules</a>
+            <a class="btn" href="{{ url_for('admin.reports') }}">Reports</a>
           {% endif %}
           <form method="post" action="{{ url_for('auth.signout') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

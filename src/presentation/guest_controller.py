@@ -21,6 +21,8 @@ class GuestController(BaseController):
         bp.add_url_rule("/policies", "policies", self.policies)
         bp.add_url_rule("/help", "help", self.help)
         bp.add_url_rule("/search", "search", self.search)
+        bp.add_url_rule("/books/<int:book_id>", "book_detail",
+                        self.book_detail)
 
     def home(self):
         return render_template("guest/home.html",
@@ -34,9 +36,16 @@ class GuestController(BaseController):
         return render_template("guest/help.html")
 
     def search(self):
-        # TODO(0.3.0, Sang): load and show the matching books
         return render_template(
             "guest/search.html",
             keyword=request.args.get("q", "").strip(),
             category=request.args.get("category", ""),
+            books=self.catalog.search(
+                request.args.get("q", ""), request.args.get("category", "")),
         )
+
+    def book_detail(self, book_id: int):
+        book = self.catalog.books.find_by_id(book_id)
+        if book is None:
+            return render_template("errors/404.html"), 404
+        return render_template("guest/book_detail.html", book=book)
