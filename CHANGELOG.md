@@ -47,16 +47,16 @@ Fixed: a returned loan was counted as late when its status was not updated yet.
 
 Note: run `python src/app.py --reset-db` to load the new sample Student/Staff IDs into an existing 0.1.0 database.
 
-## [0.3.0] - Planned: Books and Fines
+## [0.3.0] - 2026-11-18: Books and Fines
 
 **Owner: Sang**
 
-- [ ] Books screen: add, edit, classify, and retire books and copies (FR-LIB-01 to FR-LIB-05). Class method: `Librarian.manage_book`.
-- [ ] Search Books page by title, author, ISBN, or category (FR-GST-02).
-- [ ] Book details page with available copies.
-- [ ] `fine_service.py` for late, damaged, and lost fines (used by 0.4.0).
-- [ ] Fines page for Readers and cash payment at the counter (FR-RDR-08, FR-LIB-13). Class methods: `Reader.view_fines`, `Librarian.record_fine`, `Librarian.record_payment`.
-- [ ] Reports screen (FR-ADM-05). Class method: `Administrator.view_reports`.
+- [x] Books screen: add, edit, classify, and retire books and copies (FR-LIB-01 to FR-LIB-05). Class method: `Librarian.manage_book`.
+- [x] Search Books page by title, author, ISBN, or category (FR-GST-02).
+- [x] Book details page with available copies.
+- [x] `fine_service.py` for late, damaged, and lost fines (used by 0.4.0).
+- [x] Fines page for Readers and cash payment at the counter (FR-RDR-08, FR-LIB-13). Class methods: `Reader.view_fines`, `Librarian.record_fine`, `Librarian.record_payment`.
+- [x] Reports screen (FR-ADM-05). Class method: `Administrator.view_reports`.
 
 ## [0.4.0] - Planned: Borrowing and Returning
 
