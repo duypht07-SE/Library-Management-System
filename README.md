@@ -1,94 +1,172 @@
 # Library Management System (LMS)
-This repository contains the software requirements specification, architectural design, and system diagrams for an academic Library Management System (LMS) developed by Group 06.
 
-The system automates core library operations, including physical book circulation using barcode scanning, digital e-book access, reservation queues, fine tracking, and automated background jobs.
+This repository contains the requirements, design, and source code of the Library Management System developed by Group 06 for the Software Engineering course.
 
-### Repository Structure
+The system supports counter borrowing and returning with barcode scanning, reservation queues, fines paid in cash at the counter, and daily automatic tasks. The full specification is in [`docs/Requirements_and_Design.md`](docs/Requirements_and_Design.md). The coding plan and the owner of each version are in [`CHANGELOG.md`](CHANGELOG.md).
+
+## Getting Started
+
+### Option 1: Docker (recommended)
+
+You only need [Docker Desktop](https://www.docker.com/products/docker-desktop/) on Windows or macOS, or Docker Engine on Linux.
+
+```bash
+git clone https://github.com/duypht07-SE/Library-Management-System.git
+cd Library-Management-System
+docker compose up --build
+```
+
+Open http://localhost:5000. The database is created with sample data on the first start.
+
+| Task | Command |
+|---|---|
+| Start in the background | `docker compose up -d` |
+| Stop | `docker compose down` |
+| Run the tests | `docker compose run --rm web pytest` |
+| Reset the database | `docker compose run --rm web python src/app.py --reset-db` |
+| Delete the database volume | `docker compose down -v` |
+
+The `src` and `tests` folders are mounted into the container, so code changes show after a page refresh. Run `docker compose up --build` again only after you change `requirements.txt` or the `Dockerfile`.
+
+### Option 2: Python on your machine
+
+You need Python 3.11 or newer.
+
+**Windows (cmd):**
+
+```cmd
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+python src\app.py
+```
+
+**Linux or macOS:**
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python src/app.py
+```
+
+Open http://127.0.0.1:5000. Run the tests with `pytest`. Reset the database with `python src/app.py --reset-db`.
+
+### Sample Accounts
+
+Every sample account uses the password `Library@123`. Sign in is added in version 0.2.0.
+
+| Role | Email | Status |
+|---|---|---|
+| Administrator | admin@library.test | Active |
+| Librarian | librarian@library.test | Active |
+| Reader | reader@library.test | Active, has a loan, a ready hold, and an unpaid fine |
+| Reader | reader2@library.test | Active, has an overdue loan |
+| Reader | reader3@library.test | Active |
+| Reader | pending@library.test | Waiting for card approval |
+| Reader | locked@library.test | Locked |
+
+### Settings
+
+The app reads these environment variables. Copy `.env.example` to `.env` to change them for Docker.
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `LMS_SECRET_KEY` | random | Key that signs the session cookie |
+| `LMS_DEBUG` | `0` (`1` in Docker) | Reload the server when code changes |
+| `LMS_HOST` | `127.0.0.1` (`0.0.0.0` in Docker) | Server address |
+| `LMS_PORT` | `5000` | Server port |
+| `LMS_DB_PATH` | `instance/library.db` | SQLite database file |
+| `LMS_SEED` | `1` | Load sample data when the database is created |
+
+## Architecture
+
+The code follows a layered architecture with MVC in the presentation layer (NFR-MNT-01). Each layer only calls the layer below it.
+
+| Layer | Folder | Content |
+|---|---|---|
+| Presentation | `src/presentation/` | Controllers (one class per role), Jinja templates (views), CSS, and JavaScript |
+| Business | `src/business/` | Services that apply the library rules |
+| Data | `src/data/` | `Database` (connection and transactions), repositories, `schema.sql`, `seed.sql` |
+| Models | `src/models/` | Classes from the class diagram: `User` and its subclasses, `Book`, `BookCopy`, `BorrowRecord`, `Reservation`, `Fine`, `Notification`, `SystemConfig` |
 
 ```text
 .
-├── docs/
-│   └── Requirements_and_Design.md   # Full specification and design document (Sections 1-7)
-├── diagrams/
-│   ├── dfd_level0.drawio            # Data Flow Diagram - Context Level
-│   ├── dfd_level1.drawio            # Data Flow Diagram - Level 1 Decomposition
-│   ├── usecase_diagram.puml         # PlantUML source for Use Case Diagram
-│   ├── class_diagram.puml           # PlantUML source for Class Diagram
-│   └── erd_schema.drawio            # Entity-Relationship Diagram (3NF)
-├── ui/
-│   ├── screen_guest_search.png      # Public book search layout
-│   ├── screen_librarian_counter.png # Circulation counter interface
-│   ├── screen_reader_profile.png    # Borrower profile and fine history
-│   └── screen_admin_config.png      # System parameters setup
-└── README.md                        # Repository overview and setup instructions
+├── docs/                   # Requirements and design document
+├── diagrams/               # DFD, use case, class diagram, ERD (draw.io and PNG)
+├── ui/                     # Interface designs
+├── src/
+│   ├── app.py              # Entry point, builds LibraryApp
+│   ├── config.py
+│   ├── common/             # PasswordHasher
+│   ├── models/
+│   ├── data/
+│   │   └── repositories/
+│   ├── business/
+│   └── presentation/
+│       ├── templates/
+│       └── static/
+├── tests/                  # pytest
+├── Dockerfile
+├── docker-compose.yml
+├── requirements.txt
+└── CHANGELOG.md
 ```
 
-## System Overview & Architecture
-The complete system specification is documented in `docs/Requirements_and_Design.md` across seven structured sections:
+### Adding a Feature
 
+1. Add or update the model in `src/models/` if a new field or rule is needed.
+2. Add the SQL in a repository in `src/data/repositories/`.
+3. Put the rule checks in a service in `src/business/`. Use `Database.transaction()` when the feature changes more than one row (NFR-REL-02).
+4. Add a controller class in `src/presentation/` that extends `BaseController`, then register it in `LibraryApp._register_controllers`.
+5. Add the template in `src/presentation/templates/`, extending `base.html`.
+6. Add tests in `tests/`.
 
-### 1. Functional Requirements (FR)
+## Coding Rules
 
-Includes 37 defined requirements organized by five system actors:
+- Follow PEP 8: `CapWords` for classes, `snake_case` for functions and variables, `UPPER_CASE` for constants.
+- Indent with 4 spaces. Keep lines at 80 characters or less.
+- Give each class a one-line docstring. Add a comment only where the code is not clear, and cite the requirement ID (for example `# NFR-REL-02`).
+- Raise an exception for invalid data and handle it in the layer that can recover. Pages never show a stack trace (404 and 500 pages).
 
-* **Guest (4 FRs):** Public catalog search, account registration, library news, and login.
-* **Reader (9 FRs):** Profile management, online book reservation, loan renewals, borrowing history, online fine payment, and digital e-book reading (PDF/EPUB).
-* **Librarian (13 FRs):** Book cataloging (ISBN/DDC classification), barcode-based checkout/checkin, physical condition assessment, violation recording, on-site fine collection, card approvals, and inventory audits.
-* **Administrator (7 FRs):** Staff account management, role-based access control (RBAC), configuration of dynamic library parameters (max books, loan duration, daily fine rate), report generation, database backups, and audit log inspection.
-* **System (4 FRs):** Automated midnight cron job (00:00) for calculating overdue fines, notification dispatch (Email/SMS/In-app), automatic cancellation of uncollected holds after 3 days, and activity logging.
+## Testing
 
-### 2. Non-Functional Requirements (NFR)
+Run `pytest` (or `docker compose run --rm web pytest`) before every commit. All tests must pass before a pull request is merged (regression testing).
 
-Specifies 34 measurable quality attributes across six categories:
+| File | Level | Content |
+|---|---|---|
+| `tests/test_models.py` | Unit | Each domain class, with equivalence partitions and boundary values |
+| `tests/test_database.py` | Component | Schema, constraints, repositories, and transactions |
+| `tests/test_pages.py` | System | Guest pages through the Flask test client |
 
-* **Performance:** Book search response time $\le$ 2.0s for 100,000 records; checkout processing $\le$ 2.0s; page load time $\le$ 2.5s; 100 concurrent active users.
-* **Security:** Password hashing using Bcrypt/Argon2 with salt; HTTPS/TLS 1.2+ encryption; RBAC authorization; 15-minute account lock after 5 failed login attempts; OWASP threat mitigation; immutable audit logs.
-* **Reliability:** Uptime $\ge$ 99.5%; ACID transaction compliance with automatic rollback; pessimistic locking for concurrent loan requests; daily automated backups at 00:00; RTO $\le$ 4h, RPO $\le$ 24h.
-* **Usability:** UTF-8 Vietnamese interface; responsive layout down to 360px viewport; new librarian training time $\le$ 4h; explicit confirmation modals for destructive operations.
-* **Compatibility:** Supports current versions of major desktop/mobile browsers; compatible with HID barcode scanners; uses DD/MM/YYYY, VND, and UTC+7.
-* **Maintainability:** Layered/MVC modular architecture with low coupling; dynamic parameter configuration without redeployment; clean code guidelines; database capacity for 100,000 books and 10,000 users.
+Test names end with the requirement they check, for example `test_login_lock_nfr_sec_06`.
 
-### 3. Data Flow Diagram (DFD)
+## Tech Stack
 
-* **Level 0 (Context Diagram):** High-level boundary showing interactions between Process `0.0` and five external entities (Guest, Reader, Librarian, Admin, Payment Gateway).
-* **Data Stores:** Five logical stores (`D1` Users & Cards, `D2` Books & Catalog, `D3` Borrowing & Holds, `D4` Fines & Violations, `D5` System Configs & Logs).
-* **Level 1:** Decomposed into six functional sub-processes (`1.0` to `6.0`).
+| Component | Tool |
+|---|---|
+| Language | Python 3.11+ |
+| Web framework | Flask |
+| Front end | HTML5, CSS3, JavaScript |
+| Database | SQLite 3 (MySQL 8.0 planned for the demo) |
+| Testing | pytest |
+| Packaging | Docker, Docker Compose |
+| Diagrams | draw.io |
+| Version control | Git and GitHub |
 
-### 4. Use Case Diagram
+### Open Source Components
 
-* **Actor Inheritance:** `Reader`, `Librarian`, and `Administrator` inherit from the base `User` actor, inheriting the `Log In` use case.
-* **Relationships:** Uses `<<include>>` for mandatory sub-processes and `<<extend>>` for conditional workflows (e.g., `Record Violation` extending `Check In Books` when items are returned late or damaged).x
+| Component | Use | License |
+|---|---|---|
+| Flask (with Werkzeug and Jinja2) | Web framework | BSD-3-Clause |
+| bcrypt | Password hashing | Apache-2.0 |
+| pytest | Unit testing | MIT |
+| Noto Sans (Google Fonts) | Font | SIL Open Font License 1.1 |
+| python:3.12-slim | Docker base image | PSF License |
 
-### 5. Class Diagram
+All licenses allow use in this project without publishing changes.
 
-* Defines 11 domain classes: `User` (Abstract base), `Reader`, `Librarian`, `Administrator`, `Book`, `BookCopy`, `BorrowRecord`, `Reservation`, `Fine`, `Notification`, and `SystemConfig`.
-
-### 6. Relational Data Model (3NF)
-
-* Normalized relational database schema comprising 8 tables in Third Normal Form: `users`, `books`, `book_copies`, `borrow_records`, `reservations`, `fines`, `system_configs`, and `notifications`.
-
-### 7. Interface Design
-
-* UI/UX guidelines, navigation flow diagrams, and wireframe mockups for key application screens.
-
-### Technical Stack & Tools
-
-| Component | Tool / Standard |
-| :--- | :--- |
-| **Specification Standard** | IEEE Std 830-1998 |
-| **System Modeling** | UML 2.5 via PlantUML & Draw.io |
-| **Database Architecture** | Relational Schema (3NF), UTF-8 (`utf8mb4`) |
-| **Interface Design** | Wireframes & Mockups (Figma / Draw.io) |
-| **Version Control** | Git & GitHub |
-
-### Working with Diagram Source Files
-
-1. **Draw.io Files (`.drawio`):**
-   * Import `.drawio` files directly into draw.io to edit or export vector graphics.
-
-## Group 06 — Software Engineering Course Project
-
-### Team Members & Responsibilities
+## Group 06 — Team Members
 
 | No. | Full Name | Responsibilities |
 |:---:|---|---|

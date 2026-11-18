@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Library Policies{% endblock %}
+
+{% block content %}
+<h1 class="section-title"><span>Library Policies</span></h1>
+<div class="article">
+  <h2>Membership</h2>
+  <p>Register online. A librarian approves your library card before you can borrow.</p>
+
+  <h2>Borrowing</h2>
+  <p>Up to {{ rules.max_books }} books at a time. Each loan lasts {{ rules.max_days }} days.
+     A loan can be renewed {{ "once" if rules.max_renew == 1 else rules.max_renew ~ " times" }} if it is not overdue
+     and nobody has reserved the book.</p>
+
+  <h2>Reservations</h2>
+  <p>A returned book is held for {{ rules.hold_days }} days for the reader who reserved it.</p>
+
+  <h2>Fines</h2>
+  <p>Late return: {{ "{:,}".format(rules.daily_fine) }} VND per day. Damaged or lost book: the price of the book. Pay at the desk.</p>
+
+  <h2>Account</h2>
+  <p>5 wrong passwords lock the account for 15 minutes. Cards with unpaid fines can be locked.</p>
+</div>
+{% endblock %}

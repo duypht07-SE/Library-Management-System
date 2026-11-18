@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<section class="banner" data-carousel>
+  <div class="banner__slide is-active">
+    <h1>New books for the new semester</h1>
+    <p>Reserve online and pick up at the library desk.</p>
+  </div>
+  <div class="banner__slide">
+    <h1>Opening hours</h1>
+    <p>Monday to Saturday, 7:30 to 20:00.</p>
+  </div>
+  <div class="banner__slide">
+    <h1>Return on time</h1>
+    <p>Late returns are fined per day. See the library policies.</p>
+  </div>
+  <div class="banner__slide">
+    <h1>Need help?</h1>
+    <p>Read how to borrow a book on the Help page.</p>
+  </div>
+  <div class="banner__dots">
+    {% for i in range(4) %}<button type="button" aria-label="Slide {{ i + 1 }}"></button>{% endfor %}
+  </div>
+</section>
+{% endblock %}
+
+{% block after_layout %}
+<section class="container new-books">
+  <h2 class="section-title"><span>New Books</span></h2>
+  <ul class="book-grid">
+    {% for book in new_books %}
+      <li class="book-card">
+        <div class="book-card__cover">Cover</div>
+        <a class="book-card__title" href="{{ url_for('guest.search', q=book.title) }}">{{ book.title }}</a>
+        <span class="book-card__author">{{ book.author }}</span>
+      </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endblock %}
