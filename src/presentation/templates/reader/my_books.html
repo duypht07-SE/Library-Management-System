@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}My Books{% endblock %}
+{% block content %}
+<h1 class="section-title"><span>My Books</span></h1>
+
+<h2 class="subheading">Currently borrowed</h2>
+<div class="table-wrap">
+  <table class="table">
+    <thead>
+      <tr><th>Book</th><th>Barcode</th><th>Borrow date</th><th>Due date</th><th>Renewals</th><th>Status</th><th>Action</th></tr>
+    </thead>
+    <tbody>
+      {% for loan in active_loans %}
+        <tr>
+          <td><a href="{{ url_for('guest.book_detail', book_id=loan.book_id) }}">{{ loan.book_title }}</a></td>
+          <td>{{ loan.barcode }}</td>
+          <td>{{ loan.borrow_date[:10] }}</td>
+          <td>{{ loan.due_date[:10] }}</td>
+          <td>{{ loan.renew_count }} / {{ rules.max_renew }}</td>
+          <td><span class="badge badge--{{ loan.status | lower }}">{{ loan.status | title }}</span></td>
+          <td>
+            {% if loan.can_renew %}
+              <form method="post" action="{{ url_for('reader.renew_loan', borrow_id=loan.borrow_id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn--small btn--primary" type="submit">Renew</button>
+              </form>
+            {% else %}
+              <span class="muted">—</span>
+            {% endif %}
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="7" class="muted">No borrowed books.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<h2 class="subheading">Reservations</h2>
+<div class="table-wrap">
+  <table class="table">
+    <thead>
+      <tr><th>Book</th><th>Reserved</th><th>Hold expires</th><th>Status</th><th>Action</th></tr>
+    </thead>
+    <tbody>
+      {% for item in reservations %}
+        <tr>
+          <td><a href="{{ url_for('guest.book_detail', book_id=item.book_id) }}">{{ item.book_title }}</a></td>
+          <td>{{ item.reserve_date[:10] }}</td>
+          <td>{{ item.expire_date[:10] if item.expire_date else '—' }}</td>
+          <td><span class="badge badge--{{ item.status | lower }}">{{ item.status | title }}</span></td>
+          <td>
+            {% if item.status in ['WAITING', 'READY'] %}
+              <form method="post" action="{{ url_for('reader.cancel_reservation', reservation_id=item.reservation_id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn--small" type="submit">Cancel</button>
+              </form>
+            {% else %}
+              <span class="muted">—</span>
+            {% endif %}
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="5" class="muted">No reservations.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<h2 class="subheading">Returned books</h2>
+<div class="table-wrap">
+  <table class="table">
+    <thead>
+      <tr><th>Book</th><th>Barcode</th><th>Borrow date</th><th>Due date</th><th>Return date</th><th>Condition</th></tr>
+    </thead>
+    <tbody>
+      {% for loan in returned_loans %}
+        <tr>
+          <td><a href="{{ url_for('guest.book_detail', book_id=loan.book_id) }}">{{ loan.book_title }}</a></td>
+          <td>{{ loan.barcode }}</td>
+          <td>{{ loan.borrow_date[:10] }}</td>
+          <td>{{ loan.due_date[:10] }}</td>
+          <td>{{ loan.return_date[:10] if loan.return_date else '—' }}</td>
+          <td>{{ loan.return_condition | title if loan.return_condition else '—' }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="6" class="muted">No returned books.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<h2 class="subheading">Fines</h2>
+<div class="table-wrap">
+  <table class="table">
+    <thead>
+      <tr><th>Reason</th><th>Amount</th><th>Status</th><th>Paid at</th></tr>
+    </thead>
+    <tbody>
+      {% for fine in fines %}
+        <tr>
+          <td>{{ fine.reason.value | replace('_', ' ') | title }}</td>
+          <td>{{ "{:,}".format(fine.amount) }} VND</td>
+          <td>{{ 'Paid' if fine.is_paid else 'Unpaid' }}</td>
+          <td>{{ fine.paid_at.strftime('%d/%m/%Y %H:%M') if fine.paid_at else '—' }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="4" class="muted">No recorded fines.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<h2 class="subheading">Notifications</h2>
+<div class="table-wrap">
+  <table class="table">
+    <thead>
+      <tr><th>Message</th><th>Sent at</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      {% for note in notifications[:5] %}
+        <tr>
+          <td>{{ note.message }}</td>
+          <td>{{ note.sent_at.strftime('%d/%m/%Y %H:%M') if note.sent_at else '—' }}</td>
+          <td><span class="badge badge--{{ note.status.value | lower }}">{{ note.status.value | title }}</span></td>
+        </tr>
+      {% else %}
+        <tr><td colspan="3" class="muted">No notifications.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

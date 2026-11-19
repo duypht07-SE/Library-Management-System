@@ -25,9 +25,11 @@ class FineRepository(BaseRepository):
             "ORDER BY f.is_paid, f.fine_id DESC")
         return [dict(row) for row in rows]
 
-    def loan_exists(self, borrow_id: int) -> bool:
-        return self.db.fetch_one(
-            "SELECT 1 FROM borrow_records WHERE borrow_id=?", (borrow_id,)) is not None
+    def loan_exists(self, borrow_id: int, conn=None) -> bool:
+        sql = "SELECT 1 FROM borrow_records WHERE borrow_id=?"
+        if conn is not None:
+            return conn.execute(sql, (borrow_id,)).fetchone() is not None
+        return self.db.fetch_one(sql, (borrow_id,)) is not None
 
     def save(self, fine: Fine) -> Fine:
         with self.db.transaction() as conn:
@@ -38,14 +40,20 @@ class FineRepository(BaseRepository):
             fine.fine_id = int(cursor.lastrowid)
         return fine
 
-    def save_many(self, fines: list[Fine]) -> list[Fine]:
-        with self.db.transaction() as conn:
+    def save_many(self, fines: list[Fine], conn=None) -> list[Fine]:
+        sql = ("INSERT INTO fines (borrow_id, reason, amount, is_paid)"
+               " VALUES (?, ?, ?, 0)")
+        if conn is not None:
             for fine in fines:
-                cursor = conn.execute(
-                    "INSERT INTO fines (borrow_id, reason, amount, is_paid)"
-                    " VALUES (?, ?, ?, 0)",
-                    (fine.borrow_id, fine.reason.value, fine.amount))
-                fine.fine_id = int(cursor.lastrowid)
+                cur = conn.execute(
+                    sql, (fine.borrow_id, fine.reason.value, fine.amount))
+                fine.fine_id = int(cur.lastrowid)
+            return fines
+        with self.db.transaction() as tx:
+            for fine in fines:
+                cur = tx.execute(
+                    sql, (fine.borrow_id, fine.reason.value, fine.amount))
+                fine.fine_id = int(cur.lastrowid)
         return fines
 
     def mark_paid(self, fine_id: int, paid_at: str) -> bool:

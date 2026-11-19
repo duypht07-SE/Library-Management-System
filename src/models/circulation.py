@@ -1,9 +1,16 @@
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from typing import Any, Mapping
 
 from models.enums import (BorrowStatus, CopyCondition, FineReason,
                           NotificationChannel, NotificationStatus,
                           ReservationStatus)
+
+
+def _parse_dt(value: Any) -> datetime | None:
+    if value is None or isinstance(value, datetime):
+        return value
+    return datetime.fromisoformat(str(value))
 
 
 @dataclass
@@ -40,6 +47,22 @@ class BorrowRecord:
         end = self.return_date or at
         return max(0, (end.date() - self.due_date.date()).days)
 
+    @classmethod
+    def from_row(cls, row: Mapping[str, Any]) -> "BorrowRecord":
+        cond = row["return_condition"]
+        return cls(
+            borrow_id=row["borrow_id"],
+            reader_id=row["reader_id"],
+            copy_id=row["copy_id"],
+            librarian_id=row["librarian_id"],
+            borrow_date=_parse_dt(row["borrow_date"]),
+            due_date=_parse_dt(row["due_date"]),
+            return_date=_parse_dt(row["return_date"]),
+            return_condition=CopyCondition(cond) if cond else None,
+            renew_count=int(row["renew_count"]),
+            status=BorrowStatus(row["status"]),
+        )
+
 
 @dataclass
 class Reservation:
@@ -62,6 +85,18 @@ class Reservation:
                            ReservationStatus.CANCELED):
             raise ValueError("This reservation is already closed")
         self.status = ReservationStatus.CANCELED
+
+    @classmethod
+    def from_row(cls, row: Mapping[str, Any]) -> "Reservation":
+        return cls(
+            reservation_id=row["reservation_id"],
+            reader_id=row["reader_id"],
+            book_id=row["book_id"],
+            copy_id=row["copy_id"],
+            reserve_date=_parse_dt(row["reserve_date"]),
+            expire_date=_parse_dt(row["expire_date"]),
+            status=ReservationStatus(row["status"]),
+        )
 
 
 @dataclass
@@ -112,3 +147,14 @@ class Notification:
         self.status = NotificationStatus.SENT
         self.sent_at = at
         return True
+
+    @classmethod
+    def from_row(cls, row: Mapping[str, Any]) -> "Notification":
+        return cls(
+            notification_id=row["notification_id"],
+            reader_id=row["reader_id"],
+            message=row["message"],
+            channel=NotificationChannel(row["channel"]),
+            status=NotificationStatus(row["status"]),
+            sent_at=_parse_dt(row["sent_at"]),
+        )

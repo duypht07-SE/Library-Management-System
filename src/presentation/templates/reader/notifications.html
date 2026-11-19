@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Notifications{% endblock %}
+{% block content %}
+<h1 class="section-title"><span>Notifications</span></h1>
+<div class="table-wrap">
+  <table class="table">
+    <thead>
+      <tr><th>Message</th><th>Sent at</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      {% for note in notifications %}
+        <tr>
+          <td>{{ note.message }}</td>
+          <td>{{ note.sent_at.strftime('%d/%m/%Y %H:%M') if note.sent_at else '—' }}</td>
+          <td><span class="badge badge--{{ note.status.value | lower }}">{{ note.status.value | title }}</span></td>
+        </tr>
+      {% else %}
+        <tr><td colspan="3" class="muted">No notifications.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

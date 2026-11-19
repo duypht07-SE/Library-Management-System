@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Check In{% endblock %}
+{% block content %}
+<h1 class="section-title"><span>Check In</span></h1>
+<form class="form form--grid" method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="form__row">
+    <label for="barcode">Book copy barcode</label>
+    <input id="barcode" name="barcode" type="text" value="{{ form.barcode }}">
+  </div>
+  <div class="form__row">
+    <label for="borrow_id">Active loan (for lost books)</label>
+    <select id="borrow_id" name="borrow_id">
+      <option value="">Use barcode above</option>
+      {% for loan in open_loans %}
+        <option value="{{ loan.borrow_id }}" {% if form.borrow_id == (loan.borrow_id | string) %}selected{% endif %}>
+          {{ loan.borrow_id }} - {{ loan.reader_name }} ({{ loan.card_code }}) - {{ loan.book_title }} [{{ loan.barcode }}]
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="form__row">
+    <label for="condition">Condition</label>
+    <select id="condition" name="condition">
+      <option value="INTACT" {% if form.condition == 'INTACT' %}selected{% endif %}>Intact</option>
+      <option value="DAMAGED" {% if form.condition == 'DAMAGED' %}selected{% endif %}>Damaged</option>
+      <option value="LOST" {% if form.condition == 'LOST' %}selected{% endif %}>Lost</option>
+    </select>
+  </div>
+  <div class="form__row">
+    <label for="damage_amount">Damage or lost fine (VND)</label>
+    <input id="damage_amount" name="damage_amount" type="number" min="1" value="{{ form.damage_amount }}">
+  </div>
+  <div class="form__actions">
+    <button class="btn btn--primary" type="submit">Check In</button>
+  </div>
+</form>
+
+<h2 class="subheading">Open loans</h2>
+<div class="table-wrap">
+  <table class="table">
+    <thead>
+      <tr><th>ID</th><th>Reader</th><th>Card</th><th>Book</th><th>Barcode</th><th>Due date</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      {% for loan in open_loans %}
+        <tr>
+          <td>{{ loan.borrow_id }}</td>
+          <td>{{ loan.reader_name }}</td>
+          <td>{{ loan.card_code }}</td>
+          <td>{{ loan.book_title }}</td>
+          <td>{{ loan.barcode }}</td>
+          <td>{{ loan.due_date[:10] }}</td>
+          <td><span class="badge badge--{{ loan.status | lower }}">{{ loan.status | title }}</span></td>
+        </tr>
+      {% else %}
+        <tr><td colspan="7" class="muted">No open loans.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

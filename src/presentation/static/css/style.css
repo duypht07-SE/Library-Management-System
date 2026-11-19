@@ -356,3 +356,7 @@ a { color: var(--link); }
   .catalog-admin__heading, .report-heading { align-items: flex-start; flex-direction: column; }
   .catalog-admin .form--inline { flex-direction: column; align-items: stretch; }
 }
+
+.badge--borrowed, .badge--waiting { background: #fff1c2; color: var(--gold-text); }
+.badge--ready, .badge--returned, .badge--sent { background: #d8efd9; color: var(--green); }
+.badge--overdue, .badge--canceled, .badge--failed { background: #f7d9d9; color: var(--red); }

@@ -21,9 +21,13 @@
         <nav class="account" aria-label="Account">
           <span class="account__name">{{ current_user.full_name }} <span class="account__role">{{ current_user.role.value | title }}</span></span>
           {% if current_user.role.value == 'READER' %}
-            <a class="btn" href="{{ url_for('reader.profile') }}">My Profile</a>
+            <a class="btn" href="{{ url_for('reader.my_books') }}">My Books</a>
+            <a class="btn" href="{{ url_for('reader.notifications') }}">Notifications</a>
             <a class="btn" href="{{ url_for('reader.fines') }}">My Fines</a>
+            <a class="btn" href="{{ url_for('reader.profile') }}">My Profile</a>
           {% elif current_user.role.value == 'LIBRARIAN' %}
+            <a class="btn" href="{{ url_for('librarian.checkout') }}">Check Out</a>
+            <a class="btn" href="{{ url_for('librarian.checkin') }}">Check In</a>
             <a class="btn" href="{{ url_for('librarian.readers') }}">Reader Cards</a>
             <a class="btn" href="{{ url_for('librarian.books') }}">Books</a>
             <a class="btn" href="{{ url_for('librarian.fines') }}">Fines</a>

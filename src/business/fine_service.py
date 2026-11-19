@@ -54,9 +54,10 @@ class FineService:
 
     def create_return_fines(self, borrow_id: int, days_late: int,
                             daily_rate: int, condition: str,
-                            damage_amount: int | None = None) -> list[Fine]:
+                            damage_amount: int | None = None,
+                            conn=None) -> list[Fine]:
         """Create separate late and damaged/lost fines for the 0.4.0 flow."""
-        if not self.fines.loan_exists(borrow_id):
+        if not self.fines.loan_exists(borrow_id, conn=conn):
             raise ValidationError("Borrowing record was not found.")
         reasons = []
         late_amount = self.calculate_late_amount(days_late, daily_rate)
@@ -72,4 +73,4 @@ class FineService:
                                 damage_amount))
         elif condition != "INTACT":
             raise ValidationError("Choose a valid book condition.")
-        return self.fines.save_many(reasons) if reasons else []
+        return self.fines.save_many(reasons, conn=conn) if reasons else []
