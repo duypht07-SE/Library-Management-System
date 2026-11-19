@@ -58,7 +58,7 @@ Note: run `python src/app.py --reset-db` to load the new sample Student/Staff ID
 - [x] Fines page for Readers and cash payment at the counter (FR-RDR-08, FR-LIB-13). Class methods: `Reader.view_fines`, `Librarian.record_fine`, `Librarian.record_payment`.
 - [x] Reports screen (FR-ADM-05). Class method: `Administrator.view_reports`.
 
-## [0.4.0] - Planned: Borrowing and Returning
+## [0.4.0] - 2026-11-19: Borrowing and Returning
 
 **Owner: Tài**
 
