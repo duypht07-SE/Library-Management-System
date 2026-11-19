@@ -6,6 +6,7 @@ from flask import (flash, g, redirect, render_template, request,
                    send_from_directory, url_for)
 
 from business.auth_service import AuthService
+from business.circulation_service import CirculationService
 from business.fine_service import FineService
 from business.rule_service import RuleService
 from common.exceptions import AuthenticationError, ValidationError
@@ -36,12 +37,14 @@ class ReaderController(BaseController):
     name = "reader"
 
     def __init__(self, auth: AuthService, rules: RuleService,
-                 config: Config, fines: FineService | None = None) -> None:
+                 config: Config, fines: FineService | None = None,
+                 circulation: CirculationService | None = None) -> None:
         super().__init__()
         self.auth = auth
         self.rules = rules
         self.config = config
         self.fines = fines
+        self.circulation = circulation
 
     def add_routes(self) -> None:
         bp = self.blueprint
@@ -53,6 +56,15 @@ class ReaderController(BaseController):
                         self.upload_avatar, methods=["POST"])
         bp.add_url_rule("/avatar/<path:filename>", "avatar", self.avatar)
         bp.add_url_rule("/fines", "fines", self.fines_page)
+        bp.add_url_rule("/my-books", "my_books", self.my_books)
+        bp.add_url_rule("/books/<int:book_id>/reserve", "reserve_book",
+                        self.reserve_book, methods=["POST"])
+        bp.add_url_rule("/reservations/<int:reservation_id>/cancel",
+                        "cancel_reservation", self.cancel_reservation,
+                        methods=["POST"])
+        bp.add_url_rule("/loans/<int:borrow_id>/renew", "renew_loan",
+                        self.renew_loan, methods=["POST"])
+        bp.add_url_rule("/notifications", "notifications", self.notifications)
 
     @roles_required(READER)
     def profile(self):
@@ -79,6 +91,56 @@ class ReaderController(BaseController):
             return render_template("errors/404.html"), 404
         return render_template("reader/fines.html",
                                fines=self.fines.view_fines(g.user))
+
+    @roles_required(READER)
+    def my_books(self):
+        if self.circulation is None:
+            return render_template("errors/404.html"), 404
+        return render_template(
+            "reader/my_books.html",
+            **self.circulation.view_borrow_history(g.user))
+
+    @roles_required(READER)
+    def reserve_book(self, book_id: int):
+        if self.circulation is None:
+            return render_template("errors/404.html"), 404
+        try:
+            self.circulation.reserve_book(g.user, book_id)
+            flash("Book reserved.", "success")
+            return redirect(url_for("reader.my_books"))
+        except ValidationError as error:
+            flash(error.message, "error")
+            return redirect(url_for("guest.book_detail", book_id=book_id))
+
+    @roles_required(READER)
+    def cancel_reservation(self, reservation_id: int):
+        if self.circulation is None:
+            return render_template("errors/404.html"), 404
+        try:
+            self.circulation.cancel_reservation(g.user, reservation_id)
+            flash("Reservation canceled.", "success")
+        except ValidationError as error:
+            flash(error.message, "error")
+        return redirect(url_for("reader.my_books"))
+
+    @roles_required(READER)
+    def renew_loan(self, borrow_id: int):
+        if self.circulation is None:
+            return render_template("errors/404.html"), 404
+        try:
+            rec = self.circulation.request_renewal(g.user, borrow_id)
+            flash(f"Loan renewed until {rec.due_date:%d/%m/%Y}.", "success")
+        except ValidationError as error:
+            flash(error.message, "error")
+        return redirect(url_for("reader.my_books"))
+
+    @roles_required(READER)
+    def notifications(self):
+        if self.circulation is None:
+            return render_template("errors/404.html"), 404
+        return render_template(
+            "reader/notifications.html",
+            notifications=self.circulation.notifications_for_reader(g.user))
 
     @roles_required(READER)
     def change_password(self):

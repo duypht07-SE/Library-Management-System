@@ -9,6 +9,13 @@
   <dt>Category</dt><dd>{{ book.category }}</dd>
   <dt>Available copies</dt><dd>{{ book.available_copies }}</dd>
 </dl>
+{% set usable_copies = book.copies | selectattr('status.value', 'ne', 'CANCELED') | list %}
+{% if current_user and current_user.role.value == 'READER' and book.available_copies == 0 and usable_copies %}
+<form class="form__actions" method="post" action="{{ url_for('reader.reserve_book', book_id=book.book_id) }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button class="btn btn--primary" type="submit">Reserve Book</button>
+</form>
+{% endif %}
 <h2>Copy availability</h2>
 <div class="table-wrap"><table class="table"><thead><tr><th>Copy</th><th>Shelf</th><th>Status</th></tr></thead>
   <tbody>{% for copy in book.copies if copy.status.value != 'CANCELED' %}

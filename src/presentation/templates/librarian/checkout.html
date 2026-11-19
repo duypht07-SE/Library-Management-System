@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Check Out{% endblock %}
+{% block content %}
+<h1 class="section-title"><span>Check Out</span></h1>
+<form class="form form--grid" method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="form__row">
+    <label for="card_code">Reader card code</label>
+    <input id="card_code" name="card_code" type="text" value="{{ form.card_code }}" required>
+  </div>
+  <div class="form__row">
+    <label for="barcode">Book copy barcode</label>
+    <input id="barcode" name="barcode" type="text" value="{{ form.barcode }}" required>
+  </div>
+  <div class="form__actions">
+    <button class="btn btn--primary" type="submit">Check Out</button>
+  </div>
+</form>
+
+<h2 class="subheading">Open loans</h2>
+<div class="table-wrap">
+  <table class="table">
+    <thead>
+      <tr><th>ID</th><th>Reader</th><th>Card</th><th>Book</th><th>Barcode</th><th>Due date</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      {% for loan in open_loans %}
+        <tr>
+          <td>{{ loan.borrow_id }}</td>
+          <td>{{ loan.reader_name }}</td>
+          <td>{{ loan.card_code }}</td>
+          <td>{{ loan.book_title }}</td>
+          <td>{{ loan.barcode }}</td>
+          <td>{{ loan.due_date[:10] }}</td>
+          <td><span class="badge badge--{{ loan.status | lower }}">{{ loan.status | title }}</span></td>
+        </tr>
+      {% else %}
+        <tr><td colspan="7" class="muted">No open loans.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

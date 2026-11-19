@@ -64,13 +64,13 @@ Note: run `python src/app.py --reset-db` to load the new sample Student/Staff ID
 
 Each step runs as one transaction. Follow the status table in Section 6.5.
 
-- [ ] Check Out screen (FR-LIB-06, FR-LIB-07). Class method: `Librarian.check_out`.
-- [ ] Check In screen with condition and fines (FR-LIB-08, FR-LIB-09). Class method: `Librarian.check_in`.
-- [ ] Reserve and cancel a reservation (FR-RDR-03). Class method: `Reader.reserve_book`.
-- [ ] Renew a loan (FR-RDR-04, FR-RDR-05). Class method: `Reader.request_renewal`.
-- [ ] My Books page (FR-RDR-06). Class method: `Reader.view_borrow_history`.
-- [ ] Daily job at 00:00: mark overdue loans, cancel expired holds (FR-SYS-01, FR-SYS-03).
-- [ ] In-app notifications (FR-SYS-02).
+- [x] Check Out screen (FR-LIB-06, FR-LIB-07). Class method: `Librarian.check_out`.
+- [x] Check In screen with condition and fines (FR-LIB-08, FR-LIB-09). Class method: `Librarian.check_in`.
+- [x] Reserve and cancel a reservation (FR-RDR-03). Class method: `Reader.reserve_book`.
+- [x] Renew a loan (FR-RDR-04, FR-RDR-05). Class method: `Reader.request_renewal`.
+- [x] My Books page (FR-RDR-06). Class method: `Reader.view_borrow_history`.
+- [x] Daily job at 00:00: mark overdue loans, cancel expired holds (FR-SYS-01, FR-SYS-03).
+- [x] In-app notifications (FR-SYS-02).
 
 ## [1.0.0] - Planned: Release
 

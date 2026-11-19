@@ -4,6 +4,7 @@ from flask import flash, g, redirect, render_template, request, url_for
 
 from business.account_service import AccountService
 from business.catalog_service import CatalogService
+from business.circulation_service import CirculationService
 from business.fine_service import FineService
 from config import now
 from common.exceptions import ValidationError
@@ -22,15 +23,21 @@ class LibrarianController(BaseController):
 
     def __init__(self, accounts: AccountService,
                  catalog: CatalogService | None = None,
-                 fines: FineService | None = None) -> None:
+                 fines: FineService | None = None,
+                 circulation: CirculationService | None = None) -> None:
         super().__init__()
         self.accounts = accounts
         self.catalog = catalog
         self.fines = fines
+        self.circulation = circulation
 
     def add_routes(self) -> None:
         bp = self.blueprint
         bp.add_url_rule("/", "index", self.index)
+        bp.add_url_rule("/checkout", "checkout", self.checkout,
+                        methods=["GET", "POST"])
+        bp.add_url_rule("/checkin", "checkin", self.checkin,
+                        methods=["GET", "POST"])
         bp.add_url_rule("/readers", "readers", self.readers)
         bp.add_url_rule("/readers/<int:reader_id>/<action>", "reader_action",
                         self.reader_action, methods=["POST"])
@@ -52,6 +59,77 @@ class LibrarianController(BaseController):
     @roles_required(LIBRARIAN)
     def index(self):
         return redirect(url_for("librarian.readers"))
+
+    @roles_required(LIBRARIAN)
+    def checkout(self):
+        if self.circulation is None:
+            return render_template("errors/404.html"), 404
+        form = {"card_code": "", "barcode": ""}
+        if request.method == "POST":
+            form = {
+                "card_code": request.form.get("card_code", "").strip(),
+                "barcode": request.form.get("barcode", "").strip(),
+            }
+            try:
+                rec = self.circulation.check_out(
+                    g.user, form["card_code"], form["barcode"])
+                flash(f"Book checked out. Due date: {rec.due_date:%d/%m/%Y}.",
+                      "success")
+                return redirect(url_for("librarian.checkout"))
+            except ValidationError as error:
+                flash(error.message, "error")
+                return render_template(
+                    "librarian/checkout.html",
+                    open_loans=self.circulation.open_loans(),
+                    form=form), 400
+        return render_template(
+            "librarian/checkout.html",
+            open_loans=self.circulation.open_loans(),
+            form=form)
+
+    @roles_required(LIBRARIAN)
+    def checkin(self):
+        if self.circulation is None:
+            return render_template("errors/404.html"), 404
+        form = {"barcode": "", "borrow_id": "", "condition": "INTACT",
+                "damage_amount": ""}
+        if request.method == "POST":
+            form = {
+                "barcode": request.form.get("barcode", "").strip(),
+                "borrow_id": request.form.get("borrow_id", "").strip(),
+                "condition": request.form.get("condition", "INTACT").strip(),
+                "damage_amount": request.form.get("damage_amount", "").strip(),
+            }
+            try:
+                borrow_id = int(form["borrow_id"]) if form["borrow_id"] else None
+                amount = (int(form["damage_amount"])
+                          if form["damage_amount"] else None)
+                _, created = self.circulation.check_in(
+                    g.user, form["condition"], form["barcode"],
+                    borrow_id, amount)
+                if created:
+                    total = sum(f.amount for f in created)
+                    flash(f"Book checked in. Total fine: {total:,} VND.",
+                          "success")
+                else:
+                    flash("Book checked in.", "success")
+                return redirect(url_for("librarian.checkin"))
+            except ValueError:
+                flash("Enter valid numbers for loan and fine amount.", "error")
+                return render_template(
+                    "librarian/checkin.html",
+                    open_loans=self.circulation.open_loans(),
+                    form=form), 400
+            except ValidationError as error:
+                flash(error.message, "error")
+                return render_template(
+                    "librarian/checkin.html",
+                    open_loans=self.circulation.open_loans(),
+                    form=form), 400
+        return render_template(
+            "librarian/checkin.html",
+            open_loans=self.circulation.open_loans(),
+            form=form)
 
     @roles_required(LIBRARIAN)
     def readers(self):

@@ -1,12 +1,13 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any, Mapping
 
 from common.exceptions import AuthenticationError
-from models.enums import Role, RuleKey, UserStatus
-from models.enums import FineReason
-from models.circulation import Fine
+from models.book import Book, BookCopy
+from models.circulation import BorrowRecord, Fine, Reservation
+from models.enums import (BorrowStatus, CopyCondition, CopyStatus,
+                          FineReason, Role, RuleKey, UserStatus)
 
 
 @dataclass
@@ -103,6 +104,24 @@ class Reader(User):
         """Return this Reader's fines; the repository scopes them by owner."""
         return fines
 
+    def view_borrow_history(
+            self, records: list[BorrowRecord]) -> list[BorrowRecord]:
+        return records
+
+    def reserve_book(self, book: Book, at: datetime) -> Reservation:
+        if not self.is_active:
+            raise ValueError("Your card must be active to reserve a book.")
+        if book.is_available:
+            raise ValueError("This book still has available copies.")
+        if book.copies and not any(
+                c.status != CopyStatus.CANCELED for c in book.copies):
+            raise ValueError("No usable copy remains for this book.")
+        return Reservation(None, self.user_id, book.book_id, at)
+
+    def request_renewal(self, loan: BorrowRecord, max_renew: int,
+                        max_days: int) -> bool:
+        return self.is_active and loan.renew(max_renew, max_days)
+
 
 @dataclass
 class Librarian(User):
@@ -120,6 +139,33 @@ class Librarian(User):
                           "retire_copy"}:
             raise ValueError("Unknown book action.")
         return {"action": action, **values}
+
+    def check_out(self, copy: BookCopy, reader_id: int,
+                  borrow_date: datetime, max_days: int) -> BorrowRecord:
+        if copy.status not in (CopyStatus.AVAILABLE, CopyStatus.RESERVED):
+            raise ValueError("This copy cannot be checked out.")
+        copy.update_status(CopyStatus.BORROWED)
+        return BorrowRecord(
+            None, reader_id, copy.copy_id, self.user_id,
+            borrow_date, borrow_date + timedelta(days=max_days),
+            status=BorrowStatus.BORROWED)
+
+    def check_in(self, copy: BookCopy, record: BorrowRecord,
+                 condition: CopyCondition | str, at: datetime,
+                 has_waiting: bool = False) -> BorrowRecord:
+        if copy.status != CopyStatus.BORROWED or not record.is_open:
+            raise ValueError("This copy is not currently borrowed.")
+        cond = CopyCondition(condition)
+        record.return_date = at
+        record.return_condition = cond
+        record.status = BorrowStatus.RETURNED
+        copy.copy_condition = cond
+        if cond == CopyCondition.INTACT:
+            copy.update_status(CopyStatus.RESERVED if has_waiting
+                               else CopyStatus.AVAILABLE)
+        else:
+            copy.update_status(CopyStatus.CANCELED)
+        return record
 
     def record_fine(self, borrow_id: int, reason: FineReason | str,
                     amount: int) -> Fine:
