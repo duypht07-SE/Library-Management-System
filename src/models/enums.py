@@ -63,3 +63,23 @@ class RuleKey(str, Enum):
     MAX_RENEW = "MAX_RENEW"
     HOLD_DAYS = "HOLD_DAYS"
     DAILY_FINE = "DAILY_FINE"
+
+
+class Permission(str, Enum):
+    """Permissions that an Administrator gives to a staff role."""
+
+    CIRCULATION = "CIRCULATION"
+    READER_CARDS = "READER_CARDS"
+    CATALOG = "CATALOG"
+    FINES = "FINES"
+
+
+class ResetStatus(str, Enum):
+    PENDING = "PENDING"
+    COMPLETED = "COMPLETED"
+    REJECTED = "REJECTED"
+
+
+class EbookFormat(str, Enum):
+    PDF = "PDF"
+    EPUB = "EPUB"

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Edit Role{% endblock %}
+
+{% block content %}
+<h1 class="section-title"><span>Edit Role</span></h1>
+<form class="form" method="post" action="{{ url_for('system.edit_role', role_id=role.role_id) }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  {% include "admin/_role_fields.html" %}
+  <div class="form__actions">
+    <button class="btn btn--primary" type="submit">Save Changes</button>
+    <a class="btn btn--outline" href="{{ url_for('system.roles') }}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

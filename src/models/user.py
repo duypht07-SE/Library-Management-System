@@ -7,7 +7,9 @@ from common.exceptions import AuthenticationError
 from models.book import Book, BookCopy
 from models.circulation import BorrowRecord, Fine, Reservation
 from models.enums import (BorrowStatus, CopyCondition, CopyStatus,
-                          FineReason, Role, RuleKey, UserStatus)
+                          FineReason, Permission, Role, RuleKey, UserStatus)
+from models.inventory import InventoryCheck, ShelfCopy
+from models.staff import PasswordResetRequest, StaffRole
 
 
 @dataclass
@@ -24,6 +26,7 @@ class User(ABC):
     locked_until: datetime | None = None
     student_id: str | None = None
     avatar_path: str | None = None
+    must_change_password: bool = False
 
     @property
     @abstractmethod
@@ -86,6 +89,11 @@ class User(ABC):
         self.password_hash = password_hash
         self.failed_logins = 0
         self.locked_until = None
+        self.must_change_password = False
+
+    def can(self, permission: Permission | str) -> bool:
+        """Only Librarians have staff permissions (FR-ADM-02)."""
+        return False
 
 
 @dataclass
@@ -125,13 +133,27 @@ class Reader(User):
 
 @dataclass
 class Librarian(User):
+    staff_role_id: int | None = None
+    staff_role: StaffRole | None = None
+
     @property
     def role(self) -> Role:
         return Role.LIBRARIAN
 
     @property
     def home_endpoint(self) -> str:
-        return "librarian.readers"
+        return "librarian.index"
+
+    def can(self, permission: Permission | str) -> bool:
+        return self.staff_role is not None and self.staff_role.has(permission)
+
+    def check_inventory(self, shelf: str, expected: list[ShelfCopy],
+                        scanned: list[str],
+                        known: dict[str, ShelfCopy]) -> InventoryCheck:
+        """Compare a batch of scanned barcodes (FR-LIB-12)."""
+        if not scanned:
+            raise ValueError("Scan at least one barcode.")
+        return InventoryCheck(shelf, expected, scanned, known)
 
     def manage_book(self, action: str, **values) -> dict:
         """Describe a validated catalog operation for the catalog service."""
@@ -218,6 +240,32 @@ class Administrator(User):
         else:
             raise ValueError(f"Unknown action: {action}")
 
+    def manage_role(self, role: StaffRole, name: str, description: str,
+                    codes: list[str]) -> StaffRole:
+        """Create or change a staff role and its permissions (FR-ADM-02)."""
+        name = (name or "").strip()
+        if not 2 <= len(name) <= 50:
+            raise ValueError("Role name must have 2 to 50 characters.")
+        role.name = name
+        role.description = (description or "").strip()[:255]
+        role.set_permissions(codes)
+        return role
+
+    def assign_role(self, librarian: Librarian, role: StaffRole) -> None:
+        librarian.staff_role_id = role.role_id
+        librarian.staff_role = role
+
+    def reset_password(self, user: User, password_hash: str,
+                       request: PasswordResetRequest | None = None,
+                       at: datetime | None = None) -> None:
+        """Give a Reader or Librarian a temporary password (FR-ADM-03)."""
+        if user.role == Role.ADMIN:
+            raise ValueError("An Administrator password cannot be reset here.")
+        user.update_password(password_hash)
+        user.must_change_password = True
+        if request is not None:
+            request.complete(self.user_id, at or datetime.now())
+
     def configure_rules(self, values: Mapping[str, int]) -> dict[str, int]:
         """Check the five rules before they are saved (FR-ADM-04)."""
         clean: dict[str, int] = {}
@@ -260,9 +308,12 @@ class UserFactory:
             locked_until=_parse_datetime(row["locked_until"]),
             student_id=_column(row, "student_id"),
             avatar_path=_column(row, "avatar_path"),
+            must_change_password=bool(_column(row, "must_change_password")),
         )
         if role == Role.READER:
             fields["card_code"] = row["card_code"]
+        if role == Role.LIBRARIAN:
+            fields["staff_role_id"] = _column(row, "staff_role_id")
         return cls._classes[role](**fields)
 
 

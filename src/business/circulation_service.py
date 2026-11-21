@@ -19,6 +19,17 @@ class CirculationService:
         self.fines = fines
         self.notifications = notifications
 
+    def reader_status_for_book(self, reader: Reader, book_id: int) -> str:
+        """'borrowing', 'reserved', or '' for the Reserve Book button."""
+        with self.circulation.db.transaction() as conn:
+            if self.circulation.is_borrowing_book(reader.user_id, book_id,
+                                                  conn):
+                return "borrowing"
+            if self.circulation.has_active_reservation(reader.user_id,
+                                                       book_id, conn):
+                return "reserved"
+        return ""
+
     def open_loans(self) -> list[dict]:
         return self.circulation.find_open_loans()
 
@@ -86,7 +97,9 @@ class CirculationService:
                 raise ValidationError("Reader has overdue books.")
             if self.circulation.has_unpaid_fine(reader.user_id, conn):
                 raise ValidationError("Reader has unpaid fines.")
-            if self.circulation.count_open_loans(reader.user_id, conn) >= rules.max_books:
+            open_loans = self.circulation.count_open_loans(
+                reader.user_id, conn)
+            if open_loans >= rules.max_books:
                 raise ValidationError(
                     f"Reader reached the limit of {rules.max_books} books.")
 
@@ -134,9 +147,11 @@ class CirculationService:
         cond = (condition or "INTACT").strip().upper()
         if cond not in {"INTACT", "DAMAGED", "LOST"}:
             raise ValidationError("Choose a valid book condition.")
-        if cond in {"DAMAGED", "LOST"} and (not damage_amount or damage_amount < 1):
+        if (cond in {"DAMAGED", "LOST"}
+                and (not damage_amount or damage_amount < 1)):
             raise ValidationError(
-                "Enter a fine amount greater than 0 VND for a damaged or lost book.")
+                "Enter a fine amount greater than 0 VND for a damaged or "
+                "lost book.")
         code = (barcode or "").strip()
         if borrow_id is None and not code:
             raise ValidationError("Enter a barcode or choose an active loan.")
@@ -164,7 +179,8 @@ class CirculationService:
 
             conn.execute(
                 "UPDATE borrow_records "
-                "SET return_date = ?, return_condition = ?, status = 'RETURNED' "
+                "SET return_date = ?, return_condition = ?, "
+                "status = 'RETURNED' "
                 "WHERE borrow_id = ?",
                 (record.return_date.isoformat(sep=" "),
                  record.return_condition.value, record.borrow_id))
@@ -231,11 +247,16 @@ class CirculationService:
                     current.user_id, book_id, conn):
                 raise ValidationError(
                     "You already have an active reservation for this book.")
+            if self.circulation.is_borrowing_book(
+                    current.user_id, book_id, conn):
+                raise ValidationError(
+                    "You are already borrowing this book.")
             cur = conn.execute(
                 "INSERT INTO reservations "
-                "(reader_id, book_id, copy_id, reserve_date, expire_date, status) "
-                "VALUES (?, ?, NULL, ?, NULL, 'WAITING')",
-                (res.reader_id, res.book_id, res.reserve_date.isoformat(sep=" ")))
+                "(reader_id, book_id, copy_id, reserve_date, expire_date,"
+                " status) VALUES (?, ?, NULL, ?, NULL, 'WAITING')",
+                (res.reader_id, res.book_id,
+                 res.reserve_date.isoformat(sep=" ")))
             res.reservation_id = int(cur.lastrowid)
             return res
 
@@ -248,7 +269,8 @@ class CirculationService:
                 reservation_id, conn=conn)
             if res is None or res.reader_id != reader.user_id:
                 raise ValidationError("Reservation was not found.")
-            was_ready, held_copy = res.status == ReservationStatus.READY, res.copy_id
+            was_ready = res.status == ReservationStatus.READY
+            held_copy = res.copy_id
             try:
                 res.cancel()
             except ValueError as err:
@@ -257,7 +279,8 @@ class CirculationService:
                 "UPDATE reservations SET status = 'CANCELED' "
                 "WHERE reservation_id = ?", (res.reservation_id,))
             if was_ready and held_copy is not None:
-                self._reassign_or_release(res.book_id, held_copy, rules.hold_days, ts, conn)
+                self._reassign_or_release(res.book_id, held_copy,
+                                          rules.hold_days, ts, conn)
             return res
 
     def request_renewal(self, reader: Reader, borrow_id: int,
@@ -272,7 +295,8 @@ class CirculationService:
                 raise ValidationError("Reader account was not found.")
             current = UserFactory.from_row(u_row)
             if not current.is_active:
-                raise ValidationError("Your card must be active to renew a book.")
+                raise ValidationError(
+                    "Your card must be active to renew a book.")
 
             row = conn.execute(
                 "SELECT br.*, c.book_id FROM borrow_records br "
@@ -287,15 +311,18 @@ class CirculationService:
             if record.status.value == "OVERDUE" or record.is_overdue(ts):
                 raise ValidationError("Overdue books cannot be renewed.")
             if self.circulation.has_overdue_loan(current.user_id, ts, conn):
-                raise ValidationError("Cannot renew while you have overdue books.")
+                raise ValidationError(
+                    "Cannot renew while you have overdue books.")
             if self.circulation.has_unpaid_fine(current.user_id, conn):
-                raise ValidationError("Cannot renew while you have unpaid fines.")
+                raise ValidationError(
+                    "Cannot renew while you have unpaid fines.")
             if record.renew_count >= rules.max_renew:
                 raise ValidationError("Renewal limit has been reached.")
             if self.circulation.next_waiting(row["book_id"], conn) is not None:
                 raise ValidationError(
                     "Another reader is waiting in the queue for this book.")
-            if not current.request_renewal(record, rules.max_renew, rules.max_days):
+            if not current.request_renewal(record, rules.max_renew,
+                                           rules.max_days):
                 raise ValidationError("This loan cannot be renewed.")
 
             conn.execute(

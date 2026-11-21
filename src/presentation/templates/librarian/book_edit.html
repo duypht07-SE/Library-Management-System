@@ -8,4 +8,45 @@
   <div class="form__row"><label for="{{ key }}">{{ label }}</label><input id="{{ key }}" name="{{ key }}" value="{{ value }}" maxlength="{{ size }}" required></div>
   {% endfor %}<div class="form__actions"><button class="btn btn--primary" type="submit">Save Changes</button><a class="btn" href="{{ url_for('librarian.books') }}">Cancel</a></div>
 </form>
+
+<h2 class="subheading">E-books and digital course materials</h2>
+<p class="muted page-intro">Upload a PDF or EPUB file of up to 20 MB.
+   Readers can read a PDF online or download either format.</p>
+<div class="table-wrap"><table class="table">
+  <thead><tr><th>Title</th><th>Format</th><th>Size</th><th>Uploaded</th><th>Actions</th></tr></thead>
+  <tbody>
+    {% for ebook in ebooks %}
+      <tr>
+        <td>{{ ebook.title }}</td><td>{{ ebook.file_format.value }}</td>
+        <td>{{ ebook.size_label }}</td><td>{{ ebook.uploaded_at.strftime('%d/%m/%Y %H:%M') }}</td>
+        <td class="actions">
+          <a class="btn btn--small" href="{{ url_for('ebooks.download', ebook_id=ebook.ebook_id) }}">Download</a>
+          <form class="form--inline" method="post" enctype="multipart/form-data"
+                action="{{ url_for('librarian.update_ebook', ebook_id=ebook.ebook_id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input name="title" value="{{ ebook.title }}" maxlength="255" aria-label="E-book title" required>
+            <input name="file" type="file" accept=".pdf,.epub,application/pdf,application/epub+zip" aria-label="New file (optional)">
+            <button class="btn btn--small" type="submit">Update</button>
+          </form>
+          <form method="post" action="{{ url_for('librarian.delete_ebook', ebook_id=ebook.ebook_id) }}"
+                data-confirm="Remove this e-book? Readers will no longer see it.">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn--small btn--danger" type="submit">Remove</button>
+          </form>
+        </td>
+      </tr>
+    {% else %}
+      <tr><td colspan="5" class="muted">This book has no e-book yet.</td></tr>
+    {% endfor %}
+  </tbody>
+</table></div>
+<form class="form form--inline" method="post" enctype="multipart/form-data"
+      action="{{ url_for('librarian.upload_ebook', book_id=book.book_id) }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="form__row"><label for="ebook_title">E-book title</label>
+    <input id="ebook_title" name="title" value="{{ book.title }}" maxlength="255" required></div>
+  <div class="form__row"><label for="ebook_file">PDF or EPUB file</label>
+    <input id="ebook_file" name="file" type="file" accept=".pdf,.epub,application/pdf,application/epub+zip" required></div>
+  <button class="btn btn--primary" type="submit">Upload E-book</button>
+</form>
 {% endblock %}

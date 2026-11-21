@@ -20,6 +20,7 @@
     <div class="form__actions">
       <button class="btn btn--primary" type="submit">Sign In</button>
       <a class="form__link" href="{{ url_for('auth.register') }}">Create account</a>
+      <a class="form__link" href="{{ url_for('auth.forgot_password') }}">Forgot password?</a>
     </div>
   </form>
   <p class="form__hint muted">Five wrong passwords lock the account for 15 minutes.</p>

@@ -10,6 +10,7 @@ venv/
 # Local database and settings
 instance/
 *.db
+!docs/test_data/*.db
 .env
 
 # Editors and OS files

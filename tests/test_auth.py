@@ -17,14 +17,14 @@ def test_session_and_upload_limits_nfr_sec_05():
     assert config.PERMANENT_SESSION_LIFETIME == timedelta(minutes=30)
     assert config.SESSION_COOKIE_HTTPONLY is True
     assert config.SESSION_COOKIE_SAMESITE == "Lax"
-    assert config.MAX_CONTENT_LENGTH == 2 * 1024 * 1024
+    assert config.MAX_CONTENT_LENGTH == 100 * 1024 * 1024  # e-books, backups
 
 
 def test_every_role_has_its_own_home_page():
     common = dict(user_id=1, full_name="A", email="a@b.test", phone="0900",
                   password_hash="h")
     assert Reader(**common).home_endpoint == "reader.profile"
-    assert Librarian(**common).home_endpoint == "librarian.readers"
+    assert Librarian(**common).home_endpoint == "librarian.index"
     assert Administrator(**common).home_endpoint == "admin.librarians"
 
 

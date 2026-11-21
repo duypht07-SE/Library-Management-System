@@ -1,5 +1,7 @@
 from flask import render_template, request
 
+from presentation.access import current_user
+
 from business.catalog_service import CatalogService
 from business.rule_service import RuleService
 from presentation.base_controller import BaseController
@@ -10,10 +12,13 @@ class GuestController(BaseController):
 
     name = "guest"
 
-    def __init__(self, catalog: CatalogService, rules: RuleService) -> None:
+    def __init__(self, catalog: CatalogService, rules: RuleService,
+                 ebooks=None, circulation=None) -> None:
         super().__init__()
         self.catalog = catalog
         self.rules = rules
+        self.ebooks = ebooks
+        self.circulation = circulation
 
     def add_routes(self) -> None:
         bp = self.blueprint
@@ -48,4 +53,12 @@ class GuestController(BaseController):
         book = self.catalog.books.find_by_id(book_id)
         if book is None:
             return render_template("errors/404.html"), 404
-        return render_template("guest/book_detail.html", book=book)
+        ebooks = self.ebooks.for_book(book_id) if self.ebooks else []
+        user = current_user()
+        reader_status = ""
+        if (self.circulation is not None and user is not None
+                and user.role.value == "READER"):
+            reader_status = self.circulation.reader_status_for_book(
+                user, book_id)
+        return render_template("guest/book_detail.html", book=book,
+                               ebooks=ebooks, reader_status=reader_status)

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Staff Roles{% endblock %}
+
+{% block content %}
+<h1 class="section-title"><span>Staff Roles</span></h1>
+<p class="muted page-intro">A role is a set of permissions. Give each
+   Librarian a role on the Librarian Accounts page.</p>
+
+<h2 class="subheading">Create a role</h2>
+<form class="form" method="post" action="{{ url_for('system.roles') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  {% include "admin/_role_fields.html" %}
+  <div class="form__actions">
+    <button class="btn btn--primary" type="submit">Create Role</button>
+  </div>
+</form>
+
+<h2 class="subheading">Current roles</h2>
+<div class="table-wrap">
+  <table class="table">
+    <thead><tr><th>Role</th><th>Permissions</th><th>Librarians</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for role in roles %}
+        <tr>
+          <td><strong>{{ role.name }}</strong><br><span class="muted">{{ role.description }}</span></td>
+          <td>{{ role.permissions | map(attribute='value') | sort | join(", ") | replace("_", " ") | title }}</td>
+          <td>{{ members.get(role.role_id, 0) }}</td>
+          <td class="actions">
+            <a class="btn btn--small" href="{{ url_for('system.edit_role', role_id=role.role_id) }}">Edit</a>
+            <form method="post" action="{{ url_for('system.delete_role', role_id=role.role_id) }}"
+                  data-confirm="Delete this role?">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn--small btn--danger" type="submit">Delete</button>
+            </form>
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="4" class="muted">There are no roles yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

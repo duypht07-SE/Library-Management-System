@@ -1,32 +1,45 @@
 """Run:  python src/app.py              start the web server
       python src/app.py --reset-db   recreate the database with sample data"""
 import argparse
+import os
 
 from flask import Flask
 
 from business.account_service import AccountService
+from business.audit_service import AuditService
 from business.auth_service import AuthService
+from business.backup_service import BackupService
 from business.catalog_service import CatalogService
 from business.circulation_service import CirculationService
 from business.daily_job_service import DailyJobService
+from business.ebook_service import EbookService
 from business.fine_service import FineService
+from business.inventory_service import InventoryService
+from business.password_reset_service import PasswordResetService
 from business.report_service import ReportService
+from business.role_service import RoleService
 from business.rule_service import RuleService
 from common import csrf
 from common.security import PasswordHasher
 from config import SRC_DIR, Config
 from data.database import Database
-from data.repositories import (BookRepository, CirculationRepository,
-                               ConfigRepository, FineRepository,
-                               NotificationRepository, ReportRepository,
-                               UserRepository)
-from presentation.access import current_user, load_user
+from data.repositories import (AuditRepository, BookRepository,
+                               CirculationRepository, ConfigRepository,
+                               EbookRepository, FineRepository,
+                               NotificationRepository,
+                               PasswordResetRepository, ReportRepository,
+                               StaffRoleRepository, UserRepository)
+from presentation.access import (current_user, load_user,
+                                 require_password_change)
 from presentation.admin_controller import AdminController
+from presentation.audit import audit_staff_actions
 from presentation.auth_controller import AuthController
+from presentation.ebook_controller import EbookController
 from presentation.error_controller import ErrorController
 from presentation.guest_controller import GuestController
 from presentation.librarian_controller import LibrarianController
 from presentation.reader_controller import ReaderController
+from presentation.system_controller import SystemController
 
 
 class LibraryApp:
@@ -43,6 +56,10 @@ class LibraryApp:
         self.reports = ReportRepository(self.database)
         self.circulation = CirculationRepository(self.database)
         self.notifications = NotificationRepository(self.database)
+        self.staff_roles = StaffRoleRepository(self.database)
+        self.audit_logs = AuditRepository(self.database)
+        self.password_resets = PasswordResetRepository(self.database)
+        self.ebooks = EbookRepository(self.database)
         self.hasher = PasswordHasher(self.config.BCRYPT_ROUNDS)
 
         self.catalog_service = CatalogService(self.books)
@@ -56,6 +73,15 @@ class LibraryApp:
             self.fine_service, self.notifications)
         self.daily_job_service = DailyJobService(
             self.circulation, self.notifications, self.rule_service)
+        self.role_service = RoleService(self.staff_roles, self.users)
+        self.audit_service = AuditService(self.audit_logs)
+        self.password_reset_service = PasswordResetService(
+            self.users, self.password_resets, self.hasher)
+        self.inventory_service = InventoryService(self.books)
+        self.ebook_service = EbookService(self.ebooks, self.books,
+                                          self.config.EBOOK_DIR)
+        self.backup_service = BackupService(self.database,
+                                            self.config.BACKUP_DIR)
 
         presentation = SRC_DIR / "presentation"
         self.flask = Flask(
@@ -69,21 +95,31 @@ class LibraryApp:
         self.database.initialize(seed=self.config.SEED_SAMPLE_DATA)
         csrf.init_app(self.flask)
         self.flask.before_request(csrf.check_request)
-        self.flask.before_request(load_user(self.users))
+        self.flask.before_request(load_user(self.users, self.role_service))
+        self.flask.before_request(require_password_change)
+        self.flask.after_request(audit_staff_actions(self.audit_service))
         self._register_controllers()
 
     def _register_controllers(self) -> None:
-        GuestController(self.catalog_service, self.rule_service).register(
-            self.flask)
-        AuthController(self.auth_service).register(self.flask)
+        GuestController(self.catalog_service, self.rule_service,
+                        self.ebook_service,
+                        self.circulation_service).register(self.flask)
+        AuthController(self.auth_service, self.password_reset_service,
+                       self.audit_service).register(self.flask)
         ReaderController(self.auth_service, self.rule_service,
                          self.config, self.fine_service,
                          self.circulation_service).register(self.flask)
         LibrarianController(self.account_service, self.catalog_service,
-                            self.fine_service,
-                            self.circulation_service).register(self.flask)
+                            self.fine_service, self.circulation_service,
+                            self.inventory_service,
+                            self.ebook_service).register(self.flask)
+        EbookController(self.ebook_service).register(self.flask)
+        SystemController(self.role_service, self.password_reset_service,
+                         self.audit_service,
+                         self.backup_service).register(self.flask)
         AdminController(self.account_service, self.rule_service,
-                        self.report_service).register(self.flask)
+                        self.report_service,
+                        self.role_service).register(self.flask)
         ErrorController().register(self.flask)
 
         @self.flask.context_processor
@@ -92,7 +128,12 @@ class LibraryApp:
                     "current_user": current_user()}
 
     def run(self) -> None:
-        if not self.config.TESTING:
+        # With the debug reloader the code runs twice; start the daily
+        # job only in the process that serves requests.
+        serving = (not self.config.DEBUG
+                   or os.environ.get("WERKZEUG_RUN_MAIN") == "true")
+        if serving and not self.config.TESTING:
+            self.daily_job_service.run()  # catch up a missed 00:00 run
             self.daily_job_service.start_scheduler()
         self.flask.run(host=self.config.HOST, port=self.config.PORT,
                        debug=self.config.DEBUG)

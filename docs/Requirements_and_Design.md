@@ -550,6 +550,20 @@ Each event below runs as one transaction (`NFR-REL-02`). The checks come from Se
 | Retire copy (FR-LIB-05) | Copy is `AVAILABLE` (not `BORROWED` or `RESERVED`) | Copy -> `CANCELED`; the row is kept. If every copy of the book is now `CANCELED`: its `WAITING` reservations -> `CANCELED` and a notice to each Reader |
 | Hold expires (FR-SYS-03) | `READY` reservation with `expire_date` < now | Reservation -> `CANCELED`. Next `WAITING` reservation -> `READY` with a new `expire_date`, or copy -> `AVAILABLE` |
 
+### 6.6 Tables Added in Version 1.0.0
+
+Version 1.0.0 implements FR-GST-05, FR-RDR-07, FR-LIB-12, FR-LIB-14, FR-ADM-02, FR-ADM-03, FR-ADM-06 to FR-ADM-08, and the action log of FR-SYS-04. The new classes are mapped to tables with the same rules as Section 6.3: a 1-n relationship becomes a foreign key, and the n-n relationship between roles and permissions becomes an intermediate table. The inventory check (FR-LIB-12) and the backup files (FR-ADM-06, FR-ADM-07) need no table.
+
+| Table | Class | Key columns | Requirement |
+|---|---|---|---|
+| `staff_roles` | `StaffRole` | `role_id` PK, `name` UNIQUE, `description` | FR-ADM-02 |
+| `permissions` | `Permission` (enum) | `permission_code` PK: `CIRCULATION`, `READER_CARDS`, `CATALOG`, `FINES` | FR-ADM-02 |
+| `role_permissions` | (n-n link) | `role_id` FK, `permission_code` FK, composite PK | FR-ADM-02 |
+| `users` (new columns) | `Librarian`, `User` | `staff_role_id` FK (`staff_roles`), `must_change_password` | FR-ADM-02, FR-ADM-03 |
+| `ebooks` | `Ebook` | `ebook_id` PK, `book_id` FK (1 book : n e-books), `title`, `file_format` (`PDF`, `EPUB`), `file_path` UNIQUE, `file_size`, `uploaded_by` FK, `uploaded_at` | FR-LIB-14, FR-RDR-07 |
+| `password_reset_requests` | `PasswordResetRequest` | `request_id` PK, `user_id` FK, `requested_at`, `status` (`PENDING`, `COMPLETED`, `REJECTED`), `handled_by` FK, `handled_at` | FR-GST-05, FR-ADM-03 |
+| `audit_logs` | `AuditLog` | `log_id` PK, `user_id` FK (NULL for a failed guest sign-in), `action`, `details`, `ip_address`, `created_at` | FR-SYS-04, FR-ADM-08 |
+
 ## 7. Interface Design Description
 
 ### 7.1 Guest

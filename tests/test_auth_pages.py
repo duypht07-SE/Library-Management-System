@@ -260,6 +260,17 @@ def test_avatar_over_2_mb_is_rejected(client):
     response = client.post(
         "/profile/avatar",
         data={"csrf_token": token, "avatar": (io.BytesIO(big), "big.png")},
+        content_type="multipart/form-data", follow_redirects=True)
+    assert "must be 2 MB or smaller" in response.get_data(as_text=True)
+
+
+def test_request_over_100_mb_shows_file_too_large(client):
+    signin(client, "reader@library.test")
+    token = csrf_token(client, "/profile")
+    big = b"0" * (100 * 1024 * 1024 + 1)
+    response = client.post(
+        "/profile/avatar",
+        data={"csrf_token": token, "avatar": (io.BytesIO(big), "big.png")},
         content_type="multipart/form-data")
     assert response.status_code == 413
     assert "File Too Large" in response.get_data(as_text=True)

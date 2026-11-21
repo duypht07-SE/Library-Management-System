@@ -32,7 +32,8 @@ class NotificationRepository(BaseRepository):
         sql = ("SELECT 1 FROM notifications "
                "WHERE reader_id = ? AND message = ? LIMIT 1")
         if conn is not None:
-            return conn.execute(sql, (reader_id, message)).fetchone() is not None
+            row = conn.execute(sql, (reader_id, message)).fetchone()
+            return row is not None
         return self.db.fetch_one(sql, (reader_id, message)) is not None
 
     def send_pending(self, at: datetime, conn=None) -> int:

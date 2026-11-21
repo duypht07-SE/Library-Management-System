@@ -10,7 +10,11 @@
   <dt>Available copies</dt><dd>{{ book.available_copies }}</dd>
 </dl>
 {% set usable_copies = book.copies | selectattr('status.value', 'ne', 'CANCELED') | list %}
-{% if current_user and current_user.role.value == 'READER' and book.available_copies == 0 and usable_copies %}
+{% if reader_status == 'borrowing' %}
+<p class="muted">You are borrowing this book. See <a href="{{ url_for('reader.my_books') }}">My Books</a>.</p>
+{% elif reader_status == 'reserved' %}
+<p class="muted">You have already reserved this book. See <a href="{{ url_for('reader.my_books') }}">My Books</a>.</p>
+{% elif current_user and current_user.role.value == 'READER' and book.available_copies == 0 and usable_copies %}
 <form class="form__actions" method="post" action="{{ url_for('reader.reserve_book', book_id=book.book_id) }}">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <button class="btn btn--primary" type="submit">Reserve Book</button>
@@ -22,5 +26,21 @@
     <tr><td>{{ copy.barcode }}</td><td>{{ copy.shelf_location }}</td><td>{{ copy.status.value | title }}</td></tr>
   {% else %}<tr><td colspan="3" class="muted">No usable copies are currently listed.</td></tr>{% endfor %}</tbody>
 </table></div>
+{% if ebooks %}
+<h2>E-books</h2>
+<div class="table-wrap"><table class="table"><thead><tr><th>E-book</th><th>Format</th><th>Size</th><th></th></tr></thead>
+  <tbody>{% for ebook in ebooks %}
+    <tr><td>{{ ebook.title }}</td><td>{{ ebook.file_format.value }}</td><td>{{ ebook.size_label }}</td>
+      <td class="actions">
+      {% if current_user and current_user.role.value == 'READER' %}
+        {% if ebook.can_read_online %}<a class="btn btn--small btn--primary" href="{{ url_for('ebooks.read', ebook_id=ebook.ebook_id) }}" target="_blank" rel="noopener">Read Online</a>{% endif %}
+        <a class="btn btn--small" href="{{ url_for('ebooks.download', ebook_id=ebook.ebook_id) }}">Download</a>
+      {% elif not current_user %}
+        <a class="btn btn--small" href="{{ url_for('auth.signin', next=request.path) }}">Sign in to read</a>
+      {% endif %}
+      </td></tr>
+  {% endfor %}</tbody>
+</table></div>
+{% endif %}
 <a class="btn" href="{{ url_for('guest.search') }}">Back to Search</a>
 {% endblock %}

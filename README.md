@@ -2,7 +2,7 @@
 
 This repository contains the requirements, design, and source code of the Library Management System developed by Group 06 for the Software Engineering course.
 
-The system supports counter borrowing and returning with barcode scanning, reservation queues, fines paid in cash at the counter, and daily automatic tasks. Version 0.2.0 adds sign in, role-based access, Reader profiles, reader-card approval, Librarian accounts, and editable library rules. The full specification is in [`docs/Requirements_and_Design.md`](docs/Requirements_and_Design.md). The coding plan and the owner of each version are in [`CHANGELOG.md`](CHANGELOG.md).
+The system supports counter borrowing and returning with barcode scanning, reservation queues, fines paid in cash at the counter, e-books, inventory checks, staff roles and permissions, password resets, an audit log, database backup, and daily automatic tasks. Version 1.0.0 implements every functional requirement in the specification. The full specification is in [`docs/Requirements_and_Design.md`](docs/Requirements_and_Design.md). The coding plan and the owner of each version are in [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Getting Started
 
@@ -26,7 +26,7 @@ Open http://localhost:5000. The database is created with sample data on the firs
 | Reset the database | `docker compose run --rm web python src/app.py --reset-db` |
 | Delete the database volume | `docker compose down -v` |
 
-The `src` and `tests` folders are mounted into the container, so code changes show after a page refresh. Run `docker compose up --build` again only after you change `requirements.txt` or the `Dockerfile`.
+The `src` and `tests` folders are mounted into the container. To see code changes after a page refresh while you develop, put `LMS_DEBUG=1` in `.env`; keep it `0` for a demo, because the debugger can run code. Run `docker compose up --build` again only after you change `requirements.txt` or the `Dockerfile`.
 
 ### Option 2: Python on your machine
 
@@ -54,12 +54,12 @@ Open http://127.0.0.1:5000. Run the tests with `pytest`. Reset the database with
 
 ### Sample Accounts
 
-Every sample account uses the password `Library@123`. Sign in is available in version 0.2.0. The sample Readers with a pending or locked card cannot sign in until a Librarian approves or unlocks the card.
+Every sample account uses the password `Library@123`. The sample Readers with a pending or locked card cannot sign in until a Librarian approves or unlocks the card.
 
 | Role | Email | Status |
 |---|---|---|
 | Administrator | admin@library.test | Active |
-| Librarian | librarian@library.test | Active |
+| Librarian | librarian@library.test | Active, staff role Full Librarian |
 | Reader | reader@library.test | Active, has a loan, a ready hold, and an unpaid fine |
 | Reader | reader2@library.test | Active, has an overdue loan |
 | Reader | reader3@library.test | Active |
@@ -70,12 +70,12 @@ Every sample account uses the password `Library@123`. Sign in is available in ve
 
 | Role | Pages |
 |---|---|
-| Guest | Home, Search Books, Library Policies, Help, Sign In, Create Account |
-| Reader | Guest pages and My Profile (details, avatar, password) |
-| Librarian | `/librarian/readers`: approve, reject, lock, and unlock reader cards |
-| Administrator | `/admin/librarians` (create, edit, lock staff) and `/admin/rules` |
+| Guest | Home, Search Books, Book details, Library Policies, Help, Sign In, Create Account, Forgot Password |
+| Reader | Guest pages, My Books (loans, reservations, renewals), Notifications, My Fines, E-Books, My Profile |
+| Librarian | Depends on the staff role: Check Out and Check In (CIRCULATION), Reader Cards (READER_CARDS), Books, e-books, and Inventory (CATALOG), Fines (FINES); Password |
+| Administrator | Librarians, Roles, Rules, Reports, Password Resets, Audit Log, Backups, Password |
 
-Each page checks the role on the server, so typing a URL does not bypass access control. Five wrong passwords lock the account for 15 minutes, and a session ends after 30 minutes without activity. Passwords need at least 8 characters with one letter and one digit.
+The default staff roles are Full Librarian (every permission), Circulation Desk, and Catalog Librarian. The Administrator can add roles on the Roles page. Each page checks the role and the permission on the server, so typing a URL does not bypass access control. Sign-ins and every successful Librarian or Administrator action are written to the audit log. Five wrong passwords lock the account for 15 minutes, and a session ends after 30 minutes without activity. Passwords need at least 8 characters with one letter and one digit.
 
 ### Settings
 
@@ -84,12 +84,14 @@ The app reads these environment variables. Copy `.env.example` to `.env` to chan
 | Variable | Default | Meaning |
 |---|---|---|
 | `LMS_SECRET_KEY` | random | Key that signs the session cookie |
-| `LMS_DEBUG` | `0` (`1` in Docker) | Reload the server when code changes |
+| `LMS_DEBUG` | `0` | Reload the server when code changes (development only) |
 | `LMS_HOST` | `127.0.0.1` (`0.0.0.0` in Docker) | Server address |
 | `LMS_PORT` | `5000` | Server port |
 | `LMS_DB_PATH` | `instance/library.db` | SQLite database file |
 | `LMS_SEED` | `1` | Load sample data when the database is created |
 | `LMS_AVATAR_DIR` | `instance/avatars` | Folder for uploaded profile avatars |
+| `LMS_EBOOK_DIR` | `instance/ebooks` | Folder for uploaded e-books (PDF, EPUB) |
+| `LMS_BACKUP_DIR` | `instance/backups` | Folder for database backups |
 | `LMS_BCRYPT_ROUNDS` | `12` | Bcrypt cost factor (NFR-SEC-01) |
 | `LMS_SESSION_COOKIE_SECURE` | `0` | Set to `1` when the site uses HTTPS |
 
@@ -102,11 +104,11 @@ The code follows a layered architecture with MVC in the presentation layer (NFR-
 | Presentation | `src/presentation/` | Controllers (one class per role), Jinja templates (views), CSS, and JavaScript |
 | Business | `src/business/` | Services that apply the library rules |
 | Data | `src/data/` | `Database` (connection and transactions), repositories, `schema.sql`, `seed.sql` |
-| Models | `src/models/` | Classes from the class diagram: `User` and its subclasses, `Book`, `BookCopy`, `BorrowRecord`, `Reservation`, `Fine`, `Notification`, `SystemConfig` |
+| Models | `src/models/` | Classes from the class diagram: `User` and its subclasses, `Book`, `BookCopy`, `BorrowRecord`, `Reservation`, `Fine`, `Notification`, `SystemConfig`; added in 1.0.0: `StaffRole`, `PasswordResetRequest`, `AuditLog`, `Ebook`, `InventoryCheck` |
 
 ```text
 .
-├── docs/                   # Requirements and design document
+├── docs/                   # Specification, test cases, test report, test data
 ├── diagrams/               # DFD, use case, class diagram, ERD (draw.io and PNG)
 ├── ui/                     # Interface designs
 ├── src/
@@ -116,7 +118,7 @@ The code follows a layered architecture with MVC in the presentation layer (NFR-
 │   ├── models/
 │   ├── data/
 │   │   └── repositories/
-│   ├── business/           # Catalog, Rule, Auth, and Account services
+│   ├── business/           # One service per feature (catalog, circulation, roles, ...)
 │   └── presentation/
 │       ├── templates/
 │       └── static/
@@ -155,10 +157,14 @@ Run `pytest` (or `docker compose run --rm web pytest`) before every commit. All 
 | `tests/test_accounts.py` | Component | Registration, login attempts, profiles, cards, staff, rules, migration |
 | `tests/test_pages.py` | System | Guest pages through the Flask test client |
 | `tests/test_auth_pages.py` | System | Sign in, roles, profile, avatar, reader cards, staff, rules, CSRF |
+| `tests/test_catalog_fines_reports.py` | Component, System | Books, copies, search, fines, reports |
+| `tests/test_circulation.py` | Component, System | Check out, check in, reservations, renewals, daily job |
+| `tests/test_staff_roles.py`, `test_password_reset.py`, `test_audit_log.py`, `test_inventory.py`, `test_ebooks.py`, `test_backup.py` | Unit, Component, System | Features added in 1.0.0 |
+| `tests/test_regressions.py` | Regression | One test for each defect fixed in release testing |
 
 Test names end with the requirement they check, for example `test_login_lock_nfr_sec_06`.
 
-Manual test cases are in [`docs/Test_Cases.xlsx`](docs/Test_Cases.xlsx), written with the course Testing Document Template. TC20 to TC36 cover version 0.2.0.
+Manual test cases TC01 to TC91 are in [`docs/Test_Cases.xlsx`](docs/Test_Cases.xlsx), written with the course Testing Document Template. Test files for them are in [`docs/test_data/`](docs/test_data/). The results, the defects, and the requirement traceability are in [`docs/Test_Report.md`](docs/Test_Report.md). Defects are tracked as GitHub Issues.
 
 ## Tech Stack
 
@@ -167,7 +173,7 @@ Manual test cases are in [`docs/Test_Cases.xlsx`](docs/Test_Cases.xlsx), written
 | Language | Python 3.11+ |
 | Web framework | Flask |
 | Front end | HTML5, CSS3, JavaScript |
-| Database | SQLite 3 (MySQL 8.0 planned for the demo) |
+| Database | SQLite 3 (NFR-DEV-03) |
 | Testing | pytest |
 | Packaging | Docker, Docker Compose |
 | Diagrams | draw.io |

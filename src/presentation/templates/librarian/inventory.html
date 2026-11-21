@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Inventory Check{% endblock %}
+
+{% block content %}
+<h1 class="section-title"><span>Inventory Check</span></h1>
+<p class="muted page-intro">Scan every book on a shelf with the barcode
+   scanner (one barcode per line), then compare the count with the
+   catalog.</p>
+
+<form class="form" method="post" action="{{ url_for('librarian.inventory') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="form__row">
+    <label for="shelf">Shelf</label>
+    <select id="shelf" name="shelf">
+      <option value="">All shelves</option>
+      {% for shelf in shelves %}
+        <option value="{{ shelf }}" {% if form.shelf == shelf %}selected{% endif %}>{{ shelf }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="form__row">
+    <label for="barcodes">Scanned barcodes</label>
+    <textarea id="barcodes" name="barcodes" rows="8" required
+              placeholder="LIB-00061&#10;LIB-00062">{{ form.barcodes }}</textarea>
+  </div>
+  <div class="form__actions">
+    <button class="btn btn--primary" type="submit">Compare with Catalog</button>
+  </div>
+</form>
+
+{% if result %}
+  <h2 class="subheading">Result: {{ result.shelf or "All shelves" }}</h2>
+  {% if result.is_match %}
+    <p class="flash flash--success">The shelf matches the catalog.</p>
+  {% else %}
+    <p class="flash flash--error">The shelf does not match the catalog.
+       Check the lists below.</p>
+  {% endif %}
+  <div class="report-grid">
+    <article class="report-card"><h3>Recorded in catalog</h3><p>{{ result.expected | length }}</p></article>
+    <article class="report-card"><h3>Found on shelf</h3><p>{{ result.found | length }}</p></article>
+    <article class="report-card"><h3>Missing</h3><p>{{ result.missing | length }}</p></article>
+    <article class="report-card"><h3>Not expected here</h3><p>{{ (result.unexpected | length) + (result.unknown | length) }}</p></article>
+  </div>
+
+  <h3>By title</h3>
+  <div class="table-wrap"><table class="table">
+    <thead><tr><th>Title</th><th>Recorded</th><th>Counted</th><th>Difference</th></tr></thead>
+    <tbody>
+      {% for row in result.by_book() %}
+        <tr><td>{{ row.title }}</td><td>{{ row.recorded }}</td><td>{{ row.counted }}</td><td>{{ row.difference }}</td></tr>
+      {% else %}
+        <tr><td colspan="4" class="muted">The catalog has no available copies on this shelf.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table></div>
+
+  {% if result.missing %}
+    <h3>Missing copies (recorded as available but not scanned)</h3>
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th>Barcode</th><th>Title</th><th>Shelf</th></tr></thead>
+      <tbody>{% for copy in result.missing %}
+        <tr><td>{{ copy.barcode }}</td><td>{{ copy.title }}</td><td>{{ copy.shelf_location }}</td></tr>
+      {% endfor %}</tbody>
+    </table></div>
+  {% endif %}
+
+  {% if result.unexpected %}
+    <h3>Scanned but not expected on this shelf</h3>
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th>Barcode</th><th>Title</th><th>Recorded shelf</th><th>Recorded status</th></tr></thead>
+      <tbody>{% for copy in result.unexpected %}
+        <tr><td>{{ copy.barcode }}</td><td>{{ copy.title }}</td><td>{{ copy.shelf_location }}</td><td>{{ copy.status | title }}</td></tr>
+      {% endfor %}</tbody>
+    </table></div>
+  {% endif %}
+
+  {% if result.unknown %}
+    <h3>Barcodes not in the catalog</h3>
+    <p>{{ result.unknown | join(", ") }}</p>
+  {% endif %}
+  {% if result.duplicates %}
+    <p class="muted">Scanned more than once: {{ result.duplicates | join(", ") }}</p>
+  {% endif %}
+{% endif %}
+{% endblock %}

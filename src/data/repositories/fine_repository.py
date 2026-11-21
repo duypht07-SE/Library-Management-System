@@ -34,8 +34,8 @@ class FineRepository(BaseRepository):
     def save(self, fine: Fine) -> Fine:
         with self.db.transaction() as conn:
             cursor = conn.execute(
-                "INSERT INTO fines (borrow_id, reason, amount, is_paid, paid_at)"
-                " VALUES (?, ?, ?, 0, NULL)",
+                "INSERT INTO fines (borrow_id, reason, amount, is_paid,"
+                " paid_at) VALUES (?, ?, ?, 0, NULL)",
                 (fine.borrow_id, fine.reason.value, fine.amount))
             fine.fine_id = int(cursor.lastrowid)
         return fine

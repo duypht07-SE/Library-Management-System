@@ -159,18 +159,19 @@ def test_checkin_invalid_amount_rolls_back(library_app):
 
 
 def test_reserve_and_cancel_via_web(client, library_app):
+    # book 5: copy 5 is on loan and copy 25 is held for another Reader
     sign_in(client, "reader3@library.test")
-    assert "Reserve Book" in client.get("/books/1").get_data(as_text=True)
+    assert "Reserve Book" in client.get("/books/5").get_data(as_text=True)
 
-    res = post(client, "/books/1", "/books/1/reserve", {},
+    res = post(client, "/books/5", "/books/5/reserve", {},
                follow_redirects=True)
     assert "Book reserved" in res.get_data(as_text=True)
 
     rows = library_app.circulation.find_reservations_for_reader(7)
-    created = next(r for r in rows if r["book_id"] == 1)
+    created = next(r for r in rows if r["book_id"] == 5)
     assert created["status"] == "WAITING"
 
-    dup = post(client, "/books/1", "/books/1/reserve", {},
+    dup = post(client, "/books/5", "/books/5/reserve", {},
                follow_redirects=True)
     assert "already have an active reservation" in dup.get_data(as_text=True)
 
@@ -241,7 +242,8 @@ def test_daily_job_overdue_due_soon_and_hold_expiry(library_app):
     assert summary["due_soon_notified"] == 1
     assert summary["expired_holds"] == 1
     assert summary["promoted_holds"] == 1
-    assert library_app.circulation.find_loan_by_id(1).status == BorrowStatus.OVERDUE
+    loan = library_app.circulation.find_loan_by_id(1)
+    assert loan.status == BorrowStatus.OVERDUE
     assert (library_app.circulation.find_reservation_by_id(1).status
             == ReservationStatus.CANCELED)
     assert library_app.daily_job_service.run(at=NOW)["due_soon_notified"] == 0
@@ -251,7 +253,8 @@ def test_my_books_notifications_and_access(client):
     sign_in(client, "reader@library.test")
     page = client.get("/my-books").get_data(as_text=True)
     assert "Clean Code" in page and "15,000 VND" in page
-    assert "ready for pickup" in client.get("/notifications").get_data(as_text=True)
+    page = client.get("/notifications").get_data(as_text=True)
+    assert "ready for pickup" in page
     assert client.get("/librarian/checkout").status_code == 403
     assert client.get("/librarian/checkin").status_code == 403
 

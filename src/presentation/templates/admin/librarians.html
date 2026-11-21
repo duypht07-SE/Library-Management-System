@@ -28,6 +28,14 @@
            maxlength="15" required>
   </div>
   <div class="form__row">
+    <label for="staff_role_id">Staff role</label>
+    <select id="staff_role_id" name="staff_role_id" required>
+      {% for role in roles %}
+        <option value="{{ role.role_id }}" {% if form.staff_role_id == role.role_id|string %}selected{% endif %}>{{ role.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="form__row">
     <label for="password">Temporary password</label>
     <input id="password" name="password" type="password"
            autocomplete="new-password" required>
@@ -46,6 +54,7 @@
         <th>Staff ID</th>
         <th>Email</th>
         <th>Phone</th>
+        <th>Role</th>
         <th>Status</th>
         <th>Actions</th>
       </tr>
@@ -57,6 +66,7 @@
           <td>{{ librarian.student_id or "—" }}</td>
           <td>{{ librarian.email }}</td>
           <td>{{ librarian.phone }}</td>
+          <td>{{ role_names.get(librarian.staff_role_id, "No role") }}</td>
           <td><span class="badge badge--{{ librarian.status.value | lower }}">{{ librarian.status.value | title }}</span></td>
           <td class="actions">
             <a class="btn btn--small" href="{{ url_for('admin.edit_librarian', librarian_id=librarian.user_id) }}">Edit</a>
@@ -75,7 +85,7 @@
           </td>
         </tr>
       {% else %}
-        <tr><td colspan="6" class="muted">There are no Librarian accounts.</td></tr>
+        <tr><td colspan="7" class="muted">There are no Librarian accounts.</td></tr>
       {% endfor %}
     </tbody>
   </table>

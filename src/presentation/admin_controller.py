@@ -28,11 +28,13 @@ class AdminController(BaseController):
     url_prefix = "/admin"
 
     def __init__(self, accounts: AccountService, rules: RuleService,
-                 reports: ReportService | None = None) -> None:
+                 reports: ReportService | None = None,
+                 roles=None) -> None:
         super().__init__()
         self.accounts = accounts
         self.rules = rules
         self.reports = reports
+        self.roles = roles
 
     def add_routes(self) -> None:
         bp = self.blueprint
@@ -62,19 +64,20 @@ class AdminController(BaseController):
                     g.user,
                     full_name=form["full_name"], email=form["email"],
                     phone=form["phone"], password=form["password"],
-                    student_id=form["student_id"])
+                    student_id=form["student_id"],
+                    staff_role_id=self._role_id(form))
             except ValidationError as error:
                 flash(error.message, "error")
                 return render_template(
                     "admin/librarians.html",
                     librarians=self.accounts.librarians(),
-                    form=form), 400
+                    form=form, **self._role_data()), 400
             flash(f"Librarian account created for {librarian.full_name}.",
                   "success")
             return redirect(url_for("admin.librarians"))
         return render_template("admin/librarians.html",
                                librarians=self.accounts.librarians(),
-                               form=self._empty_form())
+                               form=self._empty_form(), **self._role_data())
 
     @roles_required(ADMIN)
     def edit_librarian(self, librarian_id: int):
@@ -90,11 +93,14 @@ class AdminController(BaseController):
                     g.user, librarian_id,
                     full_name=form["full_name"], email=form["email"],
                     phone=form["phone"], student_id=form["student_id"])
+                role_id = self._role_id(form)
+                if self.roles is not None and role_id is not None:
+                    self.roles.assign_role(g.user, librarian_id, role_id)
             except ValidationError as error:
                 flash(error.message, "error")
                 return render_template(
                     "admin/librarian_form.html", librarian=librarian,
-                    form=form), 400
+                    form=form, **self._role_data()), 400
             flash("Librarian information updated.", "success")
             return redirect(url_for("admin.librarians"))
         form = {
@@ -102,9 +108,11 @@ class AdminController(BaseController):
             "email": librarian.email,
             "phone": librarian.phone,
             "student_id": librarian.student_id or "",
+            "staff_role_id": str(librarian.staff_role_id or ""),
         }
         return render_template("admin/librarian_form.html",
-                               librarian=librarian, form=form)
+                               librarian=librarian, form=form,
+                               **self._role_data())
 
     @roles_required(ADMIN)
     def librarian_action(self, librarian_id: int, action: str):
@@ -172,7 +180,8 @@ class AdminController(BaseController):
             writer.writerow(["Report", reports["label"]])
             writer.writerow(["Borrowings", reports["borrowings"]])
             writer.writerow(["Overdue loans", reports["overdue"]])
-            writer.writerow(["Fines collected (VND)", reports["fines_collected"]])
+            writer.writerow(["Fines collected (VND)",
+                             reports["fines_collected"]])
             writer.writerow(["Book titles", reports["book_titles"]])
             writer.writerow(["Available copies", reports["available_copies"]])
             writer.writerow(["New Readers", reports["new_readers"]])
@@ -190,6 +199,7 @@ class AdminController(BaseController):
             "email": request.form.get("email", "").strip(),
             "phone": request.form.get("phone", "").strip(),
             "student_id": request.form.get("student_id", "").strip(),
+            "staff_role_id": request.form.get("staff_role_id", "").strip(),
             "password": "",
         }
         if include_password:
@@ -199,4 +209,20 @@ class AdminController(BaseController):
     @staticmethod
     def _empty_form() -> dict:
         return {"full_name": "", "email": "", "phone": "",
-                "student_id": "", "password": ""}
+                "student_id": "", "password": "", "staff_role_id": "1"}
+
+    def _role_data(self) -> dict:
+        if self.roles is None:
+            return {"roles": [], "role_names": {}}
+        roles = self.roles.all_roles()
+        return {"roles": roles,
+                "role_names": {r.role_id: r.name for r in roles}}
+
+    def _role_id(self, form: dict) -> int | None:
+        """FR-ADM-02: the chosen role must exist."""
+        text = form.get("staff_role_id", "")
+        if self.roles is None or not text:
+            return None
+        if not text.isdigit():
+            raise ValidationError("Choose a staff role.")
+        return self.roles.find(int(text)).role_id

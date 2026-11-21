@@ -8,7 +8,8 @@ class ReportRepository(BaseRepository):
         return {
             "borrowings": self.db.fetch_one(
                 "SELECT COUNT(*) n FROM borrow_records "
-                "WHERE borrow_date >= ? AND borrow_date < ?", (start, end))["n"],
+                "WHERE borrow_date >= ? AND borrow_date < ?",
+                (start, end))["n"],
             "overdue": self.db.fetch_one(
                 "SELECT COUNT(*) n FROM borrow_records "
                 "WHERE status='OVERDUE' AND borrow_date >= ? "
@@ -20,7 +21,8 @@ class ReportRepository(BaseRepository):
             "book_titles": self.db.fetch_one(
                 "SELECT COUNT(*) n FROM books")["n"],
             "available_copies": self.db.fetch_one(
-                "SELECT COUNT(*) n FROM book_copies WHERE status='AVAILABLE'")["n"],
+                "SELECT COUNT(*) n FROM book_copies"
+                " WHERE status='AVAILABLE'")["n"],
             "new_readers": self.db.fetch_one(
                 "SELECT COUNT(*) n FROM users WHERE role='READER' "
                 "AND created_at >= ? AND created_at < ?", (start, end))["n"],

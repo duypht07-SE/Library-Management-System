@@ -53,9 +53,11 @@ class CatalogService:
             barcode = str(values.get("barcode", "")).strip()
             location = str(values.get("shelf_location", "")).strip()
             if not barcode or len(barcode) > 50:
-                raise ValidationError("Barcode is required (up to 50 characters).")
+                raise ValidationError(
+                    "Barcode is required (up to 50 characters).")
             if not location or len(location) > 50:
-                raise ValidationError("Shelf location is required (up to 50 characters).")
+                raise ValidationError(
+                    "Shelf location is required (up to 50 characters).")
             if self.books.find_by_id(book_id) is None:
                 raise ValidationError("Book was not found.")
             try:

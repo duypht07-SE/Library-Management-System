@@ -86,7 +86,8 @@ class DailyJobService:
                         "UPDATE reservations "
                         "SET status = 'READY', copy_id = ?, expire_date = ? "
                         "WHERE reservation_id = ?",
-                        (copy_id, expire.isoformat(sep=" "), nxt.reservation_id))
+                        (copy_id, expire.isoformat(sep=" "),
+                         nxt.reservation_id))
                     self.notifications.create_sent(
                         nxt.reader_id,
                         f"{row['book_title']} is ready for pickup. Please "
