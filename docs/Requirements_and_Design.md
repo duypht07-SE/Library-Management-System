@@ -79,6 +79,8 @@ This section lists the functional requirements of the Library Management System 
 | FR-ADM-07 | An Administrator shall be able to restore the database from a backup when a technical failure occurs. |
 | FR-ADM-08 | An Administrator shall be able to view audit logs of user logins, role and permission changes, password resets, and data edits. |
 
+For FR-ADM-05, attribute each overdue loan to its due timestamp in local library time (period start inclusive, end exclusive). Count a loan once if its return timestamp, or the current time for an open loan, is strictly later than its due timestamp.
+
 ### 1.6 System (Automatic Functions)
 
 | ID | Requirement |

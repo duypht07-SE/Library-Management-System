@@ -36,12 +36,16 @@ class GuestController(BaseController):
         return render_template("guest/help.html")
 
     def search(self):
+        keyword = request.args.get("q", "").strip()
+        category = request.args.get("category", "")
+        page_size = 25
+        page = max(1, request.args.get("page", 1, type=int))
+        offset = (page - 1) * page_size
+        books = [] if offset > 2**63 - 1 else self.catalog.search(
+            keyword, category, limit=page_size + 1, offset=offset)
         return render_template(
-            "guest/search.html",
-            keyword=request.args.get("q", "").strip(),
-            category=request.args.get("category", ""),
-            books=self.catalog.search(
-                request.args.get("q", ""), request.args.get("category", "")),
+            "guest/search.html", keyword=keyword, category=category,
+            books=books[:page_size], page=page, has_next=len(books) > page_size,
         )
 
     def book_detail(self, book_id: int):
