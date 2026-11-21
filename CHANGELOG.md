@@ -9,6 +9,7 @@ Each member owns one version. The next member starts after the previous version 
 | 0.3.0 | Sang | Books, search, fines, reports | Tài |
 | 0.4.0 | Tài | Borrowing, returning, reservations, daily jobs | Thắng |
 | 1.0.0 | Everyone | Testing, bug fixes, demo | Everyone |
+| 1.0.1 | Duy, Sang, Tài, Thắng (in parallel) | Code fixes for 4 NFRs | Thắng |
 
 ## How to Work
 
@@ -103,3 +104,43 @@ Testing:
 - [x] Test results, defects, and requirement traceability in `docs/Test_Report.md`.
 - [x] Report each defect (D1 to D8) as a GitHub Issue (#16 to #23, closed by PR #24).
 - [x] Tag the release after the merge: `git tag v1.0.0`.
+
+## [1.0.1] - Planned: NFR Fixes
+
+**Owners: Duy, Sang, Tài, Thắng (in parallel, separate branches) · Reviewer, test cases, and release: Thắng**
+
+Only the code changes. The specification (`docs/Requirements_and_Design.md`), the submitted Word file, the diagrams in `diagrams/`, and the images in `ui/` stay as they are.
+
+Rules:
+
+1. Branch from the newest `main`: `fix/1.0.1-duy`, `fix/1.0.1-sang`, `fix/1.0.1-tai`, `fix/1.0.1-thang`.
+2. **Do not edit `docs/Test_Cases.xlsx`** (binary file, merge conflicts). Write new test cases (Function, Test Steps, Input Data, Expected Result) in the pull request description. Thắng adds them to the Excel file.
+3. Add pytest tests for every change. All tests must pass before the pull request.
+4. Lines of 80 characters or less. Keep the layered structure: model, repository, service, controller, template.
+
+### Duy: NFR-SEC-05, temporary password expires after 24 hours
+
+- [ ] Add the column `users.temp_password_expires_at` (DATETIME) in `schema.sql` and in the migration in `database.py` (`_add_missing_columns`).
+- [ ] `PasswordResetService._reset` and `UserRepository.set_temporary_password`: save now + 24 hours. `update_password` clears it.
+- [ ] `AuthService.authenticate`: a temporary password after its expiry time is refused with "Your temporary password has expired. Please ask the Administrator for a new one."
+- [ ] pytest: sign-in at 23:59 after the reset works, at 24:01 is refused (boundary values); a normal password is never affected.
+
+### Sang: NFR-COM-03, dates as DD/MM/YYYY
+
+- [ ] Add a Jinja filter `date_vn` in `app.py` that turns a `datetime` or a text like `2026-11-16 10:00:00` into `16/11/2026` (and `16/11/2026 10:00` when the time is needed).
+- [ ] Use it in `reader/my_books.html`, `librarian/checkout.html`, `librarian/checkin.html`, `librarian/fines.html`, and `admin/password_resets.html` (they show `2026-11-16` today).
+- [ ] pytest: the filter with a `datetime`, a text date, an empty value; My Books shows `DD/MM/YYYY`.
+
+### Tài: NFR-REL-04, daily backup in two places
+
+- [ ] `DailyJobService.run` also calls `BackupService.create(label="daily")` at 00:00 and copies the file to a second folder `LMS_BACKUP_COPY_DIR` (`config.py`, `.env.example`, a second Docker volume in `docker-compose.yml`).
+- [ ] Keep the newest 30 daily backups in each folder; never delete manual or `auto` backups.
+- [ ] A failed copy is written to the audit log and does not stop the other daily tasks (NFR-REL-06).
+- [ ] pytest: one run makes one backup in each folder; 31 runs keep 30.
+
+### Thắng: NFR-SEC-02 HTTPS, review, and release
+
+- [ ] Read `LMS_SSL_CERT` and `LMS_SSL_KEY` in `config.py`; when both are set, `LibraryApp.run` uses `ssl_context=(cert, key)` and `SESSION_COOKIE_SECURE` is on. Explain in README how to make a test certificate.
+- [ ] Review and merge the pull requests one at a time; run `pytest` and `docker compose up --build` after each merge.
+- [ ] Add the new test cases from the pull requests to `docs/Test_Cases.xlsx` (TC93 onward) and update `docs/Test_Report.md`.
+- [ ] Tag `v1.0.1` and create the GitHub Release.
