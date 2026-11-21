@@ -27,6 +27,14 @@
     <input id="phone" name="phone" type="tel" value="{{ form.phone }}"
            maxlength="15" required>
   </div>
+  <div class="form__row">
+    <label for="staff_role_id">Staff role</label>
+    <select id="staff_role_id" name="staff_role_id" required>
+      {% for role in roles %}
+        <option value="{{ role.role_id }}" {% if form.staff_role_id == role.role_id|string %}selected{% endif %}>{{ role.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
   <div class="form__actions">
     <button class="btn btn--primary" type="submit">Save Changes</button>
     <a class="btn btn--outline" href="{{ url_for('admin.librarians') }}">Cancel</a>

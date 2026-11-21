@@ -72,14 +72,34 @@ Each step runs as one transaction. Follow the status table in Section 6.5.
 - [x] Daily job at 00:00: mark overdue loans, cancel expired holds (FR-SYS-01, FR-SYS-03).
 - [x] In-app notifications (FR-SYS-02).
 
-## [1.0.0] - Planned: Release
+## [1.0.0] - 2026-11-21: Release
 
 **Owner: Everyone**
 
-- [ ] Each member retests their own version and fixes their bugs.
-- [ ] Check that `docs/Test_Cases.xlsx` covers every use case in Section 4.3. Keep the Testing Document Template from Elearning 5 (a different template scores 0).
-- [ ] Report bugs as GitHub Issues.
-- [ ] Prepare demo data and run every use case in Section 4.
-- [ ] Tag the release: `git tag v1.0.0`.
+Added, so that every functional requirement in the specification is implemented:
 
-Not planned for 1.0.0: e-books, password reset, custom roles, inventory audit, backup and restore.
+- [x] Staff roles and permissions: Roles page, a role for each Librarian, and a permission check on every Librarian page (FR-ADM-02, FR-SYS-04). Class: `StaffRole`.
+- [x] Forgot Password page (FR-GST-05); Password Resets page where the Administrator gives a temporary password that must be changed at the next sign-in (FR-ADM-03). Class: `PasswordResetRequest`.
+- [x] Audit log of sign-ins and every successful Librarian or Administrator action (FR-SYS-04, FR-ADM-08). Class: `AuditLog`.
+- [x] Inventory check: scan the barcodes on a shelf and compare them with the catalog (FR-LIB-12). Class: `InventoryCheck`.
+- [x] E-books: upload, update, and remove PDF or EPUB files (FR-LIB-14); Readers read a PDF online or download the file (FR-RDR-07). Class: `Ebook`.
+- [x] Backup and restore of the database, with an automatic backup before every restore (FR-ADM-06, FR-ADM-07).
+- [x] Change Password page for Librarians and Administrators.
+- [x] Database: tables `staff_roles`, `permissions`, `role_permissions`, `ebooks`, `password_reset_requests`, `audit_logs`, and columns `users.staff_role_id`, `users.must_change_password`. An older database is upgraded on start.
+
+Fixed (defects D1 to D8 in `docs/Test_Report.md`):
+
+- [x] Check In showed the same "Enter valid numbers" message for every error.
+- [x] A Reader could reserve a book they were borrowing; the Reserve Book button is now hidden when the Reader borrows or has reserved the book.
+- [x] Docker started with the Flask debugger on; `LMS_DEBUG` is now `0` by default.
+- [x] The daily job could run twice in debug mode and skipped a missed 00:00 run.
+- [x] Form buttons stretched to the full width; the Add Copy form was misaligned.
+- [x] Lines longer than 80 characters.
+
+Testing:
+
+- [x] 311 automated tests pass on Windows and in Docker.
+- [x] Test cases TC01 to TC92 in `docs/Test_Cases.xlsx` (course template), with test data in `docs/test_data/`; TC37 to TC48, TC56, and TC58 now have exact input data.
+- [x] Test results, defects, and requirement traceability in `docs/Test_Report.md`.
+- [ ] Report each defect (D1 to D8) as a GitHub Issue.
+- [ ] Tag the release after the merge: `git tag v1.0.0`.

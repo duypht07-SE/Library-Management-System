@@ -60,8 +60,10 @@ class CirculationRepository(BaseRepository):
     def find_reservation_by_id(
             self, reservation_id: int, conn=None) -> Reservation | None:
         sql = "SELECT * FROM reservations WHERE reservation_id = ?"
-        row = (conn.execute(sql, (reservation_id,)).fetchone()
-               if conn is not None else self.db.fetch_one(sql, (reservation_id,)))
+        if conn is not None:
+            row = conn.execute(sql, (reservation_id,)).fetchone()
+        else:
+            row = self.db.fetch_one(sql, (reservation_id,))
         return Reservation.from_row(row) if row else None
 
     def find_open_loan(self, conn, barcode: str = "",
@@ -111,7 +113,8 @@ class CirculationRepository(BaseRepository):
         row = conn.execute(
             "SELECT 1 FROM borrow_records "
             "WHERE reader_id = ? AND return_date IS NULL "
-            "AND (status = 'OVERDUE' OR (status = 'BORROWED' AND due_date < ?)) "
+            "AND (status = 'OVERDUE' "
+            "OR (status = 'BORROWED' AND due_date < ?)) "
             "LIMIT 1", (reader_id, at.isoformat(sep=" "))).fetchone()
         return row is not None
 
@@ -144,5 +147,14 @@ class CirculationRepository(BaseRepository):
             "SELECT 1 FROM reservations "
             "WHERE reader_id = ? AND book_id = ? "
             "AND status IN ('WAITING', 'READY') LIMIT 1",
+            (reader_id, book_id)).fetchone()
+        return row is not None
+
+    def is_borrowing_book(self, reader_id: int, book_id: int, conn) -> bool:
+        row = conn.execute(
+            "SELECT 1 FROM borrow_records r"
+            " JOIN book_copies c ON c.copy_id = r.copy_id"
+            " WHERE r.reader_id = ? AND c.book_id = ?"
+            " AND r.status IN ('BORROWED', 'OVERDUE') LIMIT 1",
             (reader_id, book_id)).fetchone()
         return row is not None

@@ -5,14 +5,21 @@ from flask import flash, g, redirect, render_template, request, url_for
 from business.account_service import AccountService
 from business.catalog_service import CatalogService
 from business.circulation_service import CirculationService
+from business.ebook_service import EbookService
 from business.fine_service import FineService
+from business.inventory_service import InventoryService
 from config import now
 from common.exceptions import ValidationError
-from presentation.access import roles_required
+from models import Permission
+from presentation.access import permission_required, roles_required
 from presentation.base_controller import BaseController
 
 LIBRARIAN = "LIBRARIAN"
 READER_ACTIONS = {"approve", "reject", "lock", "unlock"}
+FIRST_PAGE = [(Permission.CIRCULATION, "librarian.checkout"),
+              (Permission.READER_CARDS, "librarian.readers"),
+              (Permission.CATALOG, "librarian.books"),
+              (Permission.FINES, "librarian.fines")]
 
 
 class LibrarianController(BaseController):
@@ -24,12 +31,16 @@ class LibrarianController(BaseController):
     def __init__(self, accounts: AccountService,
                  catalog: CatalogService | None = None,
                  fines: FineService | None = None,
-                 circulation: CirculationService | None = None) -> None:
+                 circulation: CirculationService | None = None,
+                 inventory: InventoryService | None = None,
+                 ebooks: EbookService | None = None) -> None:
         super().__init__()
         self.accounts = accounts
         self.catalog = catalog
         self.fines = fines
         self.circulation = circulation
+        self.inventory = inventory
+        self.ebooks = ebooks
 
     def add_routes(self) -> None:
         bp = self.blueprint
@@ -55,12 +66,24 @@ class LibrarianController(BaseController):
                         methods=["GET", "POST"])
         bp.add_url_rule("/fines/<int:fine_id>/payment", "fine_payment",
                         self.fine_payment, methods=["POST"])
+        bp.add_url_rule("/inventory", "inventory", self.inventory_page,
+                        methods=["GET", "POST"])
+        bp.add_url_rule("/books/<int:book_id>/ebooks", "upload_ebook",
+                        self.upload_ebook, methods=["POST"])
+        bp.add_url_rule("/ebooks/<int:ebook_id>/edit", "update_ebook",
+                        self.update_ebook, methods=["POST"])
+        bp.add_url_rule("/ebooks/<int:ebook_id>/delete", "delete_ebook",
+                        self.delete_ebook, methods=["POST"])
 
     @roles_required(LIBRARIAN)
     def index(self):
-        return redirect(url_for("librarian.readers"))
+        """Open the first screen that the staff role allows."""
+        for permission, endpoint in FIRST_PAGE:
+            if g.user.can(permission):
+                return redirect(url_for(endpoint))
+        return render_template("librarian/no_permission.html")
 
-    @roles_required(LIBRARIAN)
+    @permission_required(Permission.CIRCULATION)
     def checkout(self):
         if self.circulation is None:
             return render_template("errors/404.html"), 404
@@ -87,7 +110,7 @@ class LibrarianController(BaseController):
             open_loans=self.circulation.open_loans(),
             form=form)
 
-    @roles_required(LIBRARIAN)
+    @permission_required(Permission.CIRCULATION)
     def checkin(self):
         if self.circulation is None:
             return render_template("errors/404.html"), 404
@@ -101,7 +124,8 @@ class LibrarianController(BaseController):
                 "damage_amount": request.form.get("damage_amount", "").strip(),
             }
             try:
-                borrow_id = int(form["borrow_id"]) if form["borrow_id"] else None
+                borrow_id = (int(form["borrow_id"])
+                             if form["borrow_id"] else None)
                 amount = (int(form["damage_amount"])
                           if form["damage_amount"] else None)
                 _, created = self.circulation.check_in(
@@ -114,14 +138,14 @@ class LibrarianController(BaseController):
                 else:
                     flash("Book checked in.", "success")
                 return redirect(url_for("librarian.checkin"))
-            except ValueError:
-                flash("Enter valid numbers for loan and fine amount.", "error")
+            except ValidationError as error:
+                flash(error.message, "error")
                 return render_template(
                     "librarian/checkin.html",
                     open_loans=self.circulation.open_loans(),
                     form=form), 400
-            except ValidationError as error:
-                flash(error.message, "error")
+            except ValueError:
+                flash("Enter valid numbers for loan and fine amount.", "error")
                 return render_template(
                     "librarian/checkin.html",
                     open_loans=self.circulation.open_loans(),
@@ -131,12 +155,12 @@ class LibrarianController(BaseController):
             open_loans=self.circulation.open_loans(),
             form=form)
 
-    @roles_required(LIBRARIAN)
+    @permission_required(Permission.READER_CARDS)
     def readers(self):
         return render_template("librarian/readers.html",
                                readers=self.accounts.readers())
 
-    @roles_required(LIBRARIAN)
+    @permission_required(Permission.CATALOG)
     def books(self):
         if self.catalog is None:
             return render_template("errors/404.html"), 404
@@ -152,7 +176,7 @@ class LibrarianController(BaseController):
                                books=self.catalog.books.all_books(),
                                form=self._book_form())
 
-    @roles_required(LIBRARIAN)
+    @permission_required(Permission.CATALOG)
     def edit_book(self, book_id: int):
         if self.catalog is None:
             return render_template("errors/404.html"), 404
@@ -168,9 +192,77 @@ class LibrarianController(BaseController):
             except (ValidationError, sqlite3.IntegrityError) as error:
                 flash(getattr(error, "message", "ISBN already exists."),
                       "error")
-        return render_template("librarian/book_edit.html", book=book)
+        ebooks = self.ebooks.for_book(book_id) if self.ebooks else []
+        return render_template("librarian/book_edit.html", book=book,
+                               ebooks=ebooks)
 
-    @roles_required(LIBRARIAN)
+    @permission_required(Permission.CATALOG)
+    def inventory_page(self):
+        """Batch barcode scan against the catalog (FR-LIB-12)."""
+        form = {"shelf": request.form.get("shelf", ""),
+                "barcodes": request.form.get("barcodes", "")}
+        result = None
+        status = 200
+        if request.method == "POST":
+            try:
+                result = self.inventory.check(g.user, form["shelf"],
+                                              form["barcodes"])
+            except ValidationError as error:
+                flash(error.message, "error")
+                status = 400
+        return render_template("librarian/inventory.html", form=form,
+                               shelves=self.inventory.shelves(),
+                               result=result), status
+
+    @permission_required(Permission.CATALOG)
+    def upload_ebook(self, book_id: int):
+        """Upload a PDF or EPUB for a book (FR-LIB-14)."""
+        upload = request.files.get("file")
+        try:
+            ebook = self.ebooks.upload(
+                g.user, book_id, request.form.get("title", ""),
+                upload.read() if upload else b"")
+            flash(f"E-book uploaded: {ebook.title}.", "success")
+        except ValidationError as error:
+            flash(error.message, "error")
+        return redirect(url_for("librarian.edit_book", book_id=book_id))
+
+    @permission_required(Permission.CATALOG)
+    def update_ebook(self, ebook_id: int):
+        upload = request.files.get("file")
+        data = upload.read() if upload and upload.filename else None
+        try:
+            ebook = self.ebooks.update(g.user, ebook_id,
+                                       request.form.get("title", ""), data)
+            flash(f"E-book updated: {ebook.title}.", "success")
+            book_id = ebook.book_id
+        except ValidationError as error:
+            flash(error.message, "error")
+            book_id = self._ebook_book(ebook_id)
+        return self._back_to_book(book_id)
+
+    @permission_required(Permission.CATALOG)
+    def delete_ebook(self, ebook_id: int):
+        try:
+            ebook = self.ebooks.remove(g.user, ebook_id)
+            flash(f"E-book removed: {ebook.title}.", "success")
+            book_id = ebook.book_id
+        except ValidationError as error:
+            flash(error.message, "error")
+            book_id = None
+        return self._back_to_book(book_id)
+
+    def _ebook_book(self, ebook_id: int) -> int | None:
+        ebook = self.ebooks.ebooks.find_by_id(ebook_id)
+        return ebook.book_id if ebook else None
+
+    @staticmethod
+    def _back_to_book(book_id: int | None):
+        if book_id is None:
+            return redirect(url_for("librarian.books"))
+        return redirect(url_for("librarian.edit_book", book_id=book_id))
+
+    @permission_required(Permission.CATALOG)
     def add_copy(self, book_id: int):
         if self.catalog is None:
             return render_template("errors/404.html"), 404
@@ -183,13 +275,14 @@ class LibrarianController(BaseController):
                   "error")
         return redirect(url_for("librarian.books"))
 
-    @roles_required(LIBRARIAN)
+    @permission_required(Permission.CATALOG)
     def edit_copy(self, copy_id: int):
         if self.catalog is None:
             return render_template("errors/404.html"), 404
         try:
             book_id = int(request.form.get("book_id", ""))
-            self.catalog.manage_book(g.user, "edit_copy", request.form.to_dict(),
+            self.catalog.manage_book(g.user, "edit_copy",
+                                     request.form.to_dict(),
                                      book_id=book_id, copy_id=copy_id)
             flash("Copy details updated.", "success")
         except (ValueError, ValidationError, sqlite3.IntegrityError) as error:
@@ -197,7 +290,7 @@ class LibrarianController(BaseController):
                   "error")
         return redirect(url_for("librarian.books"))
 
-    @roles_required(LIBRARIAN)
+    @permission_required(Permission.CATALOG)
     def retire_copy(self, copy_id: int):
         if self.catalog is None:
             return render_template("errors/404.html"), 404
@@ -208,7 +301,7 @@ class LibrarianController(BaseController):
             flash(error.message, "error")
         return redirect(url_for("librarian.books"))
 
-    @roles_required(LIBRARIAN)
+    @permission_required(Permission.FINES)
     def fines_page(self):
         if self.fines is None:
             return render_template("errors/404.html"), 404
@@ -230,7 +323,7 @@ class LibrarianController(BaseController):
         return render_template("librarian/fines.html",
                                fines=self.fines.all_fines())
 
-    @roles_required(LIBRARIAN)
+    @permission_required(Permission.FINES)
     def fine_payment(self, fine_id: int):
         if self.fines is None:
             return render_template("errors/404.html"), 404
@@ -246,7 +339,7 @@ class LibrarianController(BaseController):
         return {key: request.form.get(key, "") for key in
                 ("isbn", "ddc_code", "title", "author", "category")}
 
-    @roles_required(LIBRARIAN)
+    @permission_required(Permission.READER_CARDS)
     def reader_action(self, reader_id: int, action: str):
         if action not in READER_ACTIONS:
             return render_template("errors/404.html"), 404

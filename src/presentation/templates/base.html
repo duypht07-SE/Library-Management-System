@@ -24,17 +24,33 @@
             <a class="btn" href="{{ url_for('reader.my_books') }}">My Books</a>
             <a class="btn" href="{{ url_for('reader.notifications') }}">Notifications</a>
             <a class="btn" href="{{ url_for('reader.fines') }}">My Fines</a>
+            <a class="btn" href="{{ url_for('ebooks.index') }}">E-Books</a>
             <a class="btn" href="{{ url_for('reader.profile') }}">My Profile</a>
           {% elif current_user.role.value == 'LIBRARIAN' %}
-            <a class="btn" href="{{ url_for('librarian.checkout') }}">Check Out</a>
-            <a class="btn" href="{{ url_for('librarian.checkin') }}">Check In</a>
-            <a class="btn" href="{{ url_for('librarian.readers') }}">Reader Cards</a>
-            <a class="btn" href="{{ url_for('librarian.books') }}">Books</a>
-            <a class="btn" href="{{ url_for('librarian.fines') }}">Fines</a>
+            {% if current_user.can('CIRCULATION') %}
+              <a class="btn" href="{{ url_for('librarian.checkout') }}">Check Out</a>
+              <a class="btn" href="{{ url_for('librarian.checkin') }}">Check In</a>
+            {% endif %}
+            {% if current_user.can('READER_CARDS') %}
+              <a class="btn" href="{{ url_for('librarian.readers') }}">Reader Cards</a>
+            {% endif %}
+            {% if current_user.can('CATALOG') %}
+              <a class="btn" href="{{ url_for('librarian.books') }}">Books</a>
+              <a class="btn" href="{{ url_for('librarian.inventory') }}">Inventory</a>
+            {% endif %}
+            {% if current_user.can('FINES') %}
+              <a class="btn" href="{{ url_for('librarian.fines') }}">Fines</a>
+            {% endif %}
+            <a class="btn" href="{{ url_for('auth.change_password') }}">Password</a>
           {% elif current_user.role.value == 'ADMIN' %}
             <a class="btn" href="{{ url_for('admin.librarians') }}">Librarians</a>
+            <a class="btn" href="{{ url_for('system.roles') }}">Roles</a>
             <a class="btn" href="{{ url_for('admin.rules') }}">Rules</a>
             <a class="btn" href="{{ url_for('admin.reports') }}">Reports</a>
+            <a class="btn" href="{{ url_for('system.password_resets') }}">Password Resets</a>
+            <a class="btn" href="{{ url_for('system.audit_log') }}">Audit Log</a>
+            <a class="btn" href="{{ url_for('system.backups') }}">Backups</a>
+            <a class="btn" href="{{ url_for('auth.change_password') }}">Password</a>
           {% endif %}
           <form method="post" action="{{ url_for('auth.signout') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

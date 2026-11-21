@@ -360,3 +360,37 @@ a { color: var(--link); }
 .badge--borrowed, .badge--waiting { background: #fff1c2; color: var(--gold-text); }
 .badge--ready, .badge--returned, .badge--sent { background: #d8efd9; color: var(--green); }
 .badge--overdue, .badge--canceled, .badge--failed { background: #f7d9d9; color: var(--red); }
+
+/* 1.0.0: staff menus can wrap; the Guest header keeps its 56px height */
+.topbar__inner { min-height: 56px; height: auto; flex-wrap: wrap; }
+.account { flex-wrap: wrap; justify-content: flex-end; padding: 6px 0; }
+.form__row textarea {
+  padding: 8px 10px;
+  border: 1px solid #999;
+  border-radius: 0;
+  font: inherit;
+  resize: vertical;
+}
+.checkbox-list { border: 0; padding: 0; margin: 0; }
+.checkbox-list legend { font-weight: 600; margin-bottom: 4px; }
+.checkbox-list label { display: flex; align-items: center; gap: 8px;
+  font-weight: 400; }
+.checkbox-list input { height: auto; }
+.temp-password {
+  font-family: "Courier New", monospace;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin: 8px 0;
+}
+.form--inline .form__row input[type="file"] { max-width: 260px; }
+/* a button placed directly in a form keeps its own width */
+.form > .btn { align-self: flex-start; }
+.content > h3 { margin: 20px 0 8px; }
+.actions .form--inline { display: flex; flex-wrap: wrap; align-items: center;
+  gap: 6px; border-top: 0; padding-top: 0; }
+.actions .form--inline input:not([type="file"]) { height: 30px; padding: 0 8px; }
+@media (min-width: 641px) {
+  .catalog-admin > .form--inline { flex-direction: row; flex-wrap: wrap; }
+  .catalog-admin > .form--inline > .btn { align-self: flex-end; }
+}

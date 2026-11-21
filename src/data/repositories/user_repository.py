@@ -40,15 +40,17 @@ class UserRepository(BaseRepository):
     def create(self, user: User, password_hash: str) -> User:
         """Insert a new account and put the new id on the object."""
         card_code = getattr(user, "card_code", None)
+        staff_role_id = getattr(user, "staff_role_id", None)
         user.password_hash = password_hash
         with self.db.transaction() as conn:
             cursor = conn.execute(
                 "INSERT INTO users (role, card_code, student_id, full_name,"
-                " email, phone, password_hash, status, avatar_path, created_at)"
-                " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                " email, phone, password_hash, status, avatar_path,"
+                " created_at, staff_role_id)"
+                " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 (user.role.value, card_code, user.student_id, user.full_name,
                  user.email, user.phone, password_hash, user.status.value,
-                 user.avatar_path, now().isoformat(sep=" ")))
+                 user.avatar_path, now().isoformat(sep=" "), staff_role_id))
             user.user_id = cursor.lastrowid
         return user
 
@@ -64,8 +66,31 @@ class UserRepository(BaseRepository):
         with self.db.transaction() as conn:
             conn.execute(
                 "UPDATE users SET password_hash = ?, failed_logins = 0,"
-                " locked_until = NULL WHERE user_id = ?",
+                " locked_until = NULL, must_change_password = 0"
+                " WHERE user_id = ?",
                 (password_hash, user_id))
+
+    def set_temporary_password(self, user_id: int, password_hash: str,
+                               conn: sqlite3.Connection) -> None:
+        """FR-ADM-03: the user must change it at the next sign-in."""
+        conn.execute(
+            "UPDATE users SET password_hash = ?, failed_logins = 0,"
+            " locked_until = NULL, must_change_password = 1"
+            " WHERE user_id = ?", (password_hash, user_id))
+
+    def assign_staff_role(self, user_id: int, role_id: int) -> None:
+        with self.db.transaction() as conn:
+            conn.execute("UPDATE users SET staff_role_id = ?"
+                         " WHERE user_id = ? AND role = 'LIBRARIAN'",
+                         (role_id, user_id))
+
+    def find_by_email_and_phone(self, email: str,
+                                phone: str) -> User | None:
+        row = self.db.fetch_one(
+            "SELECT * FROM users WHERE lower(email) = lower(?)"
+            " AND replace(phone, ' ', '') = ?",
+            (email.strip(), phone.replace(" ", "").strip()))
+        return UserFactory.from_row(row) if row else None
 
     def update_status(self, user_id: int, status: UserStatus) -> None:
         with self.db.transaction() as conn:

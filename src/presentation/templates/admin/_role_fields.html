@@ -1,0 +1,18 @@
+<div class="form__row">
+  <label for="name">Role name</label>
+  <input id="name" name="name" value="{{ form.name }}" maxlength="50" required>
+</div>
+<div class="form__row">
+  <label for="description">Description</label>
+  <input id="description" name="description" value="{{ form.description }}" maxlength="255">
+</div>
+<fieldset class="form__row checkbox-list">
+  <legend>Permissions</legend>
+  {% for permission in permissions %}
+    <label>
+      <input type="checkbox" name="permissions" value="{{ permission.permission_code }}"
+             {% if permission.permission_code in form.codes %}checked{% endif %}>
+      {{ permission.description }}
+    </label>
+  {% endfor %}
+</fieldset>

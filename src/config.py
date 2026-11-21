@@ -7,6 +7,8 @@ SRC_DIR = Path(__file__).resolve().parent
 PROJECT_DIR = SRC_DIR.parent
 DEFAULT_DB_PATH = PROJECT_DIR / "instance" / "library.db"
 DEFAULT_AVATAR_DIR = PROJECT_DIR / "instance" / "avatars"
+DEFAULT_EBOOK_DIR = PROJECT_DIR / "instance" / "ebooks"
+DEFAULT_BACKUP_DIR = PROJECT_DIR / "instance" / "backups"
 LOCAL_TZ = timezone(timedelta(hours=7))  # NFR-COM-03
 
 
@@ -26,8 +28,11 @@ class Config:
         self.DATABASE_PATH = Path(env("LMS_DB_PATH", DEFAULT_DB_PATH))
         self.SEED_SAMPLE_DATA = env("LMS_SEED", "1") == "1"
         self.AVATAR_DIR = Path(env("LMS_AVATAR_DIR", DEFAULT_AVATAR_DIR))
+        self.EBOOK_DIR = Path(env("LMS_EBOOK_DIR", DEFAULT_EBOOK_DIR))
+        self.BACKUP_DIR = Path(env("LMS_BACKUP_DIR", DEFAULT_BACKUP_DIR))
         self.BCRYPT_ROUNDS = int(env("LMS_BCRYPT_ROUNDS", "12"))
-        self.MAX_CONTENT_LENGTH = 2 * 1024 * 1024  # 2 MB (FR-RDR-02)
+        # avatars stay at 2 MB (FR-RDR-02); e-books and backups are larger
+        self.MAX_CONTENT_LENGTH = 100 * 1024 * 1024
         # NFR-SEC-05
         self.PERMANENT_SESSION_LIFETIME = timedelta(minutes=30)
         self.SESSION_COOKIE_HTTPONLY = True
@@ -45,5 +50,7 @@ class TestConfig(Config):
         self.SECRET_KEY = "test-secret"
         self.DATABASE_PATH = Path(database_path)
         self.AVATAR_DIR = Path(database_path).parent / "avatars"
+        self.EBOOK_DIR = Path(database_path).parent / "ebooks"
+        self.BACKUP_DIR = Path(database_path).parent / "backups"
         self.BCRYPT_ROUNDS = 4
         self.TESTING = True

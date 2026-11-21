@@ -1,5 +1,5 @@
 from data.repositories.base_repository import BaseRepository
-from models import Book, BookCopy
+from models import Book, BookCopy, ShelfCopy
 
 _BOOK_WITH_AVAILABLE = """
     SELECT b.*,
@@ -47,7 +47,8 @@ class BookRepository(BaseRepository):
             clauses.append("b.category = ? COLLATE NOCASE")
             params.append(category)
         where = " WHERE " + " AND ".join(clauses) if clauses else ""
-        sql = _BOOK_WITH_AVAILABLE + where + " ORDER BY b.title COLLATE NOCASE, b.book_id"
+        sql = (_BOOK_WITH_AVAILABLE + where
+               + " ORDER BY b.title COLLATE NOCASE, b.book_id")
         if limit is not None:
             sql += " LIMIT ? OFFSET ?"
             params.extend([limit, offset])
@@ -133,3 +134,37 @@ class BookRepository(BaseRepository):
 
     def count(self) -> int:
         return self.db.fetch_one("SELECT COUNT(*) AS n FROM books")["n"]
+
+    def shelf_locations(self) -> list[str]:
+        rows = self.db.fetch_all(
+            "SELECT DISTINCT shelf_location FROM book_copies"
+            " WHERE status <> 'CANCELED' ORDER BY shelf_location")
+        return [r["shelf_location"] for r in rows]
+
+    def shelf_copies(self, shelf: str = "") -> list[ShelfCopy]:
+        """Copies the catalog expects on the shelf (FR-LIB-12)."""
+        sql = _SHELF_COPY + " WHERE c.status = 'AVAILABLE'"
+        params: tuple = ()
+        if shelf:
+            sql += " AND c.shelf_location = ?"
+            params = (shelf,)
+        return [_shelf_copy(r) for r in
+                self.db.fetch_all(sql + " ORDER BY c.barcode", params)]
+
+    def copies_by_barcodes(self, barcodes: list[str]) -> dict[str, ShelfCopy]:
+        if not barcodes:
+            return {}
+        marks = ", ".join("?" for _ in barcodes)
+        rows = self.db.fetch_all(
+            _SHELF_COPY + f" WHERE upper(c.barcode) IN ({marks})",
+            tuple(barcodes))
+        return {r["barcode"].upper(): _shelf_copy(r) for r in rows}
+
+
+_SHELF_COPY = ("SELECT c.barcode, c.book_id, b.title, c.shelf_location,"
+               " c.status FROM book_copies c JOIN books b USING (book_id)")
+
+
+def _shelf_copy(row) -> ShelfCopy:
+    return ShelfCopy(row["barcode"].upper(), row["book_id"], row["title"],
+                     row["shelf_location"], row["status"])

@@ -76,7 +76,8 @@ class AccountService:
 
     def create_librarian(self, actor: Administrator, full_name: str,
                          email: str, phone: str, password: str,
-                         student_id: str | None = None) -> Librarian:
+                         student_id: str | None = None,
+                         staff_role_id: int | None = None) -> Librarian:
         full_name = validate_full_name(full_name)
         email = validate_email(email)
         phone = validate_phone(phone)
@@ -92,7 +93,8 @@ class AccountService:
                 "This Student/Staff ID is already registered.")
         librarian = Librarian(
             user_id=None, full_name=full_name, email=email, phone=phone,
-            password_hash="", status=UserStatus.ACTIVE, student_id=student_id)
+            password_hash="", status=UserStatus.ACTIVE, student_id=student_id,
+            staff_role_id=staff_role_id)
         try:
             return self.users.create(librarian, self.hasher.hash(password))
         except sqlite3.IntegrityError as error:

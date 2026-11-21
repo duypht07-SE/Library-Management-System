@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Backup and Restore{% endblock %}
+
+{% block content %}
+<h1 class="section-title"><span>Backup and Restore</span></h1>
+<p class="muted page-intro">A backup is a full copy of the library database.
+   Before every restore, the system saves the current data as an automatic
+   backup, so a restore can be undone.</p>
+
+<form class="form form--inline" method="post" action="{{ url_for('system.backups') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button class="btn btn--primary" type="submit">Create Backup Now</button>
+</form>
+
+<h2 class="subheading">Saved backups</h2>
+<div class="table-wrap">
+  <table class="table">
+    <thead><tr><th>File</th><th>Size</th><th>Created</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for backup in backups %}
+        <tr>
+          <td>{{ backup.name }}</td>
+          <td>{{ backup.size_label }}</td>
+          <td>{{ backup.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+          <td class="actions">
+            <a class="btn btn--small" href="{{ url_for('system.download_backup', name=backup.name) }}">Download</a>
+            <form method="post" action="{{ url_for('system.restore_backup', name=backup.name) }}"
+                  data-confirm="Restore this backup? Changes made after it was created will be replaced.">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn--small btn--danger" type="submit">Restore</button>
+            </form>
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="4" class="muted">There are no backups yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<h2 class="subheading">Restore from a file</h2>
+<form class="form form--inline" method="post" enctype="multipart/form-data"
+      action="{{ url_for('system.upload_backup') }}"
+      data-confirm="Restore the database from this file? The current data will be replaced.">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="form__row">
+    <label for="file">Backup file (.db)</label>
+    <input id="file" name="file" type="file" accept=".db" required>
+  </div>
+  <button class="btn btn--danger" type="submit">Restore from File</button>
+</form>
+{% endblock %}

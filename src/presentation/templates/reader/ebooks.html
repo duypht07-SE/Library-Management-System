@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}E-Books{% endblock %}
+
+{% block content %}
+<h1 class="section-title"><span>E-Books</span></h1>
+<p class="muted page-intro">E-books and digital course materials. Open a PDF
+   in the browser or download a PDF or EPUB file.</p>
+<div class="table-wrap"><table class="table">
+  <thead><tr><th>E-book</th><th>Book</th><th>Format</th><th>Size</th><th>Actions</th></tr></thead>
+  <tbody>
+    {% for ebook in ebooks %}
+      <tr>
+        <td>{{ ebook.title }}</td>
+        <td><a href="{{ url_for('guest.book_detail', book_id=ebook.book_id) }}">{{ ebook.book_title }}</a></td>
+        <td>{{ ebook.file_format.value }}</td>
+        <td>{{ ebook.size_label }}</td>
+        <td class="actions">
+          {% if ebook.can_read_online %}
+            <a class="btn btn--small btn--primary" href="{{ url_for('ebooks.read', ebook_id=ebook.ebook_id) }}" target="_blank" rel="noopener">Read Online</a>
+          {% endif %}
+          <a class="btn btn--small" href="{{ url_for('ebooks.download', ebook_id=ebook.ebook_id) }}">Download</a>
+        </td>
+      </tr>
+    {% else %}
+      <tr><td colspan="5" class="muted">No e-books are available yet.</td></tr>
+    {% endfor %}
+  </tbody>
+</table></div>
+{% endblock %}

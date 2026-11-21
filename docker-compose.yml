@@ -6,8 +6,10 @@ services:
       - "5000:5000"
     environment:
       LMS_SECRET_KEY: ${LMS_SECRET_KEY:-change-me-in-production}
-      LMS_DEBUG: ${LMS_DEBUG:-1}
+      LMS_DEBUG: ${LMS_DEBUG:-0}
       LMS_AVATAR_DIR: ${LMS_AVATAR_DIR:-/app/instance/avatars}
+      LMS_EBOOK_DIR: ${LMS_EBOOK_DIR:-/app/instance/ebooks}
+      LMS_BACKUP_DIR: ${LMS_BACKUP_DIR:-/app/instance/backups}
       LMS_BCRYPT_ROUNDS: ${LMS_BCRYPT_ROUNDS:-12}
       LMS_SESSION_COOKIE_SECURE: ${LMS_SESSION_COOKIE_SECURE:-0}
     volumes:

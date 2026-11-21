@@ -1,5 +1,25 @@
 PRAGMA foreign_keys = ON;
 
+CREATE TABLE IF NOT EXISTS staff_roles (
+    role_id      INTEGER PRIMARY KEY AUTOINCREMENT,
+    name         VARCHAR(50)  NOT NULL UNIQUE,
+    description  VARCHAR(255) NOT NULL DEFAULT ''
+);
+
+CREATE TABLE IF NOT EXISTS permissions (
+    permission_code  VARCHAR(30)  PRIMARY KEY,
+    description      VARCHAR(255) NOT NULL
+);
+
+-- n-n between staff_roles and permissions (FR-ADM-02)
+CREATE TABLE IF NOT EXISTS role_permissions (
+    role_id          INTEGER     NOT NULL
+                     REFERENCES staff_roles (role_id) ON DELETE CASCADE,
+    permission_code  VARCHAR(30) NOT NULL
+                     REFERENCES permissions (permission_code),
+    PRIMARY KEY (role_id, permission_code)
+);
+
 CREATE TABLE IF NOT EXISTS users (
     user_id        INTEGER PRIMARY KEY AUTOINCREMENT,
     role           VARCHAR(20)  NOT NULL CHECK (role IN ('READER', 'LIBRARIAN', 'ADMIN')),
@@ -14,7 +34,9 @@ CREATE TABLE IF NOT EXISTS users (
     status         VARCHAR(20)  NOT NULL DEFAULT 'PENDING'
                    CHECK (status IN ('PENDING', 'ACTIVE', 'LOCKED', 'REJECTED')),
     failed_logins  INTEGER      NOT NULL DEFAULT 0,
-    locked_until   DATETIME
+    locked_until   DATETIME,
+    staff_role_id  INTEGER      REFERENCES staff_roles (role_id),
+    must_change_password INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS books (
@@ -89,6 +111,36 @@ CREATE TABLE IF NOT EXISTS notifications (
     sent_at          DATETIME
 );
 
+CREATE TABLE IF NOT EXISTS ebooks (
+    ebook_id     INTEGER PRIMARY KEY AUTOINCREMENT,
+    book_id      INTEGER      NOT NULL REFERENCES books (book_id),
+    title        VARCHAR(255) NOT NULL,
+    file_format  VARCHAR(10)  NOT NULL CHECK (file_format IN ('PDF', 'EPUB')),
+    file_path    VARCHAR(255) NOT NULL UNIQUE,
+    file_size    INTEGER      NOT NULL CHECK (file_size > 0),
+    uploaded_by  INTEGER      NOT NULL REFERENCES users (user_id),
+    uploaded_at  DATETIME     NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS password_reset_requests (
+    request_id    INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id       INTEGER  NOT NULL REFERENCES users (user_id),
+    requested_at  DATETIME NOT NULL,
+    status        VARCHAR(20) NOT NULL DEFAULT 'PENDING'
+                  CHECK (status IN ('PENDING', 'COMPLETED', 'REJECTED')),
+    handled_by    INTEGER  REFERENCES users (user_id),
+    handled_at    DATETIME
+);
+
+CREATE TABLE IF NOT EXISTS audit_logs (
+    log_id      INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id     INTEGER      REFERENCES users (user_id),
+    action      VARCHAR(50)  NOT NULL,
+    details     VARCHAR(255) NOT NULL,
+    ip_address  VARCHAR(45),
+    created_at  DATETIME     NOT NULL
+);
+
 CREATE INDEX IF NOT EXISTS idx_books_title      ON books (title);
 CREATE INDEX IF NOT EXISTS idx_books_author     ON books (author);
 CREATE INDEX IF NOT EXISTS idx_books_category   ON books (category);
@@ -98,3 +150,6 @@ CREATE INDEX IF NOT EXISTS idx_borrow_due       ON borrow_records (status, due_d
 CREATE INDEX IF NOT EXISTS idx_reservation_book ON reservations (book_id, status, reserve_date);
 CREATE INDEX IF NOT EXISTS idx_fines_borrow     ON fines (borrow_id, is_paid);
 CREATE INDEX IF NOT EXISTS idx_fines_paid_at    ON fines (paid_at, is_paid);
+CREATE INDEX IF NOT EXISTS idx_ebooks_book      ON ebooks (book_id);
+CREATE INDEX IF NOT EXISTS idx_reset_status     ON password_reset_requests (status, requested_at);
+CREATE INDEX IF NOT EXISTS idx_audit_created    ON audit_logs (created_at);
