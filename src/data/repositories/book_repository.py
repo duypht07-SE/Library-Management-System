@@ -33,7 +33,8 @@ class BookRepository(BaseRepository):
             _BOOK_WITH_AVAILABLE + " ORDER BY b.book_id LIMIT ?", (limit,))
         return [Book.from_row(r) for r in rows]
 
-    def search(self, keyword: str = "", category: str = "") -> list[Book]:
+    def search(self, keyword: str = "", category: str = "", *,
+               limit: int | None = None, offset: int = 0) -> list[Book]:
         clauses = []
         params = []
         if keyword:
@@ -46,9 +47,11 @@ class BookRepository(BaseRepository):
             clauses.append("b.category = ? COLLATE NOCASE")
             params.append(category)
         where = " WHERE " + " AND ".join(clauses) if clauses else ""
-        rows = self.db.fetch_all(
-            _BOOK_WITH_AVAILABLE + where + " ORDER BY b.title COLLATE NOCASE",
-            params)
+        sql = _BOOK_WITH_AVAILABLE + where + " ORDER BY b.title COLLATE NOCASE, b.book_id"
+        if limit is not None:
+            sql += " LIMIT ? OFFSET ?"
+            params.extend([limit, offset])
+        rows = self.db.fetch_all(sql, params)
         return [Book.from_row(row) for row in rows]
 
     def save_book(self, values: dict, book_id: int | None = None) -> int:

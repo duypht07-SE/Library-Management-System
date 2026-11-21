@@ -208,3 +208,78 @@ def test_administrator_views_monthly_yearly_reports_and_csv(client):
 def test_0_3_pages_enforce_role_access(client, email, url):
     sign_in(client, email)
     assert client.get(url).status_code == 403
+
+
+def test_overdue_by_due_period_survives_return(library_app, monkeypatch):
+    from datetime import datetime
+    from data.repositories import report_repository
+
+    monkeypatch.setattr(report_repository, "now", lambda: datetime(2010, 2, 15))
+    rows = [
+        ("2010-02-01 00:00:00", "2010-03-01 00:00:00", "RETURNED"),
+        ("2010-02-02 00:00:00", None, "BORROWED"),
+        ("2010-02-03 00:00:00", "2010-02-03 00:00:00", "RETURNED"),
+        ("2010-02-15 00:00:00", None, "BORROWED"),
+        ("2010-03-01 00:00:00", "2010-03-02 00:00:00", "RETURNED"),
+    ]
+    with library_app.database.transaction() as conn:
+        conn.executemany(
+            "INSERT INTO borrow_records (reader_id,copy_id,librarian_id,"
+            "borrow_date,due_date,return_date,status) "
+            "VALUES (3,1,2,'2010-01-01',?,?,?)", rows)
+    report = library_app.reports.monthly("2010-02-01 00:00:00", "2010-03-01 00:00:00")
+    assert report["overdue"] == 2
+
+
+def test_tc40_last_usable_copy_cancels_queue_and_notifies(client, library_app):
+    db = library_app.database
+    sign_in(client, "librarian@library.test")
+    with db.transaction() as conn:
+        conn.execute("UPDATE book_copies SET status='CANCELED' WHERE copy_id=40")
+        conn.executemany(
+            "INSERT INTO reservations (reader_id,book_id,reserve_date) "
+            "VALUES (?,20,CURRENT_TIMESTAMP)", [(3,), (7,)])
+        last_notice = conn.execute("SELECT MAX(notification_id) FROM notifications").fetchone()[0]
+    response = post(client, "/librarian/books", "/librarian/copies/20/retire", {})
+    assert response.status_code == 302
+    assert db.fetch_one("SELECT status FROM book_copies WHERE copy_id=20")[0] == "CANCELED"
+    queue = db.fetch_all("SELECT reader_id,status FROM reservations WHERE book_id=20 ORDER BY reader_id")
+    assert [tuple(row) for row in queue] == [(3, "CANCELED"), (7, "CANCELED")]
+    notices = db.fetch_all("SELECT reader_id,message FROM notifications "
+                           "WHERE notification_id>? ORDER BY reader_id", (last_notice,))
+    assert [row["reader_id"] for row in notices] == [3, 7]
+    assert all("reservation was canceled" in row["message"] for row in notices)
+    assert db.fetch_one("SELECT status FROM reservations WHERE reservation_id=2")[0] == "WAITING"
+
+
+def test_search_at_100000_titles(client, library_app):
+    from time import perf_counter
+
+    db = library_app.database
+    missing = 100000 - library_app.books.book_count()
+    with db.transaction() as conn:
+        conn.executemany(
+            "INSERT INTO books (isbn,ddc_code,title,author,category) "
+            "VALUES (?, '001', ?, 'Scale Author', 'Other')",
+            ((f"load-{i}", f"Scale {i:06d}") for i in range(missing)))
+        conn.execute("INSERT INTO book_copies (book_id,barcode,shelf_location) "
+                     "SELECT book_id,isbn,'A' FROM books WHERE isbn LIKE 'load-%'")
+    assert library_app.books.book_count() == 100000
+    for query, expected in [
+        ("q=Scale&category=Other", "Scale 000000"),
+        ("q=Scale&category=Other&page=2", "Scale 000025"),
+        (f"q=load-{missing-1}", f"Scale {missing-1:06d}"),
+        ("q=NoSuchTitle", "No matching books"),
+    ]:
+        start = perf_counter()
+        response = client.get("/search?" + query)
+        html = response.get_data(as_text=True)
+        elapsed = perf_counter() - start
+        print(f"{query}: {elapsed:.3f}s")
+        assert response.status_code == 200 and expected in html
+        assert elapsed <= 2.0
+        if "category" in query:
+            assert html.count("1 available") == 25
+            assert 'rel="next"' in html and "category=Other" in html
+        if "page=2" in query:
+            assert "Scale 000000" not in html and 'rel="prev"' in html
