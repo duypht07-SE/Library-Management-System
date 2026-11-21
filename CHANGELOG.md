@@ -101,5 +101,5 @@ Testing:
 - [x] 311 automated tests pass on Windows and in Docker.
 - [x] Test cases TC01 to TC92 in `docs/Test_Cases.xlsx` (course template), with test data in `docs/test_data/`; TC37 to TC48, TC56, and TC58 now have exact input data.
 - [x] Test results, defects, and requirement traceability in `docs/Test_Report.md`.
-- [ ] Report each defect (D1 to D8) as a GitHub Issue.
-- [ ] Tag the release after the merge: `git tag v1.0.0`.
+- [x] Report each defect (D1 to D8) as a GitHub Issue (#16 to #23, closed by PR #24).
+- [x] Tag the release after the merge: `git tag v1.0.0`.
