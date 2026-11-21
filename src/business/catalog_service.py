@@ -21,8 +21,10 @@ class CatalogService:
     def new_books(self, limit: int = 5) -> list[Book]:
         return self.books.find_featured(limit)
 
-    def search(self, keyword: str = "", category: str = "") -> list[Book]:
-        return self.books.search(keyword.strip()[:100], category.strip()[:100])
+    def search(self, keyword: str = "", category: str = "", *,
+               limit: int | None = None, offset: int = 0) -> list[Book]:
+        return self.books.search(keyword.strip()[:100], category.strip()[:100],
+                                 limit=limit, offset=offset)
 
     def manage_book(self, librarian: Librarian, action: str,
                     values: dict, book_id: int | None = None,

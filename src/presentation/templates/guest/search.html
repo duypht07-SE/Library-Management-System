@@ -21,4 +21,8 @@
       <td>{% if book.available_copies %}{{ book.available_copies }} available{% else %}Out of stock{% endif %}</td></tr>
   {% else %}<tr><td colspan="5" class="muted">No matching books were found.</td></tr>{% endfor %}</tbody>
 </table></div>
+<nav aria-label="Search result pages">
+  {% if page > 1 %}<a rel="prev" href="{{ url_for('guest.search', q=keyword, category=category, page=page-1) }}">Previous</a>{% endif %}
+  {% if has_next %}<a rel="next" href="{{ url_for('guest.search', q=keyword, category=category, page=page+1) }}">Next</a>{% endif %}
+</nav>
 {% endblock %}

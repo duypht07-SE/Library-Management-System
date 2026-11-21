@@ -164,7 +164,7 @@ Run `pytest` (or `docker compose run --rm web pytest`) before every commit. All 
 
 Test names end with the requirement they check, for example `test_login_lock_nfr_sec_06`.
 
-Manual test cases TC01 to TC91 are in [`docs/Test_Cases.xlsx`](docs/Test_Cases.xlsx), written with the course Testing Document Template. Test files for them are in [`docs/test_data/`](docs/test_data/). The results, the defects, and the requirement traceability are in [`docs/Test_Report.md`](docs/Test_Report.md). Defects are tracked as GitHub Issues.
+Manual test cases TC01 to TC92 are in [`docs/Test_Cases.xlsx`](docs/Test_Cases.xlsx), written with the course Testing Document Template. Test files for them are in [`docs/test_data/`](docs/test_data/). The results, the defects, and the requirement traceability are in [`docs/Test_Report.md`](docs/Test_Report.md). Defects are tracked as GitHub Issues.
 
 ## Tech Stack
 

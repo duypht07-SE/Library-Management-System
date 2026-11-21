@@ -1,3 +1,4 @@
+from config import now
 from data.repositories.base_repository import BaseRepository
 
 
@@ -12,8 +13,9 @@ class ReportRepository(BaseRepository):
                 (start, end))["n"],
             "overdue": self.db.fetch_one(
                 "SELECT COUNT(*) n FROM borrow_records "
-                "WHERE status='OVERDUE' AND borrow_date >= ? "
-                "AND borrow_date < ?", (start, end))["n"],
+                "WHERE due_date >= ? AND due_date < ? "
+                "AND COALESCE(return_date, ?) > due_date",
+                (start, end, now().isoformat(sep=" ")))["n"],
             "fines_collected": self.db.fetch_one(
                 "SELECT COALESCE(SUM(amount), 0) n FROM fines "
                 "WHERE is_paid=1 AND paid_at >= ? AND paid_at < ?",

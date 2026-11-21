@@ -6,7 +6,7 @@ The tests follow the testing process in Chapter 5: design test cases → prepare
 
 | Item | Location |
 |---|---|
-| Test cases (course Testing Document Template) | [`docs/Test_Cases.xlsx`](Test_Cases.xlsx), TC01 to TC91 |
+| Test cases (course Testing Document Template) | [`docs/Test_Cases.xlsx`](Test_Cases.xlsx), TC01 to TC92 |
 | Test data | [`docs/test_data/`](test_data/) and the sample data in `src/data/seed.sql` |
 | Automated tests (pytest) | `tests/` |
 | Defects | GitHub Issues, label `bug` (one issue per defect in Section 4) |
@@ -21,12 +21,12 @@ The tests follow the testing process in Chapter 5: design test cases → prepare
 
 ## 2. Automated Tests (Development Testing)
 
-`docker compose run --rm web pytest` and `pytest` on Windows: **308 passed, 0 failed** on both platforms.
+`docker compose run --rm web pytest` and `pytest` on Windows: **311 passed, 0 failed** on both platforms.
 
 | Level | Files | Tests |
 |---|---|---|
 | Unit: each class and method, equivalence partitions and boundary values | `test_models.py`, `test_auth.py` | 82 |
-| Component: services, repositories, transactions | `test_database.py`, `test_accounts.py`, `test_catalog_fines_reports.py`, `test_circulation.py` | 79 |
+| Component: services, repositories, transactions | `test_database.py`, `test_accounts.py`, `test_catalog_fines_reports.py`, `test_circulation.py` | 82 |
 | System: pages through the Flask test client | `test_pages.py`, `test_auth_pages.py` | 54 |
 | 1.0.0 features (unit + component + system) | `test_staff_roles.py` 19, `test_password_reset.py` 18, `test_audit_log.py` 7, `test_inventory.py` 13, `test_ebooks.py` 18, `test_backup.py` 13 | 88 |
 | Regression tests for the defects in Section 4 | `test_regressions.py` | 5 |
@@ -48,7 +48,7 @@ Every test case was run on the 1.0.0 build. The results matched the Expected Res
 | TC20–TC36 | Docker build with an HTTP script (sign-in, lock, register, cards, rules, CSRF) and the system tests in `test_auth_pages.py` | Pass |
 | TC37–TC48, TC56, TC58 (rewritten with exact data) | Script that executes each step and checks the expected message | Pass |
 | TC49–TC63 | Docker build with an HTTP script and the system tests in `test_circulation.py` | Pass |
-| TC64–TC91 (new in 1.0.0) | Script that executes each step and checks the expected message; Chrome for the screens | Pass |
+| TC64–TC92 (new in 1.0.0) | Script that executes each step and checks the expected message; Chrome for the screens | Pass |
 
 ## 4. Defects Found and Fixed
 
@@ -82,7 +82,7 @@ Each functional requirement has at least one test case and at least one automate
 | FR-RDR-06 Borrowing history | TC60 | `test_circulation.py` |
 | FR-RDR-07 Read e-books | TC81–TC83 | `test_ebooks.py` |
 | FR-RDR-08 View fines | TC44 | `test_catalog_fines_reports.py` |
-| FR-LIB-01 to FR-LIB-05 Books and copies | TC37–TC41 | `test_catalog_fines_reports.py` |
+| FR-LIB-01 to FR-LIB-05 Books and copies | TC37–TC41, TC92 | `test_catalog_fines_reports.py` |
 | FR-LIB-06, FR-LIB-07 Check out | TC49–TC51 | `test_circulation.py` |
 | FR-LIB-08, FR-LIB-09 Check in, fines | TC46, TC52–TC55, TC88 | `test_circulation.py`, `test_regressions.py` |
 | FR-LIB-10, FR-LIB-11 Reader cards | TC31, TC32 | `test_accounts.py`, `test_auth_pages.py` |
