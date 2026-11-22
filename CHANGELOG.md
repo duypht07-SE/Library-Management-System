@@ -10,6 +10,7 @@ Each member owns one version. The next member starts after the previous version 
 | 0.4.0 | Tài | Borrowing, returning, reservations, daily jobs | Thắng |
 | 1.0.0 | Everyone | Testing, bug fixes, demo | Everyone |
 | 1.0.1 | Duy, Sang, Tài, Thắng (in parallel) | Code fixes for 4 NFRs | Thắng |
+| 1.0.2 | Thắng | UI review in Chrome and display fixes | Duy |
 
 ## How to Work
 
@@ -145,4 +146,17 @@ Rules:
 - [x] Review the merged changes; run `pytest` and `docker compose up --build`.
 - [x] Fixed in review: a database error during the daily backup stopped the whole daily job (D13); every start-up made one more daily backup (D14); 5 lines over 80 characters and 5 files without a final newline; a pytest collection warning.
 - [x] Add the new test cases to `docs/Test_Cases.xlsx` (TC93 to TC105) and update `docs/Test_Report.md` (D9 to D14, NFR traceability, 362 tests).
-- [ ] Tag `v1.0.1` and create the GitHub Release.
+- [x] Tag `v1.0.1` and create the GitHub Release.
+
+## [1.0.2] - 2026-11-22: UI Review
+
+**Owner: Thắng · Reviewer: Duy**
+
+Every page was opened in Chrome with each role (Guest, Reader, Librarian, Administrator), with error and success messages, and the Guest and Reader pages also at 360 px. A script on each page checked for sideways scrolling, elements outside the screen, broken images, YYYY-MM-DD dates, leftover template text, clipped text, and JavaScript errors. No such problem was found. Fixed:
+
+- [x] UI-1: the Reader menu on a 360 px phone took 238 px; smaller menu buttons under 760 px (206 px) (NFR-USA-04).
+- [x] UI-2: Check Out errors now say what is wrong and what to do next, for example "Reader has unpaid fines of 15,000 VND. Record the cash payment on the Fines page first." (NFR-USA-03).
+- [x] UI-3: space above headings on Fines and Book details.
+- [x] UI-4: temporary passwords no longer use look-alike characters (0/O/o, 1/l/I).
+- [x] Test cases TC106 (360 px pages) and TC107 (Check Out messages); 364 automated tests pass on Windows and in Docker.
+- [ ] Tag `v1.0.2` and create the GitHub Release.

@@ -65,3 +65,27 @@ def test_old_database_is_upgraded(tmp_path):
         "SELECT name FROM sqlite_master WHERE type = 'table'")}
     assert {"staff_roles", "role_permissions", "ebooks", "audit_logs",
             "password_reset_requests"} <= tables
+
+
+def test_ui2_check_out_errors_say_what_to_do_nfr_usa_03(client):
+    """Errors name the problem and the next step (NFR-USA-03)."""
+    signin(client, "librarian@library.test")
+    cases = [
+        ("RD-0001", "LIB-00071", "Reader has unpaid fines of 15,000 VND. "
+         "Record the cash payment on the Fines page first."),
+        ("RD-0002", "LIB-00071", "Check them in before lending"),
+        ("RD-0003", "LIB-00071", "Reader card is locked. Approve or unlock"),
+        ("RD-9999", "LIB-00071", "Check the card code and scan it again"),
+        ("RD-0004", "LIB-99999", "Check the barcode and scan it again"),
+    ]
+    for card, barcode, message in cases:
+        page = post_form(client, "/librarian/checkout", "/librarian/checkout",
+                         {"card_code": card, "barcode": barcode})
+        assert message in text(page), card
+
+
+def test_ui4_temporary_password_has_no_look_alike_characters():
+    from business.password_reset_service import make_temporary_password
+
+    for _ in range(200):
+        assert not set(make_temporary_password()) & set("0Oo1lI")

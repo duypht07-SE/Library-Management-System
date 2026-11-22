@@ -11,11 +11,14 @@ from data.repositories import PasswordResetRepository, UserRepository
 from models import Administrator, Role, User
 
 TEMP_PASSWORD_LENGTH = 10
+AMBIGUOUS = "0Oo1lI"
 
 
 def make_temporary_password() -> str:
     """Random letters and digits that pass validate_password."""
-    alphabet = string.ascii_letters + string.digits
+    # no 0/O/o, 1/l/I: the Administrator reads it out at the desk
+    alphabet = "".join(c for c in string.ascii_letters + string.digits
+                       if c not in AMBIGUOUS)
     while True:
         password = "".join(secrets.choice(alphabet)
                            for _ in range(TEMP_PASSWORD_LENGTH))
