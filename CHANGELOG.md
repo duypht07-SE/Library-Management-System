@@ -127,9 +127,9 @@ Rules:
 
 ### Sang: NFR-COM-03, dates as DD/MM/YYYY
 
-- [ ] Add a Jinja filter `date_vn` in `app.py` that turns a `datetime` or a text like `2026-11-16 10:00:00` into `16/11/2026` (and `16/11/2026 10:00` when the time is needed).
-- [ ] Use it in `reader/my_books.html`, `librarian/checkout.html`, `librarian/checkin.html`, `librarian/fines.html`, and `admin/password_resets.html` (they show `2026-11-16` today).
-- [ ] pytest: the filter with a `datetime`, a text date, an empty value; My Books shows `DD/MM/YYYY`.
+- [x] Add a Jinja filter `date_vn` in `app.py` that turns a `datetime` or a text like `2026-11-16 10:00:00` into `16/11/2026` (and `16/11/2026 10:00` when the time is needed).
+- [x] Use it in `reader/my_books.html`, `librarian/checkout.html`, `librarian/checkin.html`, `librarian/fines.html`, and `admin/password_resets.html` (they show `2026-11-16` today).
+- [x] pytest: the filter with a `datetime`, a text date, an empty value; My Books shows `DD/MM/YYYY`.
 
 ### Tài: NFR-REL-04, daily backup in two places
 
