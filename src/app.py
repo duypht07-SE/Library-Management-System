@@ -94,8 +94,6 @@ class LibraryApp:
         self.circulation_service = CirculationService(
             self.circulation, self.rule_service,
             self.fine_service, self.notifications)
-        self.daily_job_service = DailyJobService(
-            self.circulation, self.notifications, self.rule_service)
         self.role_service = RoleService(self.staff_roles, self.users)
         self.audit_service = AuditService(self.audit_logs)
         self.password_reset_service = PasswordResetService(
@@ -103,8 +101,12 @@ class LibraryApp:
         self.inventory_service = InventoryService(self.books)
         self.ebook_service = EbookService(self.ebooks, self.books,
                                           self.config.EBOOK_DIR)
-        self.backup_service = BackupService(self.database,
-                                            self.config.BACKUP_DIR)
+        self.backup_service = BackupService(
+            self.database, self.config.BACKUP_DIR,
+            copy_dir=self.config.BACKUP_COPY_DIR)
+        self.daily_job_service = DailyJobService(
+            self.circulation, self.notifications, self.rule_service,
+            self.backup_service, self.audit_service)
 
         presentation = SRC_DIR / "presentation"
         self.flask = Flask(

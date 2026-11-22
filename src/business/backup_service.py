@@ -1,4 +1,5 @@
 import re
+import shutil
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -10,7 +11,10 @@ from data.database import Database, is_sqlite_backup
 from models import Administrator
 
 NAME_PATTERN = re.compile(r"^library-\d{8}-\d{6}(-\d+)?(-[a-z]+)?\.db$")
+DAILY_PATTERN = re.compile(
+    r"^library-(\d{8}-\d{6})(?:-(\d+))?-daily\.db$")
 MAX_BACKUP_BYTES = 100 * 1024 * 1024
+DAILY_RETENTION = 30
 
 
 @dataclass(frozen=True)
@@ -28,9 +32,11 @@ class BackupService:
     """Back up (FR-ADM-06) and restore (FR-ADM-07) the database."""
 
     def __init__(self, database: Database, backup_dir: Path,
-                 clock: Callable[[], datetime] = now) -> None:
+                 clock: Callable[[], datetime] = now,
+                 copy_dir: Path | None = None) -> None:
         self.database = database
         self.backup_dir = Path(backup_dir)
+        self.copy_dir = Path(copy_dir) if copy_dir is not None else None
         self.clock = clock
 
     def backups(self) -> list[BackupFile]:
@@ -44,10 +50,40 @@ class BackupService:
                            datetime.fromtimestamp(p.stat().st_mtime))
                 for p in files]
 
-    def create(self, admin: Administrator, label: str = "") -> BackupFile:
+    def create(self, admin: Administrator | None = None,
+               label: str = "") -> BackupFile:
         target = self._new_path(label)
         self.database.backup_to(target)
         return BackupFile(target.name, target.stat().st_size, self.clock())
+
+    def copy_backup(self, name: str) -> Path:
+        if self.copy_dir is None:
+            raise OSError("Backup copy directory is not configured.")
+        source = self.path_of(name)
+        self.copy_dir.mkdir(parents=True, exist_ok=True)
+        destination = self.copy_dir / source.name
+        shutil.copy2(source, destination)
+        return destination
+
+    def prune_daily(self, folder: Path,
+                    keep: int = DAILY_RETENTION) -> int:
+        directory = Path(folder)
+        if not directory.is_dir():
+            return 0
+        matched = []
+        for path in directory.iterdir():
+            if not path.is_file():
+                continue
+            found = DAILY_PATTERN.match(path.name)
+            if found:
+                order = (found.group(1), int(found.group(2) or 1))
+                matched.append((order, path))
+        matched.sort(key=lambda item: item[0], reverse=True)
+        removed = 0
+        for _, old_path in matched[keep:]:
+            old_path.unlink()
+            removed += 1
+        return removed
 
     def restore(self, admin: Administrator, name: str) -> BackupFile:
         source = self.path_of(name)
