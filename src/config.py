@@ -9,6 +9,7 @@ DEFAULT_DB_PATH = PROJECT_DIR / "instance" / "library.db"
 DEFAULT_AVATAR_DIR = PROJECT_DIR / "instance" / "avatars"
 DEFAULT_EBOOK_DIR = PROJECT_DIR / "instance" / "ebooks"
 DEFAULT_BACKUP_DIR = PROJECT_DIR / "instance" / "backups"
+DEFAULT_BACKUP_COPY_DIR = PROJECT_DIR / "instance" / "backups_copy"
 LOCAL_TZ = timezone(timedelta(hours=7))  # NFR-COM-03
 
 
@@ -47,6 +48,8 @@ class Config:
         self.AVATAR_DIR = Path(env("LMS_AVATAR_DIR", DEFAULT_AVATAR_DIR))
         self.EBOOK_DIR = Path(env("LMS_EBOOK_DIR", DEFAULT_EBOOK_DIR))
         self.BACKUP_DIR = Path(env("LMS_BACKUP_DIR", DEFAULT_BACKUP_DIR))
+        self.BACKUP_COPY_DIR = Path(
+            env("LMS_BACKUP_COPY_DIR", DEFAULT_BACKUP_COPY_DIR))
         self.BCRYPT_ROUNDS = int(env("LMS_BCRYPT_ROUNDS", "12"))
         # avatars stay at 2 MB (FR-RDR-02); e-books and backups are larger
         self.MAX_CONTENT_LENGTH = 100 * 1024 * 1024
@@ -69,5 +72,6 @@ class TestConfig(Config):
         self.AVATAR_DIR = Path(database_path).parent / "avatars"
         self.EBOOK_DIR = Path(database_path).parent / "ebooks"
         self.BACKUP_DIR = Path(database_path).parent / "backups"
+        self.BACKUP_COPY_DIR = Path(database_path).parent / "backups_copy"
         self.BCRYPT_ROUNDS = 4
         self.TESTING = True

@@ -133,10 +133,10 @@ Rules:
 
 ### Tài: NFR-REL-04, daily backup in two places
 
-- [ ] `DailyJobService.run` also calls `BackupService.create(label="daily")` at 00:00 and copies the file to a second folder `LMS_BACKUP_COPY_DIR` (`config.py`, `.env.example`, a second Docker volume in `docker-compose.yml`).
-- [ ] Keep the newest 30 daily backups in each folder; never delete manual or `auto` backups.
-- [ ] A failed copy is written to the audit log and does not stop the other daily tasks (NFR-REL-06).
-- [ ] pytest: one run makes one backup in each folder; 31 runs keep 30.
+- [x] `DailyJobService.run` also calls `BackupService.create(label="daily")` at 00:00 and copies the file to a second folder `LMS_BACKUP_COPY_DIR` (`config.py`, `.env.example`, a second Docker volume in `docker-compose.yml`).
+- [x] Keep the newest 30 daily backups in each folder; never delete manual or `auto` backups.
+- [x] A failed copy is written to the audit log and does not stop the other daily tasks (NFR-REL-06).
+- [x] pytest: one run makes one backup in each folder; 31 runs keep 30.
 
 ### Thắng: NFR-SEC-02 HTTPS, review, and release
 

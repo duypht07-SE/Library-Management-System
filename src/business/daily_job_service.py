@@ -1,6 +1,8 @@
 import threading
 from datetime import datetime, timedelta
 
+from business.audit_service import AuditService
+from business.backup_service import BackupService
 from business.rule_service import RuleService
 from config import now
 from data.repositories import CirculationRepository, NotificationRepository
@@ -10,10 +12,14 @@ from models import BorrowRecord
 class DailyJobService:
     def __init__(self, circulation: CirculationRepository,
                  notifications: NotificationRepository,
-                 rules: RuleService) -> None:
+                 rules: RuleService,
+                 backups: BackupService | None = None,
+                 audit: AuditService | None = None) -> None:
         self.circulation = circulation
         self.notifications = notifications
         self.rules = rules
+        self.backups = backups
+        self.audit = audit
 
     def run(self, at: datetime | None = None) -> dict[str, int]:
         ts = at or now()
@@ -101,13 +107,45 @@ class DailyJobService:
 
             pending_sent = self.notifications.send_pending(ts, conn=conn)
 
+        backups_created, backups_copied = self._run_daily_backup()
+
         return {
             "marked_overdue": marked_overdue,
             "due_soon_notified": due_soon,
             "expired_holds": expired_holds,
             "promoted_holds": promoted_holds,
             "pending_sent": pending_sent,
+            "backups_created": backups_created,
+            "backups_copied": backups_copied,
         }
+
+    def _run_daily_backup(self) -> tuple[int, int]:
+        if self.backups is None:
+            return 0, 0
+        created = 0
+        copied = 0
+        try:
+            backup = self.backups.create(label="daily")
+            created = 1
+            self.backups.prune_daily(self.backups.backup_dir)
+        except OSError as error:
+            if self.audit is not None:
+                self.audit.record(
+                    None, "DAILY_BACKUP_FAILED",
+                    f"Daily backup failed: {error}")
+            return created, copied
+
+        if self.backups.copy_dir is not None:
+            try:
+                self.backups.copy_backup(backup.name)
+                copied = 1
+                self.backups.prune_daily(self.backups.copy_dir)
+            except OSError as error:
+                if self.audit is not None:
+                    self.audit.record(
+                        None, "DAILY_BACKUP_COPY_FAILED",
+                        f"Daily backup copy failed: {error}")
+        return created, copied
 
     def start_scheduler(self) -> threading.Thread:
         stop = threading.Event()
