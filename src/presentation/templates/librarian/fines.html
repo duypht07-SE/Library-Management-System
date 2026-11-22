@@ -12,7 +12,29 @@
 </form>
 <h2>Fine payments</h2>
 <div class="table-wrap"><table class="table"><thead><tr><th>Reader</th><th>Borrow ID</th><th>Reason</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead><tbody>
-{% for fine in fines %}<tr><td>{{ fine.reader_name }}</td><td>{{ fine.borrow_id }}</td><td>{{ fine.reason | replace('_',' ') | title }}</td><td>{{ "{:,}".format(fine.amount) }} VND</td><td>{{ 'Paid' if fine.is_paid else 'Unpaid' }}</td><td>{% if not fine.is_paid %}<form method="post" data-confirm="Confirm that {{ "{:,}".format(fine.amount) }} VND was received in cash?"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="payment"><input type="hidden" name="fine_id" value="{{ fine.fine_id }}"><button class="btn btn--small btn--primary" type="submit">Record Cash Payment</button></form>{% else %}{{ fine.paid_at[:10] if fine.paid_at else 'Paid' }}{% endif %}</td></tr>
+{% for fine in fines %}
+  <tr>
+    <td>{{ fine.reader_name }}</td>
+    <td>{{ fine.borrow_id }}</td>
+    <td>{{ fine.reason | replace('_', ' ') | title }}</td>
+    <td>{{ "{:,}".format(fine.amount) }} VND</td>
+    <td>{{ 'Paid' if fine.is_paid else 'Unpaid' }}</td>
+    <td>
+      {% if not fine.is_paid %}
+        <form method="post"
+              data-confirm="Confirm cash payment of {{ "{:,}".format(fine.amount) }} VND?">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="action" value="payment">
+          <input type="hidden" name="fine_id" value="{{ fine.fine_id }}">
+          <button class="btn btn--small btn--primary" type="submit">
+            Record Cash Payment
+          </button>
+        </form>
+      {% else %}
+        {{ fine.paid_at | date_vn or 'Paid' }}
+      {% endif %}
+    </td>
+  </tr>
 {% else %}<tr><td colspan="6" class="muted">There are no fines yet.</td></tr>{% endfor %}
 </tbody></table></div>
 {% endblock %}

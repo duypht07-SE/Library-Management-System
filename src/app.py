@@ -2,6 +2,7 @@
       python src/app.py --reset-db   recreate the database with sample data"""
 import argparse
 import os
+from datetime import date, datetime
 
 from flask import Flask
 
@@ -40,6 +41,23 @@ from presentation.guest_controller import GuestController
 from presentation.librarian_controller import LibrarianController
 from presentation.reader_controller import ReaderController
 from presentation.system_controller import SystemController
+
+
+def format_date_vn(value, include_time: bool = False) -> str:
+    """Format date values as DD/MM/YYYY, optionally including HH:MM."""
+    if value is None or value == "":
+        return ""
+    if isinstance(value, datetime):
+        parsed = value
+    elif isinstance(value, date):
+        return value.strftime("%d/%m/%Y")
+    else:
+        try:
+            parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        except ValueError:
+            return ""
+    pattern = "%d/%m/%Y %H:%M" if include_time else "%d/%m/%Y"
+    return parsed.strftime(pattern)
 
 
 class LibraryApp:
@@ -90,6 +108,7 @@ class LibraryApp:
             static_folder=str(presentation / "static"),
         )
         self.flask.config.from_object(self.config)
+        self.flask.add_template_filter(format_date_vn, "date_vn")
         self.flask.extensions["lms"] = self
 
         self.database.initialize(seed=self.config.SEED_SAMPLE_DATA)
