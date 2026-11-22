@@ -85,7 +85,7 @@ def test_checkout_validation_rules(library_app):
     with pytest.raises(ValidationError, match="overdue"):
         library_app.circulation_service.check_out(
             librarian, "RD-0002", "LIB-00061", at=NOW)
-    with pytest.raises(ValidationError, match="not active"):
+    with pytest.raises(ValidationError, match="card is locked"):
         library_app.circulation_service.check_out(
             librarian, "RD-0003", "LIB-00061", at=NOW)
     with pytest.raises(ValidationError, match="another reader"):

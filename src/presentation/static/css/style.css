@@ -394,3 +394,10 @@ a { color: var(--link); }
   .catalog-admin > .form--inline { flex-direction: row; flex-wrap: wrap; }
   .catalog-admin > .form--inline > .btn { align-self: flex-end; }
 }
+/* 1.0.1 UI review */
+.content > h2:not(.section-title) { margin: 24px 0 10px; font-size: 18px; }
+@media (max-width: 760px) {
+  .account { gap: 4px; padding: 4px 0; }
+  .account .btn { height: 28px; padding: 0 8px; font-size: 12px; }
+  .account__name { font-size: 13px; }
+}

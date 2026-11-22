@@ -118,6 +118,14 @@ class CirculationRepository(BaseRepository):
             "LIMIT 1", (reader_id, at.isoformat(sep=" "))).fetchone()
         return row is not None
 
+    def unpaid_fine_total(self, reader_id: int, conn) -> int:
+        row = conn.execute(
+            "SELECT COALESCE(SUM(f.amount), 0) FROM fines f "
+            "JOIN borrow_records b ON b.borrow_id = f.borrow_id "
+            "WHERE b.reader_id = ? AND f.is_paid = 0",
+            (reader_id,)).fetchone()
+        return int(row[0])
+
     def has_unpaid_fine(self, reader_id: int, conn) -> bool:
         row = conn.execute(
             "SELECT 1 FROM fines f "

@@ -89,23 +89,36 @@ class CirculationService:
                 "SELECT * FROM users WHERE lower(card_code) = lower(?) "
                 "AND role = ?", (card, Role.READER.value)).fetchone()
             if row is None:
-                raise ValidationError("Reader card was not found.")
+                raise ValidationError(
+                    "Reader card was not found. Check the card code and "
+                    "scan it again.")
             reader = UserFactory.from_row(row)
             if reader.status != UserStatus.ACTIVE:
-                raise ValidationError("Reader card is not active.")
+                raise ValidationError(
+                    f"Reader card is {reader.status.value.lower()}. "
+                    "Approve or unlock it on the Reader Cards page first.")
             if self.circulation.has_overdue_loan(reader.user_id, ts, conn):
-                raise ValidationError("Reader has overdue books.")
+                raise ValidationError(
+                    "Reader has overdue books. Check them in before lending "
+                    "another book.")
             if self.circulation.has_unpaid_fine(reader.user_id, conn):
-                raise ValidationError("Reader has unpaid fines.")
+                total = self.circulation.unpaid_fine_total(
+                    reader.user_id, conn)
+                raise ValidationError(
+                    f"Reader has unpaid fines of {total:,} VND. Record the "
+                    "cash payment on the Fines page first.")
             open_loans = self.circulation.count_open_loans(
                 reader.user_id, conn)
             if open_loans >= rules.max_books:
                 raise ValidationError(
-                    f"Reader reached the limit of {rules.max_books} books.")
+                    f"Reader reached the limit of {rules.max_books} books."
+                    " Check in a book before lending another one.")
 
             copy = self.circulation.find_copy_by_barcode(code, conn)
             if copy is None:
-                raise ValidationError("Book copy was not found.")
+                raise ValidationError(
+                    "Book copy was not found. Check the barcode and scan it "
+                    "again.")
 
             hold = None
             if copy.status == CopyStatus.RESERVED:

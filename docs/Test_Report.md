@@ -1,12 +1,12 @@
-# Test Report — Releases 1.0.0 and 1.0.1
+# Test Report — Releases 1.0.0 to 1.0.2
 
-Library Management System, Group 06. Test dates: 21/11/2026 (1.0.0) and 22/11/2026 (1.0.1).
+Library Management System, Group 06. Test dates: 21/11/2026 (1.0.0) and 22/11/2026 (1.0.1, 1.0.2).
 
 The tests follow the testing process in Chapter 5: design test cases → prepare test data → run the program with the test data → compare the results with the test cases → report.
 
 | Item | Location |
 |---|---|
-| Test cases (course Testing Document Template) | [`docs/Test_Cases.xlsx`](Test_Cases.xlsx), TC01 to TC105 |
+| Test cases (course Testing Document Template) | [`docs/Test_Cases.xlsx`](Test_Cases.xlsx), TC01 to TC107 |
 | Test data | [`docs/test_data/`](test_data/) and the sample data in `src/data/seed.sql` |
 | Automated tests (pytest) | `tests/` |
 | Defects | GitHub Issues, label `bug` (one issue per defect in Section 4) |
@@ -17,11 +17,11 @@ The tests follow the testing process in Chapter 5: design test cases → prepare
 |---|---|
 | Docker (target) | Docker Engine 29 on WSL 2 (Kali Linux), image `python:3.12-slim`, `docker compose up --build` |
 | Windows (host) | Windows 11, Python 3.14, `python src/app.py` |
-| Browser | Google Chrome (desktop) |
+| Browser | Google Chrome (desktop), driven by Claude in Chrome for the UI review in Section 3.1 |
 
 ## 2. Automated Tests (Development Testing)
 
-`docker compose run --rm web pytest` and `pytest` on Windows: **362 passed, 0 failed** on both platforms (311 in 1.0.0).
+`docker compose run --rm web pytest` and `pytest` on Windows: **364 passed, 0 failed** on both platforms (311 in 1.0.0, 362 in 1.0.1).
 
 | Level | Files | Tests |
 |---|---|---|
@@ -29,7 +29,7 @@ The tests follow the testing process in Chapter 5: design test cases → prepare
 | Component: services, repositories, transactions | `test_database.py`, `test_accounts.py`, `test_catalog_fines_reports.py`, `test_circulation.py` | 82 |
 | System: pages through the Flask test client | `test_pages.py`, `test_auth_pages.py` | 54 |
 | 1.0.0 features (unit + component + system) | `test_staff_roles.py` 19, `test_password_reset.py` 18, `test_audit_log.py` 7, `test_inventory.py` 13, `test_ebooks.py` 18, `test_backup.py` 13 | 88 |
-| Regression tests for the defects in Section 4 | `test_regressions.py` | 5 |
+| Regression tests for the defects in Section 4 | `test_regressions.py` | 7 |
 | 1.0.1 NFR fixes (unit + component + system) | `test_temporary_password.py` 16, `test_session_revocation.py` 16, `test_date_formatting.py` 2, `test_daily_backup.py` 8, `test_https.py` 9 | 51 |
 
 Examples of partitions and boundaries that were tested:
@@ -52,6 +52,10 @@ Every test case was run on the 1.0.0 build. The results matched the Expected Res
 | TC64–TC92 (new in 1.0.0) | Script that executes each step and checks the expected message; Chrome for the screens | Pass |
 | TC93–TC105 (new in 1.0.1) | Script for TC93–TC100, TC102, TC105; pytest for TC101 and TC103; TC104 on a live HTTPS server (TLS 1.3 negotiated, TLS 1.0 and 1.1 refused, HSTS header, Secure cookie) | Pass |
 
+### 3.1 User Interface Review (1.0.2)
+
+Every page was opened in Chrome with each role: 12 Guest pages, 8 Reader pages, 8 Librarian pages, and 10 Administrator pages, including error and success messages. On every page a script checked for sideways scrolling, elements outside the screen, broken images, dates in YYYY-MM-DD form, leftover template text (`{{`, `None`), and clipped text; the browser console was checked for JavaScript errors. The 12 Guest and Reader pages were also checked at 360 px (NFR-USA-04, TC106). Result: no overflow, broken image, wrong date, or script error. Four small problems were found and fixed (UI-1 to UI-4 in Section 4).
+
 ## 4. Defects Found and Fixed
 
 | ID | Defect | Severity | Fix | Regression test |
@@ -69,6 +73,10 @@ Every test case was run on the 1.0.0 build. The results matched the Expected Res
 | D11 | NFR-REL-04: no automatic daily backup and no second copy | Medium | 1.0.1 (Tài): backup at 00:00 to two folders, newest 30 kept | `test_daily_backup.py`, TC99, TC101, TC102 |
 | D12 | NFR-SEC-02: the server could not use HTTPS | Medium | 1.0.1 (Thắng): `LMS_SSL_CERT` and `LMS_SSL_KEY`, HSTS header, Secure cookie | `test_https.py`, TC104, TC105 |
 | D13 | A database error (for example "database is locked") during the daily backup stopped the whole daily job; at 00:00 the scheduler thread ended, so overdue marking and reminders stopped until a restart | High | Database errors are caught and written to the audit log; the scheduler uses `run_safely()` | `test_sqlite_error_*`, `test_run_safely_*`, TC103 |
+| UI-1 | On a 360 px phone the Reader menu took 238 px (three rows of large buttons) | Low | Smaller menu buttons under 760 px (206 px) | TC106 |
+| UI-2 | Check Out errors did not say what to do next (NFR-USA-03 example "Unpaid fines: 15,000 VND"), for example "Reader has unpaid fines." | Medium | Messages give the amount or the cause and the next step | `test_ui2_*`, TC107 |
+| UI-3 | Headings on Fines and Book details had no space above them and touched the button or the page title | Low | CSS spacing for `h2` in the content area | Checked in Chrome |
+| UI-4 | Temporary passwords could contain look-alike characters (0/O/o, 1/l/I), which are hard to read out at the desk | Low | Those characters are no longer used | `test_ui4_*` |
 | D14 | Every start-up made one more daily backup, so "keep 30" kept 30 runs instead of 30 days | Medium | At most one daily backup per day; a missing second copy is made on the next run | `test_restart_on_same_day_*`, `test_missing_copy_*`, TC100 |
 
 
