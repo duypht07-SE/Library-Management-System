@@ -50,7 +50,7 @@
           <td>{{ loan.card_code }}</td>
           <td>{{ loan.book_title }}</td>
           <td>{{ loan.barcode }}</td>
-          <td>{{ loan.due_date[:10] }}</td>
+          <td>{{ loan.due_date | date_vn }}</td>
           <td><span class="badge badge--{{ loan.status | lower }}">{{ loan.status | title }}</span></td>
         </tr>
       {% else %}

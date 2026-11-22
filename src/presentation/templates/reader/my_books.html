@@ -14,8 +14,8 @@
         <tr>
           <td><a href="{{ url_for('guest.book_detail', book_id=loan.book_id) }}">{{ loan.book_title }}</a></td>
           <td>{{ loan.barcode }}</td>
-          <td>{{ loan.borrow_date[:10] }}</td>
-          <td>{{ loan.due_date[:10] }}</td>
+          <td>{{ loan.borrow_date | date_vn }}</td>
+          <td>{{ loan.due_date | date_vn }}</td>
           <td>{{ loan.renew_count }} / {{ rules.max_renew }}</td>
           <td><span class="badge badge--{{ loan.status | lower }}">{{ loan.status | title }}</span></td>
           <td>
@@ -46,8 +46,8 @@
       {% for item in reservations %}
         <tr>
           <td><a href="{{ url_for('guest.book_detail', book_id=item.book_id) }}">{{ item.book_title }}</a></td>
-          <td>{{ item.reserve_date[:10] }}</td>
-          <td>{{ item.expire_date[:10] if item.expire_date else '—' }}</td>
+          <td>{{ item.reserve_date | date_vn }}</td>
+          <td>{{ item.expire_date | date_vn or '—' }}</td>
           <td><span class="badge badge--{{ item.status | lower }}">{{ item.status | title }}</span></td>
           <td>
             {% if item.status in ['WAITING', 'READY'] %}
@@ -78,9 +78,9 @@
         <tr>
           <td><a href="{{ url_for('guest.book_detail', book_id=loan.book_id) }}">{{ loan.book_title }}</a></td>
           <td>{{ loan.barcode }}</td>
-          <td>{{ loan.borrow_date[:10] }}</td>
-          <td>{{ loan.due_date[:10] }}</td>
-          <td>{{ loan.return_date[:10] if loan.return_date else '—' }}</td>
+          <td>{{ loan.borrow_date | date_vn }}</td>
+          <td>{{ loan.due_date | date_vn }}</td>
+          <td>{{ loan.return_date | date_vn or '—' }}</td>
           <td>{{ loan.return_condition | title if loan.return_condition else '—' }}</td>
         </tr>
       {% else %}
@@ -102,7 +102,7 @@
           <td>{{ fine.reason.value | replace('_', ' ') | title }}</td>
           <td>{{ "{:,}".format(fine.amount) }} VND</td>
           <td>{{ 'Paid' if fine.is_paid else 'Unpaid' }}</td>
-          <td>{{ fine.paid_at.strftime('%d/%m/%Y %H:%M') if fine.paid_at else '—' }}</td>
+          <td>{{ fine.paid_at | date_vn(true) or '—' }}</td>
         </tr>
       {% else %}
         <tr><td colspan="4" class="muted">No recorded fines.</td></tr>
@@ -121,7 +121,7 @@
       {% for note in notifications[:5] %}
         <tr>
           <td>{{ note.message }}</td>
-          <td>{{ note.sent_at.strftime('%d/%m/%Y %H:%M') if note.sent_at else '—' }}</td>
+          <td>{{ note.sent_at | date_vn(true) or '—' }}</td>
           <td><span class="badge badge--{{ note.status.value | lower }}">{{ note.status.value | title }}</span></td>
         </tr>
       {% else %}
