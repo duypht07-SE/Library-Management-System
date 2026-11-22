@@ -13,9 +13,14 @@ services:
       LMS_BACKUP_COPY_DIR: ${LMS_BACKUP_COPY_DIR:-/app/backups_copy}
       LMS_BCRYPT_ROUNDS: ${LMS_BCRYPT_ROUNDS:-12}
       LMS_SESSION_COOKIE_SECURE: ${LMS_SESSION_COOKIE_SECURE:-0}
+      # HTTPS (NFR-SEC-02): put cert.pem and key.pem in ./certs, then set
+      # LMS_SSL_CERT=/app/certs/cert.pem and LMS_SSL_KEY=/app/certs/key.pem
+      LMS_SSL_CERT: ${LMS_SSL_CERT:-}
+      LMS_SSL_KEY: ${LMS_SSL_KEY:-}
     volumes:
       - lms-data:/app/instance
       - lms-backups-copy:/app/backups_copy
+      - ./certs:/app/certs:ro
       # Mount the source code so changes show without rebuilding the image
       - ./src:/app/src
       - ./tests:/app/tests

@@ -34,6 +34,20 @@ def now() -> datetime:
     return now_aware().replace(tzinfo=None)
 
 
+def ssl_context(cert: str, key: str) -> tuple[str, str] | None:
+    """(certificate, key) for HTTPS, or None to serve plain HTTP."""
+    cert, key = cert.strip(), key.strip()
+    if not cert and not key:
+        return None
+    if not cert or not key:
+        raise ValueError(
+            "Set both LMS_SSL_CERT and LMS_SSL_KEY to turn on HTTPS.")
+    for label, value in (("LMS_SSL_CERT", cert), ("LMS_SSL_KEY", key)):
+        if not Path(value).is_file():
+            raise ValueError(f"{label} file was not found: {value}")
+    return cert, key
+
+
 class Config:
     """Settings read from environment variables."""
 
@@ -59,6 +73,12 @@ class Config:
         self.SESSION_COOKIE_SAMESITE = "Lax"
         self.SESSION_COOKIE_SECURE = (
             env("LMS_SESSION_COOKIE_SECURE", "0") == "1")
+        # NFR-SEC-02: HTTPS when a certificate and its key are given
+        self.SSL_CONTEXT = ssl_context(env("LMS_SSL_CERT", ""),
+                                       env("LMS_SSL_KEY", ""))
+        if self.SSL_CONTEXT is not None:
+            self.SESSION_COOKIE_SECURE = True
+            self.PREFERRED_URL_SCHEME = "https"
         self.TESTING = False
 
 

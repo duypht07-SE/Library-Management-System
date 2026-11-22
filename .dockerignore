@@ -5,6 +5,7 @@ __pycache__
 *.pyc
 .pytest_cache
 instance
+certs
 *.db
 docs
 diagrams

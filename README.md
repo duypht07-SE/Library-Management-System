@@ -75,7 +75,7 @@ Every sample account uses the password `Library@123`. The sample Readers with a 
 | Librarian | Depends on the staff role: Check Out and Check In (CIRCULATION), Reader Cards (READER_CARDS), Books, e-books, and Inventory (CATALOG), Fines (FINES); Password |
 | Administrator | Librarians, Roles, Rules, Reports, Password Resets, Audit Log, Backups, Password |
 
-The default staff roles are Full Librarian (every permission), Circulation Desk, and Catalog Librarian. The Administrator can add roles on the Roles page. Each page checks the role and the permission on the server, so typing a URL does not bypass access control. Sign-ins and every successful Librarian or Administrator action are written to the audit log. Five wrong passwords lock the account for 15 minutes, and a session ends after 30 minutes without activity. Passwords need at least 8 characters with one letter and one digit.
+The default staff roles are Full Librarian (every permission), Circulation Desk, and Catalog Librarian. The Administrator can add roles on the Roles page. Each page checks the role and the permission on the server, so typing a URL does not bypass access control. Sign-ins and every successful Librarian or Administrator action are written to the audit log. Five wrong passwords lock the account for 15 minutes, and a session ends after 30 minutes without activity; sessions are kept on the server and end at sign-out or after a password change. A temporary password from the Administrator works for 24 hours and must be changed at the first sign-in. Passwords need at least 8 characters with one letter and one digit. Every day at 00:00 the database is backed up to two folders, and the newest 30 daily backups are kept.
 
 ### Settings
 
@@ -92,8 +92,24 @@ The app reads these environment variables. Copy `.env.example` to `.env` to chan
 | `LMS_AVATAR_DIR` | `instance/avatars` | Folder for uploaded profile avatars |
 | `LMS_EBOOK_DIR` | `instance/ebooks` | Folder for uploaded e-books (PDF, EPUB) |
 | `LMS_BACKUP_DIR` | `instance/backups` | Folder for database backups |
+| `LMS_BACKUP_COPY_DIR` | `instance/backups_copy` (a second volume in Docker) | Second folder for the daily backup (NFR-REL-04) |
 | `LMS_BCRYPT_ROUNDS` | `12` | Bcrypt cost factor (NFR-SEC-01) |
-| `LMS_SESSION_COOKIE_SECURE` | `0` | Set to `1` when the site uses HTTPS |
+| `LMS_SESSION_COOKIE_SECURE` | `0` | Set to `1` when the site uses HTTPS (automatic when HTTPS is on) |
+| `LMS_SSL_CERT`, `LMS_SSL_KEY` | empty | Certificate and private key files; set both to serve HTTPS (NFR-SEC-02) |
+
+### HTTPS
+
+The server uses HTTPS with TLS 1.2 or 1.3 when `LMS_SSL_CERT` and `LMS_SSL_KEY` point to a certificate and its private key. The `certs/` folder is ignored by Git, so a private key is never committed. For a test certificate (Git Bash on Windows, or Linux):
+
+```bash
+mkdir -p certs
+openssl req -x509 -newkey rsa:2048 -nodes -days 365 -subj "/CN=localhost" -keyout certs/key.pem -out certs/cert.pem
+```
+
+- Docker: put `LMS_SSL_CERT=/app/certs/cert.pem` and `LMS_SSL_KEY=/app/certs/key.pem` in `.env`, run `docker compose up`, and open https://localhost:5000.
+- Python: set `LMS_SSL_CERT=certs/cert.pem` and `LMS_SSL_KEY=certs/key.pem`, run `python src/app.py`, and open https://127.0.0.1:5000.
+
+The browser warns about a self-signed certificate; a real deployment uses a certificate from a certificate authority.
 
 ## Architecture
 
@@ -161,10 +177,11 @@ Run `pytest` (or `docker compose run --rm web pytest`) before every commit. All 
 | `tests/test_circulation.py` | Component, System | Check out, check in, reservations, renewals, daily job |
 | `tests/test_staff_roles.py`, `test_password_reset.py`, `test_audit_log.py`, `test_inventory.py`, `test_ebooks.py`, `test_backup.py` | Unit, Component, System | Features added in 1.0.0 |
 | `tests/test_regressions.py` | Regression | One test for each defect fixed in release testing |
+| `tests/test_temporary_password.py`, `test_session_revocation.py`, `test_date_formatting.py`, `test_daily_backup.py`, `test_https.py` | Unit, Component, System | NFR fixes in 1.0.1 |
 
 Test names end with the requirement they check, for example `test_login_lock_nfr_sec_06`.
 
-Manual test cases TC01 to TC92 are in [`docs/Test_Cases.xlsx`](docs/Test_Cases.xlsx), written with the course Testing Document Template. Test files for them are in [`docs/test_data/`](docs/test_data/). The results, the defects, and the requirement traceability are in [`docs/Test_Report.md`](docs/Test_Report.md). Defects are tracked as GitHub Issues.
+Manual test cases TC01 to TC105 are in [`docs/Test_Cases.xlsx`](docs/Test_Cases.xlsx), written with the course Testing Document Template. Test files for them are in [`docs/test_data/`](docs/test_data/). The results, the defects, and the requirement traceability are in [`docs/Test_Report.md`](docs/Test_Report.md). Defects are tracked as GitHub Issues.
 
 ## Tech Stack
 

@@ -62,6 +62,12 @@ def format_date_vn(value, include_time: bool = False) -> str:
     return parsed.strftime(pattern)
 
 
+def add_hsts_header(response):
+    """NFR-SEC-02: browsers keep using HTTPS for this site."""
+    response.headers["Strict-Transport-Security"] = "max-age=31536000"
+    return response
+
+
 class LibraryApp:
     """Wires the layers: presentation -> business -> data (NFR-MNT-01)."""
 
@@ -127,6 +133,8 @@ class LibraryApp:
             lambda: self.auth_service.clock()))
         self.flask.before_request(require_password_change)
         self.flask.after_request(audit_staff_actions(self.audit_service))
+        if self.config.SSL_CONTEXT is not None:
+            self.flask.after_request(add_hsts_header)
         self._register_controllers()
 
     def _register_controllers(self) -> None:
@@ -164,10 +172,11 @@ class LibraryApp:
         serving = (not self.config.DEBUG
                    or os.environ.get("WERKZEUG_RUN_MAIN") == "true")
         if serving and not self.config.TESTING:
-            self.daily_job_service.run()  # catch up a missed 00:00 run
+            self.daily_job_service.run_safely()  # catch up a missed run
             self.daily_job_service.start_scheduler()
         self.flask.run(host=self.config.HOST, port=self.config.PORT,
-                       debug=self.config.DEBUG)
+                       debug=self.config.DEBUG,
+                       ssl_context=self.config.SSL_CONTEXT)
 
 
 def create_app(config: Config | None = None) -> Flask:

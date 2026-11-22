@@ -68,7 +68,8 @@ def test_reissue_resets_issuance_timestamp(database):
 
     user, first = resets.reset_by_email(admin, "reader@library.test")
     first_at = issued_at(database, user.user_id)
-    assert PasswordHasher(4).verify(first, users.find_by_id(user.user_id).password_hash)
+    stored = users.find_by_id(user.user_id).password_hash
+    assert PasswordHasher(4).verify(first, stored)
 
     user, second = resets.reset_by_email(admin, "reader@library.test")
     second_at = issued_at(database, user.user_id)
@@ -97,7 +98,8 @@ def test_authentication_errors_are_distinct(database):
     assert "Invalid email or password" in wrong.value.message
 
     valid_auth = AuthService(users, hasher, lambda: NOW)
-    assert valid_auth.authenticate("reader@library.test", temporary).user_id == 3
+    user = valid_auth.authenticate("reader@library.test", temporary)
+    assert user.user_id == 3
 
     with users.db.transaction() as conn:
         conn.execute("UPDATE users SET status = 'PENDING' WHERE user_id = 3")
@@ -160,10 +162,11 @@ def test_sign_in_boundary(client, library_app, offset, accepted):
         assert "temporary password has expired" in text(response)
 
 
-def test_expired_temporary_password_is_rejected_on_alternative_query(client,
-                                                                     library_app):
+def test_expired_temporary_password_is_rejected_on_alternative_query(
+        client, library_app):
     temporary = issue_temporary_password(client, library_app)
-    library_app.auth_service.clock = lambda: issued_at(library_app.database) + DAY
+    library_app.auth_service.clock = (
+        lambda: issued_at(library_app.database) + DAY)
     token = csrf_token(client, "/signin")
     response = client.post("/signin?next=/profile", data={
         "csrf_token": token, "email": "reader@library.test",
@@ -236,7 +239,8 @@ def test_password_change_clears_status_and_old_password(client, library_app):
 
     post_form(client, "/", "/signout", {})
     assert signin(client, "reader@library.test", temporary).status_code == 401
-    assert signin(client, "reader@library.test", "NewPass123").status_code == 302
+    response = signin(client, "reader@library.test", "NewPass123")
+    assert response.status_code == 302
 
 
 def test_new_password_is_validated_before_temporary_status_is_cleared(
