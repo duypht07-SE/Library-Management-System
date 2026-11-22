@@ -4,8 +4,9 @@ from flask import (flash, redirect, render_template, request, session,
 from business.audit_service import AuditService
 from business.auth_service import AuthService
 from business.password_reset_service import PasswordResetService
+from business.session_service import SESSION_ID_KEY, SessionService
 from common.exceptions import AuthenticationError, ValidationError
-from presentation.access import current_user
+from presentation.access import current_user, rotate_current_session
 from presentation.base_controller import BaseController
 
 RESET_SENT = ("If the email address and phone number match an account, the "
@@ -20,11 +21,13 @@ class AuthController(BaseController):
 
     def __init__(self, auth: AuthService,
                  resets: PasswordResetService | None = None,
-                 audit: AuditService | None = None) -> None:
+                 audit: AuditService | None = None,
+                 sessions: SessionService | None = None) -> None:
         super().__init__()
         self.auth = auth
         self.resets = resets
         self.audit = audit
+        self.sessions = sessions
 
     def add_routes(self) -> None:
         bp = self.blueprint
@@ -53,8 +56,13 @@ class AuthController(BaseController):
                           f"{form['email'][:100]}: {error.message}")
                 flash(error.message, "error")
                 return render_template("auth/signin.html", form=form), 401
+            if self.sessions is not None:
+                self.sessions.purge_expired()  # bound registry growth
+            old_session_id = session.get(SESSION_ID_KEY)
             session.clear()
-            session["user_id"] = user.user_id
+            if self.sessions is not None:
+                session[SESSION_ID_KEY] = self.sessions.replace(
+                    old_session_id, user.user_id)
             session.permanent = True  # NFR-SEC-05: 30-minute idle timeout
             self._log(user, "SIGN_IN", f"{user.role.value.title()} signed in")
             if user.must_change_password:
@@ -69,6 +77,9 @@ class AuthController(BaseController):
         return render_template("auth/signin.html", form=form)
 
     def signout(self):
+        session_id = session.get(SESSION_ID_KEY)
+        if self.sessions is not None and session_id:
+            self.sessions.revoke(session_id)  # invalidate copied cookies
         user = current_user()
         if user is not None:
             user.logout()
@@ -137,6 +148,7 @@ class AuthController(BaseController):
             except (AuthenticationError, ValidationError) as error:
                 flash(error.message, "error")
                 return render_template("auth/change_password.html"), 400
+            rotate_current_session(self.sessions, user.user_id)
             flash("Your password has been changed.", "success")
             return redirect(url_for(user.home_endpoint))
         return render_template("auth/change_password.html")

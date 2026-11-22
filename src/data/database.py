@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any, Iterator, Sequence
 
 from common.security import PasswordHasher
+from config import now_aware
 
 DATA_DIR = Path(__file__).resolve().parent
 SCHEMA_FILE = DATA_DIR / "schema.sql"
@@ -90,7 +91,7 @@ class Database:
             conn.close()
 
     def _add_missing_columns(self, conn: sqlite3.Connection) -> None:
-        """Small 0.2.0 migration for databases created by version 0.1.0."""
+        """Add columns introduced after 0.1.0 without recreating the file."""
         existing = {row["name"] for row in
                     conn.execute("PRAGMA table_info(users)")}
         additions = {
@@ -99,6 +100,7 @@ class Database:
             "created_at": "DATETIME",
             "staff_role_id": "INTEGER",
             "must_change_password": "INTEGER NOT NULL DEFAULT 0",
+            "temp_password_issued_at": "DATETIME",
         }
         for name, sql_type in additions.items():
             if name not in existing:
@@ -106,6 +108,14 @@ class Database:
         if "created_at" not in existing:
             conn.execute("UPDATE users SET created_at = CURRENT_TIMESTAMP "
                          "WHERE created_at IS NULL")
+        if "temp_password_issued_at" not in existing:
+            # Legacy temporary passwords had no timestamp. Treat migration
+            # time as issuance instead of expiring every outstanding one.
+            conn.execute(
+                "UPDATE users SET temp_password_issued_at = ?"
+                " WHERE must_change_password = 1"
+                " AND temp_password_issued_at IS NULL",
+                (now_aware().isoformat(sep=" "),))
 
     @staticmethod
     def _add_reference_data(conn: sqlite3.Connection) -> None:

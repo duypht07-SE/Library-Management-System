@@ -8,10 +8,12 @@ from data.repositories.notification_repository import NotificationRepository
 from data.repositories.password_reset_repository import (
     PasswordResetRepository)
 from data.repositories.report_repository import ReportRepository
+from data.repositories.session_repository import SessionRepository
 from data.repositories.staff_role_repository import StaffRoleRepository
 from data.repositories.user_repository import UserRepository
 
 __all__ = ["AuditRepository", "BookRepository", "CirculationRepository",
            "ConfigRepository", "EbookRepository", "FineRepository",
            "NotificationRepository", "PasswordResetRepository",
-           "ReportRepository", "StaffRoleRepository", "UserRepository"]
+           "ReportRepository", "SessionRepository", "StaffRoleRepository",
+           "UserRepository"]

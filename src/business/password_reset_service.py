@@ -6,7 +6,7 @@ from typing import Callable
 from common.exceptions import ValidationError
 from common.security import PasswordHasher
 from common.validation import validate_email, validate_phone
-from config import now
+from config import local_aware, now
 from data.repositories import PasswordResetRepository, UserRepository
 from models import Administrator, Role, User
 
@@ -84,11 +84,13 @@ class PasswordResetService:
         password = make_temporary_password()
         password_hash = self.hasher.hash(password)
         at = self.clock()
+        issued_at = local_aware(at)
         try:
-            admin.reset_password(user, password_hash)
+            admin.reset_password(user, password_hash, issued_at=issued_at)
         except ValueError as error:
             raise ValidationError(str(error)) from error
         with self.users.db.transaction() as conn:  # NFR-REL-02
-            self.users.set_temporary_password(user_id, password_hash, conn)
+            self.users.set_temporary_password(user_id, password_hash,
+                                              issued_at, conn)
             self.resets.close_all_for(user_id, admin.user_id, at, conn)
         return user, password

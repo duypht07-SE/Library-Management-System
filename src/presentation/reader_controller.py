@@ -9,9 +9,10 @@ from business.auth_service import AuthService
 from business.circulation_service import CirculationService
 from business.fine_service import FineService
 from business.rule_service import RuleService
+from business.session_service import SessionService
 from common.exceptions import AuthenticationError, ValidationError
 from config import Config
-from presentation.access import roles_required
+from presentation.access import roles_required, rotate_current_session
 from presentation.base_controller import BaseController
 
 READER = "READER"
@@ -38,13 +39,15 @@ class ReaderController(BaseController):
 
     def __init__(self, auth: AuthService, rules: RuleService,
                  config: Config, fines: FineService | None = None,
-                 circulation: CirculationService | None = None) -> None:
+                 circulation: CirculationService | None = None,
+                 sessions: SessionService | None = None) -> None:
         super().__init__()
         self.auth = auth
         self.rules = rules
         self.config = config
         self.fines = fines
         self.circulation = circulation
+        self.sessions = sessions
 
     def add_routes(self) -> None:
         bp = self.blueprint
@@ -154,6 +157,7 @@ class ReaderController(BaseController):
         except (AuthenticationError, ValidationError) as error:
             flash(str(getattr(error, "message", error)), "error")
             return redirect(url_for("reader.profile"))
+        rotate_current_session(self.sessions, g.user.user_id)
         flash("Your password has been changed.", "success")
         return redirect(url_for("reader.profile"))
 

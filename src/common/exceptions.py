@@ -18,5 +18,9 @@ class AuthenticationError(Exception):
         self.message = message
 
 
+class TemporaryPasswordExpiredError(AuthenticationError):
+    """The temporary password was valid but its 24-hour window has ended."""
+
+
 class PermissionDenied(Exception):
     """The signed-in user does not have the role for this action."""

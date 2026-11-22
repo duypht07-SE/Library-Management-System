@@ -20,6 +20,7 @@ from business.password_reset_service import PasswordResetService
 from business.report_service import ReportService
 from business.role_service import RoleService
 from business.rule_service import RuleService
+from business.session_service import SessionService
 from common import csrf
 from common.security import PasswordHasher
 from config import SRC_DIR, Config
@@ -29,7 +30,8 @@ from data.repositories import (AuditRepository, BookRepository,
                                EbookRepository, FineRepository,
                                NotificationRepository,
                                PasswordResetRepository, ReportRepository,
-                               StaffRoleRepository, UserRepository)
+                               SessionRepository, StaffRoleRepository,
+                               UserRepository)
 from presentation.access import (current_user, load_user,
                                  require_password_change)
 from presentation.admin_controller import AdminController
@@ -77,8 +79,11 @@ class LibraryApp:
         self.staff_roles = StaffRoleRepository(self.database)
         self.audit_logs = AuditRepository(self.database)
         self.password_resets = PasswordResetRepository(self.database)
+        self.session_repo = SessionRepository(self.database)
         self.ebooks = EbookRepository(self.database)
         self.hasher = PasswordHasher(self.config.BCRYPT_ROUNDS)
+        self.session_service = SessionService(
+            self.session_repo, self.config.PERMANENT_SESSION_LIFETIME)
 
         self.catalog_service = CatalogService(self.books)
         self.fine_service = FineService(self.fines)
@@ -112,9 +117,12 @@ class LibraryApp:
         self.flask.extensions["lms"] = self
 
         self.database.initialize(seed=self.config.SEED_SAMPLE_DATA)
+        self.session_service.purge_expired()
         csrf.init_app(self.flask)
         self.flask.before_request(csrf.check_request)
-        self.flask.before_request(load_user(self.users, self.role_service))
+        self.flask.before_request(load_user(
+            self.users, self.role_service, self.session_service,
+            lambda: self.auth_service.clock()))
         self.flask.before_request(require_password_change)
         self.flask.after_request(audit_staff_actions(self.audit_service))
         self._register_controllers()
@@ -124,10 +132,12 @@ class LibraryApp:
                         self.ebook_service,
                         self.circulation_service).register(self.flask)
         AuthController(self.auth_service, self.password_reset_service,
-                       self.audit_service).register(self.flask)
+                       self.audit_service,
+                       self.session_service).register(self.flask)
         ReaderController(self.auth_service, self.rule_service,
                          self.config, self.fine_service,
-                         self.circulation_service).register(self.flask)
+                         self.circulation_service,
+                         self.session_service).register(self.flask)
         LibrarianController(self.account_service, self.catalog_service,
                             self.fine_service, self.circulation_service,
                             self.inventory_service,

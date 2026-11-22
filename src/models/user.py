@@ -4,12 +4,15 @@ from datetime import datetime, timedelta
 from typing import Any, Mapping
 
 from common.exceptions import AuthenticationError
+from config import local_aware, now_aware
 from models.book import Book, BookCopy
 from models.circulation import BorrowRecord, Fine, Reservation
 from models.enums import (BorrowStatus, CopyCondition, CopyStatus,
                           FineReason, Permission, Role, RuleKey, UserStatus)
 from models.inventory import InventoryCheck, ShelfCopy
 from models.staff import PasswordResetRequest, StaffRole
+
+TEMP_PASSWORD_LIFETIME = timedelta(hours=24)  # NFR-SEC-05
 
 
 @dataclass
@@ -27,6 +30,7 @@ class User(ABC):
     student_id: str | None = None
     avatar_path: str | None = None
     must_change_password: bool = False
+    temporary_password_issued_at: datetime | None = None
 
     @property
     @abstractmethod
@@ -44,6 +48,14 @@ class User(ABC):
 
     def is_login_locked(self, at: datetime) -> bool:
         return self.locked_until is not None and self.locked_until > at
+
+    def temporary_password_expired(self, at: datetime) -> bool:
+        """True once the 24-hour temporary-password window has ended."""
+        if (not self.must_change_password
+                or self.temporary_password_issued_at is None):
+            return False
+        issued = local_aware(self.temporary_password_issued_at)
+        return local_aware(at) >= issued + TEMP_PASSWORD_LIFETIME
 
     def has_role(self, *roles: Role) -> bool:
         return self.role in roles
@@ -90,6 +102,7 @@ class User(ABC):
         self.failed_logins = 0
         self.locked_until = None
         self.must_change_password = False
+        self.temporary_password_issued_at = None
 
     def can(self, permission: Permission | str) -> bool:
         """Only Librarians have staff permissions (FR-ADM-02)."""
@@ -257,12 +270,15 @@ class Administrator(User):
 
     def reset_password(self, user: User, password_hash: str,
                        request: PasswordResetRequest | None = None,
-                       at: datetime | None = None) -> None:
+                       at: datetime | None = None,
+                       issued_at: datetime | None = None) -> None:
         """Give a Reader or Librarian a temporary password (FR-ADM-03)."""
         if user.role == Role.ADMIN:
             raise ValueError("An Administrator password cannot be reset here.")
         user.update_password(password_hash)
         user.must_change_password = True
+        user.temporary_password_issued_at = local_aware(
+            issued_at or at or now_aware())
         if request is not None:
             request.complete(self.user_id, at or datetime.now())
 
@@ -309,6 +325,8 @@ class UserFactory:
             student_id=_column(row, "student_id"),
             avatar_path=_column(row, "avatar_path"),
             must_change_password=bool(_column(row, "must_change_password")),
+            temporary_password_issued_at=_parse_aware_datetime(
+                _column(row, "temp_password_issued_at")),
         )
         if role == Role.READER:
             fields["card_code"] = row["card_code"]
@@ -326,3 +344,8 @@ def _parse_datetime(value: Any) -> datetime | None:
     if value is None or isinstance(value, datetime):
         return value
     return datetime.fromisoformat(str(value))
+
+
+def _parse_aware_datetime(value: Any) -> datetime | None:
+    parsed = _parse_datetime(value)
+    return local_aware(parsed) if parsed is not None else None

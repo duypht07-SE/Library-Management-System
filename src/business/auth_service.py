@@ -2,7 +2,8 @@ import sqlite3
 from datetime import datetime, timedelta
 from typing import Callable
 
-from common.exceptions import AuthenticationError, ValidationError
+from common.exceptions import (AuthenticationError,
+                               TemporaryPasswordExpiredError, ValidationError)
 from common.security import PasswordHasher
 from common.validation import (validate_email, validate_full_name,
                                validate_password,
@@ -73,6 +74,10 @@ class AuthService:
             raise AuthenticationError("Invalid email or password.")
 
         user.login(at)  # FR-GST-04: status checks with a clear message
+        if user.temporary_password_expired(at):  # NFR-SEC-05
+            raise TemporaryPasswordExpiredError(
+                "This temporary password has expired. Please ask the library "
+                "for a new one.")
         self.users.reset_failed_logins(user.user_id)
         user.failed_logins = 0
         user.locked_until = None
@@ -120,6 +125,10 @@ class AuthService:
     def change_password(self, user: User, current: str, new: str,
                         confirmation: str) -> None:
         """FR-RDR-02: the Reader can change their own password."""
+        if user.temporary_password_expired(self.clock()):
+            raise TemporaryPasswordExpiredError(
+                "This temporary password has expired. Please ask the library "
+                "for a new one.")
         if not self.hasher.verify(current or "", user.password_hash):
             raise AuthenticationError("The current password is incorrect.")
         validate_password(new, "New password")

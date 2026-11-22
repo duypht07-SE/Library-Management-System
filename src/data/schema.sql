@@ -36,7 +36,8 @@ CREATE TABLE IF NOT EXISTS users (
     failed_logins  INTEGER      NOT NULL DEFAULT 0,
     locked_until   DATETIME,
     staff_role_id  INTEGER      REFERENCES staff_roles (role_id),
-    must_change_password INTEGER NOT NULL DEFAULT 0
+    must_change_password INTEGER NOT NULL DEFAULT 0,
+    temp_password_issued_at DATETIME
 );
 
 CREATE TABLE IF NOT EXISTS books (
@@ -132,6 +133,18 @@ CREATE TABLE IF NOT EXISTS password_reset_requests (
     handled_at    DATETIME
 );
 
+-- Server-side session registry. The raw opaque id lives only in the signed
+-- cookie; the database stores its SHA-256 digest (NFR-SEC-05).
+CREATE TABLE IF NOT EXISTS user_sessions (
+    session_id_hash  VARCHAR(64) PRIMARY KEY,
+    user_id          INTEGER  NOT NULL REFERENCES users (user_id)
+                              ON DELETE CASCADE,
+    created_at       DATETIME NOT NULL,
+    last_seen_at     DATETIME NOT NULL,
+    expires_at       DATETIME NOT NULL,
+    revoked_at       DATETIME
+);
+
 CREATE TABLE IF NOT EXISTS audit_logs (
     log_id      INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id     INTEGER      REFERENCES users (user_id),
@@ -152,4 +165,6 @@ CREATE INDEX IF NOT EXISTS idx_fines_borrow     ON fines (borrow_id, is_paid);
 CREATE INDEX IF NOT EXISTS idx_fines_paid_at    ON fines (paid_at, is_paid);
 CREATE INDEX IF NOT EXISTS idx_ebooks_book      ON ebooks (book_id);
 CREATE INDEX IF NOT EXISTS idx_reset_status     ON password_reset_requests (status, requested_at);
+CREATE INDEX IF NOT EXISTS idx_session_user     ON user_sessions (user_id);
+CREATE INDEX IF NOT EXISTS idx_session_expiry   ON user_sessions (expires_at, revoked_at);
 CREATE INDEX IF NOT EXISTS idx_audit_created    ON audit_logs (created_at);

@@ -12,8 +12,25 @@ DEFAULT_BACKUP_DIR = PROJECT_DIR / "instance" / "backups"
 LOCAL_TZ = timezone(timedelta(hours=7))  # NFR-COM-03
 
 
+def now_aware() -> datetime:
+    """Current local time with an explicit UTC+7 offset."""
+    return datetime.now(LOCAL_TZ).replace(microsecond=0)
+
+
+def local_aware(value: datetime) -> datetime:
+    """Return ``value`` as an explicit UTC+7 datetime.
+
+    Legacy rows contain naive local timestamps; new security timestamps
+    are stored with an offset. Both are normalized here before comparison.
+    """
+    if value.tzinfo is None:
+        return value.replace(tzinfo=LOCAL_TZ)
+    return value.astimezone(LOCAL_TZ)
+
+
 def now() -> datetime:
-    return datetime.now(LOCAL_TZ).replace(tzinfo=None, microsecond=0)
+    """Legacy naive local time, kept for existing date fields."""
+    return now_aware().replace(tzinfo=None)
 
 
 class Config:

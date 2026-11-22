@@ -66,17 +66,21 @@ class UserRepository(BaseRepository):
         with self.db.transaction() as conn:
             conn.execute(
                 "UPDATE users SET password_hash = ?, failed_logins = 0,"
-                " locked_until = NULL, must_change_password = 0"
+                " locked_until = NULL, must_change_password = 0,"
+                " temp_password_issued_at = NULL"
                 " WHERE user_id = ?",
                 (password_hash, user_id))
 
     def set_temporary_password(self, user_id: int, password_hash: str,
+                               issued_at: datetime,
                                conn: sqlite3.Connection) -> None:
-        """FR-ADM-03: the user must change it at the next sign-in."""
+        """FR-ADM-03/NFR-SEC-05: persist the 24-hour issuance time."""
         conn.execute(
             "UPDATE users SET password_hash = ?, failed_logins = 0,"
-            " locked_until = NULL, must_change_password = 1"
-            " WHERE user_id = ?", (password_hash, user_id))
+            " locked_until = NULL, must_change_password = 1,"
+            " temp_password_issued_at = ?"
+            " WHERE user_id = ?",
+            (password_hash, issued_at.isoformat(sep=" "), user_id))
 
     def assign_staff_role(self, user_id: int, role_id: int) -> None:
         with self.db.transaction() as conn:
