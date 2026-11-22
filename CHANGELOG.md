@@ -105,7 +105,7 @@ Testing:
 - [x] Report each defect (D1 to D8) as a GitHub Issue (#16 to #23, closed by PR #24).
 - [x] Tag the release after the merge: `git tag v1.0.0`.
 
-## [1.0.1] - Planned: NFR Fixes
+## [1.0.1] - 2026-11-22: NFR Fixes
 
 **Owners: Duy, Sang, Tài, Thắng (in parallel, separate branches) · Reviewer, test cases, and release: Thắng**
 
@@ -120,10 +120,11 @@ Rules:
 
 ### Duy: NFR-SEC-05, temporary password expires after 24 hours
 
-- [ ] Add the column `users.temp_password_expires_at` (DATETIME) in `schema.sql` and in the migration in `database.py` (`_add_missing_columns`).
-- [ ] `PasswordResetService._reset` and `UserRepository.set_temporary_password`: save now + 24 hours. `update_password` clears it.
-- [ ] `AuthService.authenticate`: a temporary password after its expiry time is refused with "Your temporary password has expired. Please ask the Administrator for a new one."
-- [ ] pytest: sign-in at 23:59 after the reset works, at 24:01 is refused (boundary values); a normal password is never affected.
+- [x] Add the column `users.temp_password_issued_at` (DATETIME; expiry = issued time + 24 hours) in `schema.sql` and in the migration in `database.py` (`_add_missing_columns`).
+- [x] `PasswordResetService._reset` and `UserRepository.set_temporary_password`: save the issue time. `update_password` clears it.
+- [x] `AuthService.authenticate`: a temporary password after its expiry time is refused with "This temporary password has expired. Please ask the library for a new one." An open session also ends when it expires.
+- [x] pytest: sign-in at 23:59 after the reset works, at 24:01 is refused (boundary values); a normal password is never affected.
+- [x] Extra: server-side sessions (`user_sessions`), revoked at sign-out and password change, 30-minute sliding window (NFR-SEC-05).
 
 ### Sang: NFR-COM-03, dates as DD/MM/YYYY
 
@@ -140,7 +141,8 @@ Rules:
 
 ### Thắng: NFR-SEC-02 HTTPS, review, and release
 
-- [ ] Read `LMS_SSL_CERT` and `LMS_SSL_KEY` in `config.py`; when both are set, `LibraryApp.run` uses `ssl_context=(cert, key)` and `SESSION_COOKIE_SECURE` is on. Explain in README how to make a test certificate.
-- [ ] Review and merge the pull requests one at a time; run `pytest` and `docker compose up --build` after each merge.
-- [ ] Add the new test cases from the pull requests to `docs/Test_Cases.xlsx` (TC93 onward) and update `docs/Test_Report.md`.
+- [x] Read `LMS_SSL_CERT` and `LMS_SSL_KEY` in `config.py`; when both are set, `LibraryApp.run` uses `ssl_context=(cert, key)`, `SESSION_COOKIE_SECURE` is on, and every response has a `Strict-Transport-Security` header. A missing file or a missing key stops the start with a clear message. `certs/` is ignored by Git. README explains how to make a test certificate.
+- [x] Review the merged changes; run `pytest` and `docker compose up --build`.
+- [x] Fixed in review: a database error during the daily backup stopped the whole daily job (D13); every start-up made one more daily backup (D14); 5 lines over 80 characters and 5 files without a final newline; a pytest collection warning.
+- [x] Add the new test cases to `docs/Test_Cases.xlsx` (TC93 to TC105) and update `docs/Test_Report.md` (D9 to D14, NFR traceability, 362 tests).
 - [ ] Tag `v1.0.1` and create the GitHub Release.

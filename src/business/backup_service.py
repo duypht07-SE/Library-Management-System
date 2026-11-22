@@ -1,7 +1,7 @@
 import re
 import shutil
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 from typing import Callable
 
@@ -64,6 +64,17 @@ class BackupService:
         destination = self.copy_dir / source.name
         shutil.copy2(source, destination)
         return destination
+
+    def daily_backup_for(self, day: date) -> str | None:
+        """Name of the daily backup already made on ``day``, if any."""
+        if not self.backup_dir.is_dir():
+            return None
+        stamp = day.strftime("%Y%m%d")
+        for path in sorted(self.backup_dir.iterdir()):
+            found = DAILY_PATTERN.match(path.name)
+            if found and found.group(1).startswith(stamp):
+                return path.name
+        return None
 
     def prune_daily(self, folder: Path,
                     keep: int = DAILY_RETENTION) -> int:

@@ -1,12 +1,12 @@
-# Test Report — Release 1.0.0
+# Test Report — Releases 1.0.0 and 1.0.1
 
-Library Management System, Group 06. Test date: 21/11/2026.
+Library Management System, Group 06. Test dates: 21/11/2026 (1.0.0) and 22/11/2026 (1.0.1).
 
 The tests follow the testing process in Chapter 5: design test cases → prepare test data → run the program with the test data → compare the results with the test cases → report.
 
 | Item | Location |
 |---|---|
-| Test cases (course Testing Document Template) | [`docs/Test_Cases.xlsx`](Test_Cases.xlsx), TC01 to TC92 |
+| Test cases (course Testing Document Template) | [`docs/Test_Cases.xlsx`](Test_Cases.xlsx), TC01 to TC105 |
 | Test data | [`docs/test_data/`](test_data/) and the sample data in `src/data/seed.sql` |
 | Automated tests (pytest) | `tests/` |
 | Defects | GitHub Issues, label `bug` (one issue per defect in Section 4) |
@@ -21,7 +21,7 @@ The tests follow the testing process in Chapter 5: design test cases → prepare
 
 ## 2. Automated Tests (Development Testing)
 
-`docker compose run --rm web pytest` and `pytest` on Windows: **311 passed, 0 failed** on both platforms.
+`docker compose run --rm web pytest` and `pytest` on Windows: **362 passed, 0 failed** on both platforms (311 in 1.0.0).
 
 | Level | Files | Tests |
 |---|---|---|
@@ -30,6 +30,7 @@ The tests follow the testing process in Chapter 5: design test cases → prepare
 | System: pages through the Flask test client | `test_pages.py`, `test_auth_pages.py` | 54 |
 | 1.0.0 features (unit + component + system) | `test_staff_roles.py` 19, `test_password_reset.py` 18, `test_audit_log.py` 7, `test_inventory.py` 13, `test_ebooks.py` 18, `test_backup.py` 13 | 88 |
 | Regression tests for the defects in Section 4 | `test_regressions.py` | 5 |
+| 1.0.1 NFR fixes (unit + component + system) | `test_temporary_password.py` 16, `test_session_revocation.py` 16, `test_date_formatting.py` 2, `test_daily_backup.py` 8, `test_https.py` 9 | 51 |
 
 Examples of partitions and boundaries that were tested:
 - Role name of 1, 2, 50, and 51 characters.
@@ -49,6 +50,7 @@ Every test case was run on the 1.0.0 build. The results matched the Expected Res
 | TC37–TC48, TC56, TC58 (rewritten with exact data) | Script that executes each step and checks the expected message | Pass |
 | TC49–TC63 | Docker build with an HTTP script and the system tests in `test_circulation.py` | Pass |
 | TC64–TC92 (new in 1.0.0) | Script that executes each step and checks the expected message; Chrome for the screens | Pass |
+| TC93–TC105 (new in 1.0.1) | Script for TC93–TC100, TC102, TC105; pytest for TC101 and TC103; TC104 on a live HTTPS server (TLS 1.3 negotiated, TLS 1.0 and 1.1 refused, HSTS header, Secure cookie) | Pass |
 
 ## 4. Defects Found and Fixed
 
@@ -62,6 +64,12 @@ Every test case was run on the 1.0.0 build. The results matched the Expected Res
 | D6 | In forms, a button placed directly in the form stretched to the full width (Reports, Backups), and the Add Copy form on Books was pushed to the right | Low | CSS fix | Checked in Chrome |
 | D7 | 26 source lines were longer than 80 characters (coding rule, Chapter 4) | Low | Lines wrapped | Line check in the release checklist |
 | D8 | TC56 and TC58 could not pass with the sample data, TC19 expected 78 tests, and TC37–TC48 had no exact input data | Low | Test cases rewritten | — |
+| D9 | NFR-SEC-05: a temporary password never expired | Medium | 1.0.1 (Duy): 24-hour expiry checked at sign-in, during a session, and at password change; server-side sessions revoked at sign-out and password change | `test_temporary_password.py`, `test_session_revocation.py`, TC93–TC96 |
+| D10 | NFR-COM-03: My Books, Check Out, Check In, Fines, and Password Resets showed dates as YYYY-MM-DD | Low | 1.0.1 (Sang): Jinja filter `date_vn` | `test_date_formatting.py`, TC97, TC98 |
+| D11 | NFR-REL-04: no automatic daily backup and no second copy | Medium | 1.0.1 (Tài): backup at 00:00 to two folders, newest 30 kept | `test_daily_backup.py`, TC99, TC101, TC102 |
+| D12 | NFR-SEC-02: the server could not use HTTPS | Medium | 1.0.1 (Thắng): `LMS_SSL_CERT` and `LMS_SSL_KEY`, HSTS header, Secure cookie | `test_https.py`, TC104, TC105 |
+| D13 | A database error (for example "database is locked") during the daily backup stopped the whole daily job; at 00:00 the scheduler thread ended, so overdue marking and reminders stopped until a restart | High | Database errors are caught and written to the audit log; the scheduler uses `run_safely()` | `test_sqlite_error_*`, `test_run_safely_*`, TC103 |
+| D14 | Every start-up made one more daily backup, so "keep 30" kept 30 runs instead of 30 days | Medium | At most one daily backup per day; a missing second copy is made on the next run | `test_restart_on_same_day_*`, `test_missing_copy_*`, TC100 |
 
 
 ## 5. Requirements Traceability
@@ -101,3 +109,12 @@ Each functional requirement has at least one test case and at least one automate
 | FR-SYS-02 Notifications | TC53, TC60, TC61 | `test_circulation.py` |
 | FR-SYS-03 Expired holds | TC62 | `test_circulation.py` |
 | FR-SYS-04 Permission checks and action log | TC27, TC48, TC63, TC73, TC84 | `test_staff_roles.py`, `test_audit_log.py` |
+
+Non-functional requirements fixed in 1.0.1:
+
+| Requirement | Test cases | Automated tests |
+|---|---|---|
+| NFR-SEC-02 HTTPS with TLS 1.2 or 1.3 | TC104, TC105 | `test_https.py` |
+| NFR-SEC-05 Session timeout, temporary password expiry | TC93–TC96 | `test_temporary_password.py`, `test_session_revocation.py` |
+| NFR-COM-03 Dates as DD/MM/YYYY | TC97, TC98 | `test_date_formatting.py` |
+| NFR-REL-04 Daily backup in two places | TC99–TC103 | `test_daily_backup.py` |

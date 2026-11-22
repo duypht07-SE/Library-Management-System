@@ -12,6 +12,8 @@ instance/
 *.db
 !docs/test_data/*.db
 .env
+# TLS certificates and private keys (NFR-SEC-02)
+certs/
 
 # Editors and OS files
 .vscode/
